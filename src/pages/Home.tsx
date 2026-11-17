@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { SearchWidget } from '../components/SearchWidget'
 import { Destinations } from '../components/Destinations'
+import { PromoDeals } from '../components/PromoDeals'
 import { Icon } from '../components/Icons'
 // @ts-ignore — provider configuration is intentionally kept as plain JavaScript for easy editing.
 import { TRAVEL_PROVIDERS } from '../config/travelProviders.js'
@@ -40,6 +41,7 @@ export function Home() {
       <button type="button" onClick={()=>setConfidenceOpen(true)} className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#FF5500] text-white shadow-md shadow-orange-200"><Icon name="shieldCheck" className="size-6" strokeWidth={2}/></span><span><span className="block text-sm font-bold text-[#172B4D]">Travel with confidence</span><span className="mt-1 block text-xs leading-5 text-slate-600">Check final prices and booking terms with providers.</span></span><Icon name="arrowRight" className="ml-auto size-4 text-[#FF5500]"/></button>
     </div></section>
     <Destinations/>
+    <PromoDeals />
     <section className="bg-white py-10">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Travel partners</p>
