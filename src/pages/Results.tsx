@@ -7,7 +7,21 @@ import { getAffiliatePartners } from '../lib/affiliates'
 import { usePrefs } from '../lib/prefs'
 
 type SortMode = 'Best' | 'Cheapest' | 'Fastest'
-const AIRLINES = ['Emirates', 'PIA', 'flydubai', 'Airblue', 'Gulf Air', 'Etihad']
+const AIRLINE_CODES: Record<string, string> = {
+  'Emirates':'EK', 'PIA':'PK', 'flydubai':'FZ', 'Airblue':'PA',
+  'Gulf Air':'GF', 'Etihad':'EY', 'Qatar Airways':'QR',
+  'Turkish Airlines':'TK', 'Saudia':'SV', 'Thai Airways':'TG',
+}
+function airlineName(deal: Deal) { return deal.title.split(' · ')[0] }
+function durationText(minutes: number) { return Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m' }
+function AirlineLogo({ name, size='size-10' }: { name: string; size?: string }) {
+  const [failed,setFailed] = useState(false)
+  const code = AIRLINE_CODES[name]
+  return <span className={'grid '+size+' shrink-0 place-items-center overflow-hidden rounded-xl border border-slate-100 bg-white p-1 shadow-sm'}>
+    {code && !failed ? <img src={'https://www.gstatic.com/flights/airline_logos/70px/'+code+'.png'} alt="" loading="lazy" className="max-h-full max-w-full object-contain" onError={()=>setFailed(true)}/> : <span aria-label={name} className="text-xs font-extrabold text-[#D94700]">{name.split(/\s+/).map(v=>v[0]).join('').slice(0,3).toUpperCase()}</span>}
+  </span>
+}
+const AIRLINES = ['Emirates', 'Qatar Airways', 'PIA', 'flydubai', 'Airblue', 'Gulf Air', 'Etihad', 'Turkish Airlines', 'Saudia', 'Thai Airways']
 function FilterGroup({ title, children }: { title: string; children: ReactNode }) {
   return <section className="border-t border-slate-200 py-4"><h3 className="mb-2 text-sm font-bold text-slate-900">{title}</h3>{children}</section>
 }
@@ -16,11 +30,11 @@ function OfferCard({ deal }: { deal: Deal }) {
   return <article className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-orange-300 hover:shadow-md sm:p-5">
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-[#FFF0E6] text-sm font-extrabold text-[#D94700]">{deal.title.slice(0,2).toUpperCase()}</div>
-        <div className="min-w-0"><p className="font-bold text-slate-900">{deal.title}</p><p className="mt-1 text-xs text-slate-600">{deal.subtitle}</p><div className="mt-2 flex flex-wrap gap-2">{deal.perks.map(perk=><span key={perk} className="rounded-full bg-[#FFF7F2] px-2.5 py-1 text-[10px] font-medium text-slate-600">{perk}</span>)}</div></div>
+        <AirlineLogo name={airlineName(deal)} size="size-12"/>
+        <div className="min-w-0"><p className="font-bold text-slate-900">{airlineName(deal)}</p><p className="mt-1 text-xs text-slate-600">{deal.subtitle}</p><div className="mt-2 flex flex-wrap gap-2">{deal.perks.map(perk=><span key={perk} className="rounded-full bg-[#FFF7F2] px-2.5 py-1 text-[10px] font-medium text-slate-600">{perk}</span>)}</div></div>
       </div>
       <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:min-w-[190px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-        <div className="sm:text-right"><p className="text-[11px] text-slate-500">{deal.priceUnit}</p><p className="text-2xl font-bold tracking-tight text-slate-900">{money(deal.price)}</p><p className="text-[10px] text-slate-500">Indicative estimate</p></div>
+        <div className="sm:text-right"><p className="text-[11px] text-slate-500">{deal.priceUnit}</p><p className="text-2xl font-bold tracking-tight text-slate-900">{money(deal.price)}</p><p className="text-[10px] text-slate-500">Indicative estimate</p>{deal.title.includes(" · ") && <p className="mt-1 text-[10px] text-slate-500">Flight number shown on partner site</p>}</div>
         <a href={deal.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#E64A00]">View Deal <Icon name="arrowUpRight" className="size-4"/></a>
       </div>
     </div>
@@ -40,7 +54,8 @@ export function Results() {
   const [baggage,setBaggage] = useState(false)
   const [sort,setSort] = useState<SortMode>('Best')
   const toggle=(list:string[],value:string,setter:(v:string[])=>void)=>setter(list.includes(value)?list.filter(v=>v!==value):[...list,value])
-  const filtered=useMemo(()=>deals.filter(d=>d.price<=cap).filter(d=>!stops.length||stops.includes(d.direct?'Non-stop':'1 stop')).filter(d=>!airlines.length||airlines.some(a=>d.title.toLowerCase().includes(a.toLowerCase()))).filter(d=>!baggage||d.perks.some(p=>/bag/i.test(p))).sort((a,b)=>sort==='Cheapest'?a.price-b.price:sort==='Fastest'?a.durationMinutes-b.durationMinutes:b.score-a.score),[deals,cap,stops,airlines,baggage,sort])
+  const eligibleDeals=useMemo(()=>deals.filter(d=>d.price<=cap).filter(d=>!stops.length||stops.includes(d.direct?'Non-stop':'1 stop')).filter(d=>!airlines.length||airlines.some(a=>d.title.toLowerCase().includes(a.toLowerCase()))).filter(d=>!baggage||d.perks.some(p=>/bag/i.test(p))),[deals,cap,stops,airlines,baggage])
+  const filtered=useMemo(()=>[...eligibleDeals].sort((a,b)=>sort==='Cheapest'?a.price-b.price:sort==='Fastest'?a.durationMinutes-b.durationMinutes:b.score-a.score),[eligibleDeals,sort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
   const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' → '+query.to
   return <div className="min-h-screen bg-[#FFF7F2] pb-16 pt-8">
@@ -62,7 +77,14 @@ export function Results() {
         </aside>
         <section className="min-w-0">
           {transfer ? <div className="rounded-xl border border-orange-100 bg-white p-8"><span className="inline-flex size-11 items-center justify-center rounded-xl bg-orange-50 text-[#FF5500]"><Icon name="car" className="size-5"/></span><h2 className="mt-4 text-lg font-bold text-slate-900">Choose an airport transfer partner</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Your route details are ready. Select Kiwitaxi or GetTransfer.com above to open its official tracked booking page. Final vehicle options, prices and availability are provided by the partner.</p><Link to="/?tab=transfers#search-widget" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-2.5 text-sm font-bold text-white">Edit transfer search</Link></div> : <>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">{filtered.length} options to compare</h2><p className="mt-1 text-xs text-slate-600">Select a provider to continue</p></div><div className="flex rounded-lg border border-slate-200 bg-white p-1">{(['Best','Cheapest','Fastest'] as SortMode[]).map(v=><button key={v} onClick={()=>setSort(v)} className={`rounded-md px-3 py-2 text-xs font-bold ${sort===v?'bg-[#D94700] text-white':'text-slate-600 hover:bg-slate-100'}`}>{v}</button>)}</div></div>
+            <div className="mb-4"><h2 className="font-bold text-slate-900">{filtered.length} options to compare</h2><p className="mt-1 text-xs text-slate-600">Select a provider to continue</p></div>
+            {query.type==='flights' ? <div className="mb-5 grid gap-3 md:grid-cols-3">{(['Best','Cheapest','Fastest'] as SortMode[]).map(mode=>{
+              const chosen = mode==='Cheapest' ? [...eligibleDeals].sort((a,b)=>a.price-b.price)[0] : mode==='Fastest' ? [...eligibleDeals].sort((a,b)=>a.durationMinutes-b.durationMinutes)[0] : [...eligibleDeals].sort((a,b)=>b.score-a.score)[0]
+              return <button key={mode} type="button" disabled={!chosen} onClick={()=>setSort(mode)} aria-pressed={sort===mode} className={'group min-h-[150px] rounded-2xl border-2 p-4 text-left shadow-[0_8px_20px_rgba(25,35,55,.09)] transition hover:-translate-y-1 hover:border-[#FF5A00] hover:shadow-[0_14px_28px_rgba(255,90,0,.16)] disabled:opacity-50 '+(sort===mode?'border-[#FF5A00] bg-[#FF5A00] text-white shadow-[0_12px_28px_rgba(255,90,0,.28)]':'border-white bg-white text-slate-900')}>
+                <span className="block text-lg font-extrabold">{mode}</span>
+                {chosen ? <><span className="mt-1 block text-2xl font-black tracking-tight">{money(chosen.price)}</span><span className={'mt-1 block text-xs font-semibold '+(sort===mode?'text-white/90':'text-slate-500')}>{durationText(chosen.durationMinutes)} · {airlineName(chosen)}</span><span className={'mt-3 flex items-center gap-2 text-xs font-bold '+(sort===mode?'text-white':'text-slate-700')}><AirlineLogo name={airlineName(chosen)} size="size-8"/><span>Flight number on partner site</span></span></> : <span className="mt-2 block text-xs">No matching offers</span>}
+              </button>
+            })}</div> : <div className="mb-4 flex gap-2">{(['Best','Cheapest','Fastest'] as SortMode[]).map(v=><button key={v} onClick={()=>setSort(v)} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===v?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50')}>{v}</button>)}</div>}
             <div className="space-y-3">{filtered.length?filtered.map(deal=><OfferCard key={deal.id} deal={deal}/>):<div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No offers match these filters. Reset your filters to see all options.</div>}</div>
             <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700">Trexifly currently displays illustrative comparison estimates, not live inventory. These are not guaranteed fares, room rates or vehicle availability. Confirm the final price, taxes, terms and availability with the booking provider before paying.</div>
           </>}

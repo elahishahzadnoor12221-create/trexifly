@@ -19,8 +19,8 @@ export function Logo({ className }: { className?: string }) {
   return <Link to="/" aria-label="Trexifly home" className={cx('flex shrink-0 items-center', className)}>
     <img
       src="/trexifly-logo.png"
-      alt="Trexifly Ã¢â‚¬â€ Worldwide travel discovery"
-      className="h-11 w-[158px] rounded-lg bg-white px-1.5 py-1 object-contain shadow-md"
+      alt="Trexifly — Worldwide travel discovery"
+      className="h-11 w-[158px] object-contain drop-shadow-[0_3px_8px_rgba(255,255,255,.32)]"
       width={500}
       height={140}
     />
@@ -65,7 +65,7 @@ function PrefsMenu() {
     : fxStatus === 'cached'
       ? 'Using recently cached exchange rates.'
       : fxStatus === 'loading'
-        ? 'Loading current reference exchange ratesÃ¢â‚¬Â¦'
+        ? 'Loading current reference exchange rates…'
         : 'Live rates are unavailable. Supported fallback rates are shown; other currencies remain in USD.'
 
   return (
@@ -79,7 +79,7 @@ function PrefsMenu() {
       >
         <span className="text-[#FFB800]">{symbol}</span>
         <span>{currency}</span>
-        <span className="text-slate-400">Ã‚Â·</span>
+        <span className="text-slate-400">·</span>
         <span className="text-slate-500">{short}</span>
         <Icon name="chevronDown" className={cx('size-3.5 text-faint transition', open && 'rotate-180')} />
       </button>
@@ -94,7 +94,7 @@ function PrefsMenu() {
             <div>
               <h2 className="font-display text-base font-semibold text-ink">Select your currency</h2>
               <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                Where applicable, prices will be converted toÃ¢â‚¬â€and shown inÃ¢â‚¬â€the currency you select. The currency you pay in may differ based on your reservation, and a service fee may also apply.
+                Where applicable, prices will be converted to—and shown in—the currency you select. The currency you pay in may differ based on your reservation, and a service fee may also apply.
               </p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close currency selector" className="rounded-full p-1.5 text-muted hover:bg-white/10 hover:text-ink">
@@ -169,7 +169,7 @@ function PrefsMenu() {
               <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-700">Property's currency</span>
-                  <span className="text-sm font-semibold text-slate-500">Ã¢â€šÂ¬ $ Ã‚Â£</span>
+                  <span className="text-sm font-semibold text-slate-500">€ $ £</span>
                 </div>
                 <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
                   Original property currency will be shown when the booking partner provides it.
@@ -236,7 +236,7 @@ export function Header() {
       {notice && <div role="dialog" aria-modal="true" className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 p-4" onClick={() => setNotice('')}><div className="max-w-md rounded-2xl bg-white p-6 text-slate-900 shadow-2xl" onClick={e => e.stopPropagation()}><h2 className="text-lg font-bold">Trexifly</h2><p className="mt-2 text-sm leading-6 text-slate-600">{notice}</p><button onClick={() => setNotice('')} className="mt-5 rounded-lg bg-[#FF5500] px-5 py-2.5 text-sm font-bold text-white">Close</button></div></div>}
       {authMode && <div role="dialog" aria-modal="true" aria-labelledby="trexifly-auth-title" className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/65 p-4 backdrop-blur-sm" onClick={()=>setAuthMode(null)}>
         <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_30px_90px_rgba(80,25,0,.35)]" onClick={e=>e.stopPropagation()}>
-          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">Ãƒâ€”</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
+          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">×</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
           <div className="p-6"><div className="mb-5 grid grid-cols-2 rounded-xl bg-orange-50 p-1"><button type="button" onClick={()=>{setAuthMode('signin');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='signin'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Sign in</button><button type="button" onClick={()=>{setAuthMode('register');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='register'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Register</button></div>
             <form onSubmit={(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();setAuthMessage('Your details passed browser validation. Secure account sign-in/registration is not connected yet; no password has been saved.')}} className="space-y-3">
               {authMode==='register'&&<label className="block text-xs font-semibold text-slate-600">Full name<input required minLength={2} value={authName} onChange={e=>setAuthName(e.target.value)} autoComplete="name" className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-3 text-sm text-slate-900 outline-none focus:border-[#FF5500]" placeholder="Your name"/></label>}
@@ -303,7 +303,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-gray-100 px-4 py-4 text-center text-xs text-gray-500">
-        <p>Â© {new Date().getFullYear()} Trexifly. All rights reserved. We may earn a commission when you book through our partner links at no extra cost to you.</p>
+        <p>© {new Date().getFullYear()} Trexifly. All rights reserved. We may earn a commission when you book through our partner links at no extra cost to you.</p>
         <p className="mt-1">Prices shown in {currency} may be indicative; confirm availability, taxes and final prices with the booking partner.</p>
       </div>
     </footer>

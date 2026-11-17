@@ -12,52 +12,52 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'transfers', label: 'Airport Transfers', icon: 'car' },
 ]
 const AIRPORTS = [
-  'Lahore (LHE) Ã¢â‚¬â€ Pakistan',
-  'Islamabad (ISB) Ã¢â‚¬â€ Pakistan',
-  'Karachi (KHI) Ã¢â‚¬â€ Pakistan',
-  'Peshawar (PEW) Ã¢â‚¬â€ Pakistan',
-  'Quetta (UET) Ã¢â‚¬â€ Pakistan',
-  'Multan (MUX) Ã¢â‚¬â€ Pakistan',
-  'Faisalabad (LYP) Ã¢â‚¬â€ Pakistan',
-  'Skardu (KDU) Ã¢â‚¬â€ Pakistan',
-  'Gilgit (GIL) Ã¢â‚¬â€ Pakistan',
-  'Dubai (DXB) Ã¢â‚¬â€ United Arab Emirates',
-  'Abu Dhabi (AUH) Ã¢â‚¬â€ United Arab Emirates',
-  'Jeddah (JED) Ã¢â‚¬â€ Saudi Arabia',
-  'Madinah (MED) Ã¢â‚¬â€ Saudi Arabia',
-  'Riyadh (RUH) Ã¢â‚¬â€ Saudi Arabia',
-  'Doha (DOH) Ã¢â‚¬â€ Qatar',
-  'Muscat (MCT) Ã¢â‚¬â€ Oman',
-  'Kuwait (KWI) Ã¢â‚¬â€ Kuwait',
-  'Bahrain (BAH) Ã¢â‚¬â€ Bahrain',
-  'London (LHR) Ã¢â‚¬â€ United Kingdom',
-  'Manchester (MAN) Ã¢â‚¬â€ United Kingdom',
-  'Istanbul (IST) Ã¢â‚¬â€ TÃƒÂ¼rkiye',
-  'Baku (GYD) Ã¢â‚¬â€ Azerbaijan',
-  'Paris (CDG) Ã¢â‚¬â€ France',
-  'Madrid (MAD) Ã¢â‚¬â€ Spain',
-  'Barcelona (BCN) Ã¢â‚¬â€ Spain',
-  'Frankfurt (FRA) Ã¢â‚¬â€ Germany',
-  'Rome (FCO) Ã¢â‚¬â€ Italy',
-  'Amsterdam (AMS) Ã¢â‚¬â€ Netherlands',
-  'New York (JFK) Ã¢â‚¬â€ United States',
-  'Toronto (YYZ) Ã¢â‚¬â€ Canada',
-  'Los Angeles (LAX) Ã¢â‚¬â€ United States',
-  'Chicago (ORD) Ã¢â‚¬â€ United States',
-  'Vancouver (YVR) Ã¢â‚¬â€ Canada',
-  'Tokyo (HND) Ã¢â‚¬â€ Japan',
-  'Singapore (SIN) Ã¢â‚¬â€ Singapore',
-  'Kuala Lumpur (KUL) Ã¢â‚¬â€ Malaysia',
-  'Bangkok (BKK) Ã¢â‚¬â€ Thailand',
-  'Seoul (ICN) Ã¢â‚¬â€ South Korea',
-  'Hong Kong (HKG) Ã¢â‚¬â€ Hong Kong',
-  'MalÃƒÂ© (MLE) Ã¢â‚¬â€ Maldives',
-  'Sydney (SYD) Ã¢â‚¬â€ Australia',
-  'Zurich (ZRH) Ã¢â‚¬â€ Switzerland',
-  'Delhi (DEL) Ã¢â‚¬â€ India',
-  'Mumbai (BOM) Ã¢â‚¬â€ India',
-  'Cairo (CAI) Ã¢â‚¬â€ Egypt',
-  'Cape Town (CPT) Ã¢â‚¬â€ South Africa'
+  'Lahore (LHE) — Pakistan',
+  'Islamabad (ISB) — Pakistan',
+  'Karachi (KHI) — Pakistan',
+  'Peshawar (PEW) — Pakistan',
+  'Quetta (UET) — Pakistan',
+  'Multan (MUX) — Pakistan',
+  'Faisalabad (LYP) — Pakistan',
+  'Skardu (KDU) — Pakistan',
+  'Gilgit (GIL) — Pakistan',
+  'Dubai (DXB) — United Arab Emirates',
+  'Abu Dhabi (AUH) — United Arab Emirates',
+  'Jeddah (JED) — Saudi Arabia',
+  'Madinah (MED) — Saudi Arabia',
+  'Riyadh (RUH) — Saudi Arabia',
+  'Doha (DOH) — Qatar',
+  'Muscat (MCT) — Oman',
+  'Kuwait (KWI) — Kuwait',
+  'Bahrain (BAH) — Bahrain',
+  'London (LHR) — United Kingdom',
+  'Manchester (MAN) — United Kingdom',
+  'Istanbul (IST) — TÃƒÂ¼rkiye',
+  'Baku (GYD) — Azerbaijan',
+  'Paris (CDG) — France',
+  'Madrid (MAD) — Spain',
+  'Barcelona (BCN) — Spain',
+  'Frankfurt (FRA) — Germany',
+  'Rome (FCO) — Italy',
+  'Amsterdam (AMS) — Netherlands',
+  'New York (JFK) — United States',
+  'Toronto (YYZ) — Canada',
+  'Los Angeles (LAX) — United States',
+  'Chicago (ORD) — United States',
+  'Vancouver (YVR) — Canada',
+  'Tokyo (HND) — Japan',
+  'Singapore (SIN) — Singapore',
+  'Kuala Lumpur (KUL) — Malaysia',
+  'Bangkok (BKK) — Thailand',
+  'Seoul (ICN) — South Korea',
+  'Hong Kong (HKG) — Hong Kong',
+  'MalÃƒ© (MLE) — Maldives',
+  'Sydney (SYD) — Australia',
+  'Zurich (ZRH) — Switzerland',
+  'Delhi (DEL) — India',
+  'Mumbai (BOM) — India',
+  'Cairo (CAI) — Egypt',
+  'Cape Town (CPT) — South Africa'
 ]
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Muscat, Oman","Istanbul, TÃƒÂ¼rkiye","Antalya, TÃƒÂ¼rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","SÃƒÂ£o Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
@@ -142,7 +142,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [back, setBack] = useState(initial?.back ?? isoIn(28))
   const [trip, setTrip] = useState('Round-trip')
   const [pax, setPax] = useState(initial?.pax ?? '1 adult, Economy')
-  const [rooms, setRooms] = useState('2 adults Ã‚Â· 0 children Ã‚Â· 1 room')
+  const [rooms, setRooms] = useState('2 adults · 0 children · 1 room')
   const [pickup, setPickup] = useState('Dubai International Airport')
   const transferCountryCode = (() => { const v=pickup.toLowerCase(); const match=v.match(/\(([a-z]{3})\)/i); const code=match?.[1]?.toUpperCase(); const byCode:Record<string,string>={DXB:'ae',AUH:'ae',JED:'sa',MED:'sa',RUH:'sa',LHR:'gb',MAN:'gb',IST:'tr',LHE:'pk',ISB:'pk',KHI:'pk',PEW:'pk',UET:'pk',MUX:'pk',LYP:'pk',KDU:'pk',GIL:'pk'}; if(code&&byCode[code])return byCode[code]; if(/dubai|abu dhabi|sharjah|ajman|ras al khaimah|fujairah|al ain|united arab emirates|\buae\b/i.test(v))return 'ae'; if(/jeddah|madinah|riyadh|makkah|saudi arabia/i.test(v))return 'sa'; if(/london|manchester|united kingdom|\buk\b/i.test(v))return 'gb'; if(/istanbul|turkey|tÃ¼rkiye|turkiye/i.test(v))return 'tr'; if(/lahore|islamabad|karachi|pakistan/i.test(v))return 'pk'; return undefined })()
   const [dropoff, setDropoff] = useState('Dubai International Airport')
@@ -196,7 +196,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={WORLD_DESTINATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
         <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" />
-        <SelectField title="Guests and rooms" value={rooms} onChange={setRooms} options={['2 adults Ã‚Â· 0 children Ã‚Â· 1 room','1 adult Ã‚Â· 0 children Ã‚Â· 1 room','2 adults Ã‚Â· 1 child Ã‚Â· 1 room','2 adults Ã‚Â· 0 children Ã‚Â· 2 rooms']} />
+        <SelectField title="Guests and rooms" value={rooms} onChange={setRooms} options={['2 adults · 0 children · 1 room','1 adult · 0 children · 1 room','2 adults · 1 child · 1 room','2 adults · 0 children · 2 rooms']} />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'hotels' && <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><Check><input type="checkbox" checked={entireHome} onChange={e => setEntireHome(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm looking for an entire home or apartment</Check><Check><input type="checkbox" checked={workTrip} onChange={e => setWorkTrip(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm traveling for work</Check></div>}
@@ -206,7 +206,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <LocationField fieldId="flight-to" title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={FLIGHT_LOCATIONS.filter(a => a !== from)} />
         <TextField title="Departure" value={depart} onChange={setDepart} placeholder="Departure" type="date" />
         {trip === 'Round-trip' && <TextField title="Return" value={back} onChange={setBack} placeholder="Return" type="date" />}
-        <SelectField title="Travellers Ã‚Â· class" value={pax} onChange={setPax} options={['1 adult, Economy','2 adults, Economy','1 adult, Business','2 adults, Business','3 adults, Economy']} />
+        <SelectField title="Travellers · class" value={pax} onChange={setPax} options={['1 adult, Economy','2 adults, Economy','1 adult, Business','2 adults, Business','3 adults, Economy']} />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'cars' && <><div className="flex flex-col sm:flex-row sm:items-stretch">
@@ -216,7 +216,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" />
         <TextField title="Time" value={dropTime} onChange={setDropTime} placeholder="10:00 AM" type="time" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
-      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30 Ã¢â‚¬â€œ 65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
+      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30–65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
       {tab === 'tours' && <div className="flex flex-col sm:flex-row sm:items-stretch">
         <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={WORLD_DESTINATIONS} />
         <TextField title="Dates" value={activityDate} onChange={setActivityDate} placeholder="Select dates" type="date" />
