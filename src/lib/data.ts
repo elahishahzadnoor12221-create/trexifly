@@ -23,7 +23,7 @@ export type SearchQuery = {
   pkg: string
 }
 
-export type Place = { city: string; code: string; country: string }
+export type Place = { city: string; code?: string; country: string }
 
 export const PLACES: Place[] = [
   { city: 'Lahore', code: 'LHE', country: 'Pakistan' },
@@ -35,6 +35,8 @@ export const PLACES: Place[] = [
   { city: 'Faisalabad', code: 'LYP', country: 'Pakistan' },
   { city: 'Skardu', code: 'KDU', country: 'Pakistan' },
   { city: 'Gilgit', code: 'GIL', country: 'Pakistan' },
+  { city: 'Hunza', country: 'Pakistan' },
+  { city: 'Swat', country: 'Pakistan' },
   { city: 'Dubai', code: 'DXB', country: 'United Arab Emirates' },
   { city: 'Abu Dhabi', code: 'AUH', country: 'United Arab Emirates' },
   { city: 'Jeddah', code: 'JED', country: 'Saudi Arabia' },
@@ -75,8 +77,8 @@ export const PLACES: Place[] = [
 ]
 
 export const AIRPORT_OPTIONS = PLACES.map((place) => ({
-  value: `${place.city} (${place.code})`,
-  label: `${place.city} (${place.code}) · ${place.country}`,
+  value: place.code ? `${place.city} (${place.code})` : place.city,
+  label: place.code ? `${place.city} (${place.code}) · ${place.country}` : `${place.city} · ${place.country}`,
 }))
 
 export const HOTEL_CITIES = ['Dubai', 'Istanbul', 'London', 'Hunza', 'Skardu', 'Islamabad']
