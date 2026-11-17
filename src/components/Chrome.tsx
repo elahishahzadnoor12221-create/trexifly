@@ -16,16 +16,14 @@ const NAV: NavItem[] = [
 ]
 
 export function Logo({ className }: { className?: string }) {
-  return <Link to="/" aria-label="Trexifly home" className={cx('flex shrink-0 items-center gap-2.5', className)}>
-    <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-[#FFB800] via-[#F36B16] to-[#B92B16] shadow-md shadow-orange-900/20">
-      <svg viewBox="0 0 40 40" className="size-8" fill="none" aria-hidden="true">
-        <circle cx="20" cy="20" r="15" stroke="#FFF4E9" strokeWidth="1.6" strokeDasharray="5 3"/>
-        <path d="M20 3 24 16 37 20 24 24 20 37 16 24 3 20 16 16 20 3Z" fill="#FFF4E9"/>
-        <path d="m12 27 16-15-6 12-10 3Z" fill="#B92B16" stroke="#FFF4E9" strokeWidth="1"/>
-        <circle cx="20" cy="20" r="3" fill="#F36B16" stroke="#FFF4E9" strokeWidth="1.5"/>
-      </svg>
-    </span>
-    <span className="font-display text-[20px] font-extrabold tracking-tight text-white">Trexi<span className="text-[#FFB800]">fly</span><span className="mt-[-2px] block text-[7px] font-bold uppercase tracking-[.16em] text-orange-100">Worldwide travel discovery</span></span>
+  return <Link to="/" aria-label="Trexifly home" className={cx('flex shrink-0 items-center', className)}>
+    <img
+      src="/trexifly-logo.png"
+      alt="Trexifly — Worldwide travel discovery"
+      className="h-11 w-[158px] rounded-lg bg-white px-1.5 py-1 object-contain shadow-md"
+      width={500}
+      height={140}
+    />
   </Link>
 }
 

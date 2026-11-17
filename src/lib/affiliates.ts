@@ -9,14 +9,16 @@ import type { ProviderId, SearchQuery } from './data'
  *    and opens in a new tab with `rel="sponsored"`.
  * 3. For white-label banner/booking widgets use `<AffiliateWidgetSlot />`.
  */
+/** Verified Travelpayouts partner marker. */
+export const TRAVELPAYOUTS_MARKER_ID = '601763'
+
+/**
+ * IDs are provider-specific. The verified Travelpayouts marker is valid for
+ * the Aviasales/Travelpayouts link only; other brands must use their own
+ * generated Travelpayouts deep links or partner-program IDs.
+ */
 export const AFFILIATE_IDS: Partial<Record<ProviderId, string>> = {
-  aviasales: '601763',
-  // booking: 'YOUR_AID',
-  // agoda: 'YOUR_CID',
-  // aviasales: 'YOUR_MARKER',
-  // trip: 'YOUR_ALLIANCE_ID',
-  // kiwi: 'YOUR_AFFILID',
-  // expedia: 'YOUR_AFFCID',
+  aviasales: TRAVELPAYOUTS_MARKER_ID,
 }
 
 /** Query-string name each network uses for its tracking ID. */
