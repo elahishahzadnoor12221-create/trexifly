@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
 import { cx } from '../lib/cx'
@@ -19,8 +19,8 @@ export function Logo({ className }: { className?: string }) {
   return <Link to="/" aria-label="Trexifly home" className={cx('flex shrink-0 items-center', className)}>
     <img
       src="/trexifly-logo.png"
-      alt="Trexifly — Worldwide travel discovery"
-      className="h-11 w-[158px] object-contain drop-shadow-[0_3px_8px_rgba(255,255,255,.32)]"
+      alt="Trexifly â€” Worldwide travel discovery"
+      className="h-12 w-[174px] object-contain"
       width={500}
       height={140}
     />
@@ -65,7 +65,7 @@ function PrefsMenu() {
     : fxStatus === 'cached'
       ? 'Using recently cached exchange rates.'
       : fxStatus === 'loading'
-        ? 'Loading current reference exchange rates…'
+        ? 'Loading current reference exchange ratesâ€¦'
         : 'Live rates are unavailable. Supported fallback rates are shown; other currencies remain in USD.'
 
   return (
@@ -79,7 +79,7 @@ function PrefsMenu() {
       >
         <span className="text-[#FFB800]">{symbol}</span>
         <span>{currency}</span>
-        <span className="text-slate-400">·</span>
+        <span className="text-slate-400">Â·</span>
         <span className="text-slate-500">{short}</span>
         <Icon name="chevronDown" className={cx('size-3.5 text-faint transition', open && 'rotate-180')} />
       </button>
@@ -94,7 +94,7 @@ function PrefsMenu() {
             <div>
               <h2 className="font-display text-base font-semibold text-ink">Select your currency</h2>
               <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                Where applicable, prices will be converted to—and shown in—the currency you select. The currency you pay in may differ based on your reservation, and a service fee may also apply.
+                Where applicable, prices will be converted toâ€”and shown inâ€”the currency you select. The currency you pay in may differ based on your reservation, and a service fee may also apply.
               </p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close currency selector" className="rounded-full p-1.5 text-muted hover:bg-white/10 hover:text-ink">
@@ -169,7 +169,7 @@ function PrefsMenu() {
               <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-700">Property's currency</span>
-                  <span className="text-sm font-semibold text-slate-500">€ $ £</span>
+                  <span className="text-sm font-semibold text-slate-500">â‚¬ $ Â£</span>
                 </div>
                 <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
                   Original property currency will be shown when the booking partner provides it.
@@ -214,29 +214,33 @@ export function Header() {
   const [authEmail, setAuthEmail] = useState('')
   const [authName, setAuthName] = useState('')
   const [authPassword, setAuthPassword] = useState('')
+  useEffect(() => { const openAccount = () => { setAuthMode('signin'); setAuthMessage('') }; window.addEventListener('trexifly:open-account', openAccount); return () => window.removeEventListener('trexifly:open-account', openAccount) }, [])
   const activeTab = params.get('tab') ?? (params.get('service') === 'airport-transfer' ? 'transfers' : params.get('type') === 'hotels' ? 'hotels' : params.get('type') === 'cars' ? 'cars' : params.get('type') === 'tours' ? 'tours' : 'hotels')
   const isActive = (key: string) => pathname === '/' ? activeTab === key : (params.get('type') === key || (key === 'transfers' && params.get('service') === 'airport-transfer'))
   return (
-    <header className="site-header relative z-50 border-b border-[#B93600] bg-[#B93600] text-white shadow-[0_4px_18px_rgba(0,25,80,.22)]">
+    <header className="site-header relative z-50 border-b border-orange-100 bg-white text-slate-900 shadow-[0_4px_18px_rgba(15,23,42,.06)]">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
         <div className="flex min-h-[72px] items-center justify-between gap-4">
           <Logo />
-          <div className="flex items-center gap-2 sm:gap-4">
+                  <nav aria-label="Travel categories" className="no-scrollbar hidden min-w-0 flex-1 justify-center gap-1 overflow-x-auto lg:flex">
+          {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
+        </nav>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-4">
             <PrefsMenu />
-            <a href="#help" className="hidden rounded-lg px-2 py-2 text-sm font-semibold text-white/90 hover:bg-white/10 hover:text-[#FFB800] sm:inline-flex">Help <span className="ml-1">?</span></a>
-            <button onClick={() => setNotice('Property partner listings are not available yet. Contact Trexifly to discuss a listing integration.')} className="hidden text-sm font-semibold text-white/90 hover:text-[#FFB800] md:inline-flex">List your property</button>
-            <button onClick={() => {setAuthMode('register');setAuthMessage('')}} className="rounded-lg border border-white/70 px-3 py-2 text-sm font-semibold text-white hover:bg-white/10">Register</button>
-            <button onClick={() => {setAuthMode('signin');setAuthMessage('')}} className="rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#D94700] shadow-sm hover:bg-orange-50">Sign in</button>
+            <a href="#help" className="hidden rounded-lg px-2 py-2 text-sm font-semibold text-slate-600 hover:bg-orange-50 hover:text-[#FF5500] sm:inline-flex">Help <span className="ml-1">?</span></a>
+            <button onClick={() => setNotice('Property partner listings are not available yet. Contact Trexifly to discuss a listing integration.')} className="hidden text-sm font-semibold text-slate-600 hover:text-[#FF5500] md:inline-flex">List your property</button>
+            <button onClick={() => {setAuthMode('register');setAuthMessage('')}} className="rounded-lg border border-orange-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-orange-50">Register</button>
+            <button onClick={() => {setAuthMode('signin');setAuthMessage('')}} className="rounded-lg bg-[#FF5500] px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00]">Account</button>
           </div>
         </div>
-        <nav aria-label="Travel categories" className="no-scrollbar flex gap-2 overflow-x-auto pb-4">
-          {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-white bg-white/15 text-white shadow-[0_5px_16px_rgba(0,0,0,.12)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-[#D94C0B]' : 'text-[#FFB800]')} />{item.short}</Link>)}
+                <nav aria-label="Travel categories" className="no-scrollbar flex gap-2 overflow-x-auto pb-3 lg:hidden">
+          {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
         </nav>
       </div>
       {notice && <div role="dialog" aria-modal="true" className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 p-4" onClick={() => setNotice('')}><div className="max-w-md rounded-2xl bg-white p-6 text-slate-900 shadow-2xl" onClick={e => e.stopPropagation()}><h2 className="text-lg font-bold">Trexifly</h2><p className="mt-2 text-sm leading-6 text-slate-600">{notice}</p><button onClick={() => setNotice('')} className="mt-5 rounded-lg bg-[#FF5500] px-5 py-2.5 text-sm font-bold text-white">Close</button></div></div>}
       {authMode && <div role="dialog" aria-modal="true" aria-labelledby="trexifly-auth-title" className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/65 p-4 backdrop-blur-sm" onClick={()=>setAuthMode(null)}>
         <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_30px_90px_rgba(80,25,0,.35)]" onClick={e=>e.stopPropagation()}>
-          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">×</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
+          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">Ã—</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
           <div className="p-6"><div className="mb-5 grid grid-cols-2 rounded-xl bg-orange-50 p-1"><button type="button" onClick={()=>{setAuthMode('signin');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='signin'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Sign in</button><button type="button" onClick={()=>{setAuthMode('register');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='register'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Register</button></div>
             <form onSubmit={(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();setAuthMessage('Your details passed browser validation. Secure account sign-in/registration is not connected yet; no password has been saved.')}} className="space-y-3">
               {authMode==='register'&&<label className="block text-xs font-semibold text-slate-600">Full name<input required minLength={2} value={authName} onChange={e=>setAuthName(e.target.value)} autoComplete="name" className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-3 text-sm text-slate-900 outline-none focus:border-[#FF5500]" placeholder="Your name"/></label>}
@@ -266,12 +270,23 @@ export function Footer() {
           <p className="mt-2 max-w-xs text-sm leading-relaxed text-gray-600">
             Compare flights, hotels, airport transfers, and explore Northern Pakistan and global adventures.
           </p>
+          <div aria-label="Social channels" className="mt-4 flex items-center gap-3 text-[#FF5500]">
+            <span aria-label="Instagram" title="Instagram"><Icon name="instagram" className="size-5"/></span>
+            <span aria-label="Facebook" title="Facebook"><Icon name="facebook" className="size-5"/></span>
+            <span aria-label="X" title="X"><Icon name="twitter" className="size-5"/></span>
+          </div>
         </div>
 
         <div>
           <h3 className="mb-3 font-semibold text-gray-900">Explore</h3>
           <ul className="space-y-2 text-sm">
             <li><Link to="/" className="transition hover:text-[#FF5500]">Home</Link></li>
+            <li><Link to="/?tab=hotels#search-widget" className="transition hover:text-[#FF5500]">Stays</Link></li>
+            <li><Link to="/?tab=flights#search-widget" className="transition hover:text-[#FF5500]">Flights</Link></li>
+            <li><Link to="/?tab=cars#search-widget" className="transition hover:text-[#FF5500]">Car Rental</Link></li>
+            <li><Link to="/?tab=tours#search-widget" className="transition hover:text-[#FF5500]">Activities</Link></li>
+            <li><Link to="/?tab=transfers#search-widget" className="transition hover:text-[#FF5500]">Airport Transfers</Link></li>
+            <li><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("trexifly:open-account"))} className="transition hover:text-[#FF5500]">Account</button></li>
             <li><Link to="/guides" className="transition hover:text-[#FF5500]">Travel Guides</Link></li>
             <li><Link to="/about" className="transition hover:text-[#FF5500]">About Us</Link></li>
             <li><Link to="/contact" className="transition hover:text-[#FF5500]">Contact Support</Link></li>
@@ -303,7 +318,7 @@ export function Footer() {
       </div>
 
       <div className="border-t border-gray-100 px-4 py-4 text-center text-xs text-gray-500">
-        <p>© {new Date().getFullYear()} Trexifly. All rights reserved. We may earn a commission when you book through our partner links at no extra cost to you.</p>
+        <p>Â© {new Date().getFullYear()} Trexifly. All rights reserved. We may earn a commission when you book through our partner links at no extra cost to you.</p>
         <p className="mt-1">Prices shown in {currency} may be indicative; confirm availability, taxes and final prices with the booking partner.</p>
       </div>
     </footer>

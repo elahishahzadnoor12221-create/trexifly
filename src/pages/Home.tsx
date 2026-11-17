@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { SearchWidget } from '../components/SearchWidget'
 import { Destinations } from '../components/Destinations'
 import { Icon } from '../components/Icons'
-// @ts-ignore â€” provider configuration is intentionally kept as plain JavaScript for easy editing.
+// @ts-ignore — provider configuration is intentionally kept as plain JavaScript for easy editing.
 import { TRAVEL_PROVIDERS } from '../config/travelProviders.js'
 
 export function Home() {
@@ -11,11 +11,28 @@ export function Home() {
   const [confidenceOpen,setConfidenceOpen]=useState(false)
   const openWorldwide=()=>{window.dispatchEvent(new CustomEvent('trexifly:open-worldwide'));document.getElementById('destinations')?.scrollIntoView({behavior:'smooth',block:'start'})}
   return <>
-    <section className="relative isolate overflow-hidden bg-[#FF5500] pb-10 pt-7 sm:pb-14 sm:pt-9">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-0 hidden w-[34%] items-center justify-center lg:flex">
-        <img src="/trexifly-logo.png" alt="" className="trexifly-hero-logo w-[min(88%,390px)] object-contain drop-shadow-[0_12px_24px_rgba(255,255,255,.42)]" />
+    <section className="relative isolate overflow-hidden bg-white pb-9 pt-7 sm:pb-12 sm:pt-10">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[38%] overflow-hidden bg-[#FF5500] lg:block">
+        <div className="absolute -left-24 top-0 h-full w-48 rounded-full bg-white/90 blur-3xl" />
       </div>
-      <div className="relative z-10 mx-auto max-w-[1280px] px-4 sm:px-6 lg:pr-[35%]"><SearchWidget/></div>
+      <div className="relative z-10 mx-auto grid max-w-[1280px] items-center gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,.85fr)]">
+        <div className="min-w-0"><SearchWidget/></div>
+        <div className="relative hidden min-h-[430px] items-center justify-center lg:flex" aria-label="3D globe and airplane travel illustration">
+          <div className="globe-stage">
+            <div className="globe-tilt animate-float">
+              <div className="globe-aura" />
+              <div className="globe-sphere" />
+              <div className="globe-grid"><span className="globe-meridian" /><span className="globe-meridian" style={{transform:'rotateY(60deg)'}}/><span className="globe-meridian" style={{transform:'rotateY(120deg)'}}/><span className="globe-parallel" style={{transform:'rotateX(55deg)'}}/><span className="globe-parallel" style={{transform:'rotateX(-55deg)'}}/></div>
+              <div className="globe-orbit"><div className="orbit-runner"><span className="orbit-dot"/></div></div>
+              <div className="globe-orbit globe-orbit--b"><div className="orbit-runner"><span className="orbit-dot"/></div></div>
+              <span className="globe-marker" style={{transform:'translate3d(62px,-55px,110px)'}}><span/></span>
+              <span className="globe-marker" style={{transform:'translate3d(-82px,30px,82px)'}}><span/></span>
+            </div>
+            <div className="absolute right-[8%] top-[18%] rounded-full border border-white/50 bg-white/20 p-4 text-white shadow-2xl backdrop-blur-md"><Icon name="plane" className="size-10 rotate-[-18deg]"/></div>
+            <div className="absolute bottom-[8%] left-[3%] h-1 w-40 rotate-[-24deg] rounded-full bg-gradient-to-r from-white/0 via-white to-orange-200 shadow-[0_0_22px_rgba(255,255,255,.9)]"/>
+          </div>
+        </div>
+      </div>
     </section>
     <section className="border-y border-orange-100 bg-white py-5"><div className="mx-auto grid max-w-[1280px] gap-4 px-4 sm:grid-cols-3 sm:px-6">
       <button type="button" onClick={openWorldwide} className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#FF5500] text-white shadow-md shadow-orange-200"><Icon name="globe" className="size-6"/></span><span><span className="block text-sm font-bold text-[#172B4D]">Worldwide discovery</span><span className="mt-1 block text-xs leading-5 text-slate-600">Explore destinations and airports across the globe.</span></span><Icon name="arrowRight" className="ml-auto size-4 text-[#FF5500]"/></button>
@@ -40,8 +57,8 @@ export function Home() {
     </section>
     <section className="bg-white py-12"><div className="mx-auto max-w-[1280px] px-4 sm:px-6">
       <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Plan with confidence</p>
-      <div className="mt-2 flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-2xl font-bold text-[#172B4D]">Popular Travel Guides &amp; Route Insights</h2><p className="mt-2 text-sm text-slate-600">Practical advice for routes, seasons, car hire and airport pickups.</p></div><Link to="/guides" className="text-sm font-bold text-[#FF5500]">All travel guides â†’</Link></div>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[['/guides#hunza-skardu-guide','Hunza & Skardu Valley Travel Planning & Best Season Guide'],['/guides#cheap-flights-pakistan-dubai-jeddah-london','How to Find Cheap Flights from Pakistan to Dubai, Jeddah & London'],['/guides#europe-uae-car-rental-guide','Europe & UAE Car Rental Guide: Comparing AutoEurope & QEEQ'],['/guides#airport-transfers-istanbul-dubai-saudi','Hassle-Free Airport Transfers in Istanbul, Dubai & Saudi Arabia']].map(([href,title])=><Link key={href} to={href} className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm hover:border-[#FF5500] hover:shadow-lg"><h3 className="font-bold leading-6 text-[#172B4D]">{title}</h3><span className="mt-4 inline-block text-xs font-bold text-[#FF5500]">Read guide â†’</span></Link>)}</div>
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-2xl font-bold text-[#172B4D]">Popular Travel Guides &amp; Route Insights</h2><p className="mt-2 text-sm text-slate-600">Practical advice for routes, seasons, car hire and airport pickups.</p></div><Link to="/guides" className="text-sm font-bold text-[#FF5500]">All travel guides →</Link></div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[['/guides#hunza-skardu-guide','Hunza & Skardu Valley Travel Planning & Best Season Guide'],['/guides#cheap-flights-pakistan-dubai-jeddah-london','How to Find Cheap Flights from Pakistan to Dubai, Jeddah & London'],['/guides#europe-uae-car-rental-guide','Europe & UAE Car Rental Guide: Comparing AutoEurope & QEEQ'],['/guides#airport-transfers-istanbul-dubai-saudi','Hassle-Free Airport Transfers in Istanbul, Dubai & Saudi Arabia']].map(([href,title])=><Link key={href} to={href} className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm hover:border-[#FF5500] hover:shadow-lg"><h3 className="font-bold leading-6 text-[#172B4D]">{title}</h3><span className="mt-4 inline-block text-xs font-bold text-[#FF5500]">Read guide →</span></Link>)}</div>
     </div></section>    <section className="bg-[#FFF7F2] py-12">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Explore Pakistan and beyond</p>

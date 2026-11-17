@@ -32,7 +32,7 @@ const AIRPORTS = [
   'Bahrain (BAH) — Bahrain',
   'London (LHR) — United Kingdom',
   'Manchester (MAN) — United Kingdom',
-  'Istanbul (IST) — TÃƒÂ¼rkiye',
+  'Istanbul (IST) — Türkiye',
   'Baku (GYD) — Azerbaijan',
   'Paris (CDG) — France',
   'Madrid (MAD) — Spain',
@@ -51,7 +51,7 @@ const AIRPORTS = [
   'Bangkok (BKK) — Thailand',
   'Seoul (ICN) — South Korea',
   'Hong Kong (HKG) — Hong Kong',
-  'MalÃƒ© (MLE) — Maldives',
+  'Malé (MLE) — Maldives',
   'Sydney (SYD) — Australia',
   'Zurich (ZRH) — Switzerland',
   'Delhi (DEL) — India',
@@ -60,7 +60,7 @@ const AIRPORTS = [
   'Cape Town (CPT) — South Africa'
 ]
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
-const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Muscat, Oman","Istanbul, TÃƒÂ¼rkiye","Antalya, TÃƒÂ¼rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","SÃƒÂ£o Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
+const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, Türkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const LOCATIONS = [...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport')), ...WORLD_DESTINATIONS]
 const field = 'min-w-0 w-full border-0 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-500'
 const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
@@ -86,9 +86,9 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
       pk:['Lahore, Pakistan','Islamabad, Pakistan','Karachi, Pakistan','Peshawar, Pakistan','Quetta, Pakistan','Multan, Pakistan','Skardu, Pakistan'],
       sa:['Jeddah, Saudi Arabia','Madinah, Saudi Arabia','Makkah, Saudi Arabia','Riyadh, Saudi Arabia','King Abdulaziz International Airport, Jeddah, Saudi Arabia'],
       gb:['London, United Kingdom','Manchester, United Kingdom','Heathrow Airport, London, United Kingdom'],
-      tr:['Istanbul, TÃƒÂ¼rkiye','Antalya, TÃƒÂ¼rkiye','Ankara, TÃƒÂ¼rkiye','Sabiha GÃƒÂ¶kÃƒÂ§en Airport, Istanbul, TÃƒÂ¼rkiye']
+      tr:['Istanbul, Türkiye','Antalya, Türkiye','Ankara, Türkiye','Sabiha Gökçen Airport, Istanbul, Türkiye']
     }
-    const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/TÃƒÂ¼rkiye|Turkey/i}
+    const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/Türkiye|Turkey/i}
     const source=countryCode?[...options.filter(item=>countryNames[countryCode]?.test(item)),...(curated[countryCode]??[])]:options
     return source.filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,8)
   }, [options, value, countryCode])
@@ -144,7 +144,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [pax, setPax] = useState(initial?.pax ?? '1 adult, Economy')
   const [rooms, setRooms] = useState('2 adults · 0 children · 1 room')
   const [pickup, setPickup] = useState('Dubai International Airport')
-  const transferCountryCode = (() => { const v=pickup.toLowerCase(); const match=v.match(/\(([a-z]{3})\)/i); const code=match?.[1]?.toUpperCase(); const byCode:Record<string,string>={DXB:'ae',AUH:'ae',JED:'sa',MED:'sa',RUH:'sa',LHR:'gb',MAN:'gb',IST:'tr',LHE:'pk',ISB:'pk',KHI:'pk',PEW:'pk',UET:'pk',MUX:'pk',LYP:'pk',KDU:'pk',GIL:'pk'}; if(code&&byCode[code])return byCode[code]; if(/dubai|abu dhabi|sharjah|ajman|ras al khaimah|fujairah|al ain|united arab emirates|\buae\b/i.test(v))return 'ae'; if(/jeddah|madinah|riyadh|makkah|saudi arabia/i.test(v))return 'sa'; if(/london|manchester|united kingdom|\buk\b/i.test(v))return 'gb'; if(/istanbul|turkey|tÃ¼rkiye|turkiye/i.test(v))return 'tr'; if(/lahore|islamabad|karachi|pakistan/i.test(v))return 'pk'; return undefined })()
+  const transferCountryCode = (() => { const v=pickup.toLowerCase(); const match=v.match(/\(([a-z]{3})\)/i); const code=match?.[1]?.toUpperCase(); const byCode:Record<string,string>={DXB:'ae',AUH:'ae',JED:'sa',MED:'sa',RUH:'sa',LHR:'gb',MAN:'gb',IST:'tr',LHE:'pk',ISB:'pk',KHI:'pk',PEW:'pk',UET:'pk',MUX:'pk',LYP:'pk',KDU:'pk',GIL:'pk'}; if(code&&byCode[code])return byCode[code]; if(/dubai|abu dhabi|sharjah|ajman|ras al khaimah|fujairah|al ain|united arab emirates|\buae\b/i.test(v))return 'ae'; if(/jeddah|madinah|riyadh|makkah|saudi arabia/i.test(v))return 'sa'; if(/london|manchester|united kingdom|\buk\b/i.test(v))return 'gb'; if(/istanbul|turkey|türkiye|turkiye/i.test(v))return 'tr'; if(/lahore|islamabad|karachi|pakistan/i.test(v))return 'pk'; return undefined })()
   const [dropoff, setDropoff] = useState('Dubai International Airport')
   const [pickupTime, setPickupTime] = useState('10:00')
   const [dropTime, setDropTime] = useState('10:00')
@@ -184,19 +184,19 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   }
 
   const tabNav = <div role="tablist" aria-label="Travel search type" className="flex flex-wrap gap-2">
-    {TABS.map(item => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => { setTab(item.id); if (!compact) { const next = new URLSearchParams(params); next.set('tab', item.id); setParams(next, { replace: true }) } }} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${compact ? (tab === item.id ? 'border-[#FF5500] bg-orange-50 text-[#B93600] shadow-sm' : 'border-orange-100 bg-white text-slate-700 hover:border-[#FF5500] hover:bg-orange-50') : (tab === item.id ? 'border-white bg-white/15 text-white shadow-[0_6px_18px_rgba(243,107,22,.25)]' : 'border-orange-200 bg-white text-slate-700 hover:border-[#FF5500] hover:bg-orange-50')}`}><Icon name={item.icon} className={`size-4 ${compact ? (tab === item.id ? 'text-[#B93600]' : 'text-[#D97706]') : (tab === item.id ? 'text-white' : 'text-[#B93600]')}`} />{item.label}</button>)}
+    {TABS.map(item => <button key={item.id} type="button" role="tab" aria-selected={tab === item.id} onClick={() => { setTab(item.id); if (!compact) { const next = new URLSearchParams(params); next.set('tab', item.id); setParams(next, { replace: true }) } }} className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm font-semibold transition ${compact ? (tab === item.id ? 'border-[#FF5500] bg-orange-50 text-[#FF5500] shadow-sm' : 'border-orange-100 bg-white text-slate-700 hover:border-[#FF5500] hover:bg-orange-50') : (tab === item.id ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_8px_20px_rgba(255,85,0,.28)]' : 'border-orange-100 bg-white text-slate-800 shadow-[0_5px_16px_rgba(15,23,42,.08)] hover:border-[#FF5500] hover:bg-orange-50')}`}><Icon name={item.icon} className={`size-4 ${compact ? (tab === item.id ? 'text-[#FF5500]' : 'text-[#D97706]') : (tab === item.id ? 'text-white' : 'text-[#FF5500]')}`} />{item.label}</button>)}
   </div>
 
   return <section id="search-widget" className={compact ? 'w-full' : 'w-full'}>
-    {!compact && <div className="mb-5 text-white"><h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-tight text-white [text-shadow:0_2px_12px_rgba(105,35,0,.35)] sm:text-4xl">{tab === 'flights' ? <>Search <span className="text-white underline decoration-white/70 decoration-2 underline-offset-4">hundreds of flight sites</span> at once.</> : tab === 'hotels' ? <>Find your <span className="text-[#B93600]">next stay</span></> : tab === 'cars' ? <>Car rentals for <span className="text-[#B93600]">any kind of trip</span></> : tab === 'tours' ? <>Attractions, activities, and <span className="text-[#B93600]">experiences</span></> : <>Book your <span className="text-[#B93600]">airport transfer</span></>}</h1><p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">{copy[1]}</p></div>}
+    {!compact && <div className="mb-5 text-[#111111]"><h1 className="max-w-3xl text-3xl font-extrabold uppercase leading-tight tracking-tight text-[#111111] sm:text-4xl lg:text-[2.8rem]">{tab === 'flights' ? <>Search <span className="text-[#FF5500] underline decoration-orange-300 decoration-2 underline-offset-4">hundreds of flight sites</span> at once.</> : tab === 'hotels' ? <>Find your <span className="text-[#FF5500]">next stay</span></> : tab === 'cars' ? <>Car rentals for <span className="text-[#FF5500]">any kind of trip</span></> : tab === 'tours' ? <>Attractions, activities, and <span className="text-[#FF5500]">experiences</span></> : <>Book your <span className="text-[#FF5500]">airport transfer</span></>}</h1><p className="mt-2 max-w-2xl text-sm font-medium text-slate-700 sm:text-base">{copy[1]}</p></div>}
 
     {compact && <div className="mb-3">{tabNav}</div>}
-    <form onSubmit={submit} className="rounded-2xl border-4 border-[#FFB800] bg-white p-2 shadow-[0_10px_35px_rgba(0,0,0,.16)]">
+    <form onSubmit={submit} className="rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50">
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:items-stretch">
         <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={WORLD_DESTINATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
         <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" />
-        <SelectField title="Guests and rooms" value={rooms} onChange={setRooms} options={['2 adults · 0 children · 1 room','1 adult · 0 children · 1 room','2 adults · 1 child · 1 room','2 adults · 0 children · 2 rooms']} />
+        <SelectField title="Guests and rooms" value={rooms} onChange={setRooms} options={["2 adults · 0 children · 1 room","1 adult · 0 children · 1 room","2 adults · 1 child · 1 room","2 adults · 0 children · 2 rooms"]} />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'hotels' && <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><Check><input type="checkbox" checked={entireHome} onChange={e => setEntireHome(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm looking for an entire home or apartment</Check><Check><input type="checkbox" checked={workTrip} onChange={e => setWorkTrip(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm traveling for work</Check></div>}
