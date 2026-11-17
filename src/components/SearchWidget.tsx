@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Icon, type IconName } from './Icons'
 import { isoIn, type SearchQuery } from '../lib/data'
@@ -11,7 +11,56 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'tours', label: 'Activities', icon: 'compass' },
   { id: 'transfers', label: 'Airport Transfers', icon: 'car' },
 ]
-const AIRPORTS = ["Lahore (LHE)","Islamabad (ISB)","Karachi (KHI)","Peshawar (PEW)","Quetta (UET)","Multan (MUX)","Faisalabad (LYP)","Skardu (KDU)","Gilgit (GIL)","Dubai (DXB)","Abu Dhabi (AUH)","Sharjah (SHJ)","Doha (DOH)","Riyadh (RUH)","Jeddah (JED)","Muscat (MCT)","Manama (BAH)","Kuwait City (KWI)","London Heathrow (LHR)","London Gatwick (LGW)","Manchester (MAN)","Paris (CDG)","Amsterdam (AMS)","Frankfurt (FRA)","Munich (MUC)","Zurich (ZRH)","Geneva (GVA)","Rome (FCO)","Milan (MXP)","Madrid (MAD)","Barcelona (BCN)","Istanbul (IST)","Antalya (AYT)","Athens (ATH)","New York (JFK)","New York Newark (EWR)","Los Angeles (LAX)","San Francisco (SFO)","Chicago (ORD)","Toronto (YYZ)","Vancouver (YVR)","Montreal (YUL)","Delhi (DEL)","Mumbai (BOM)","Bengaluru (BLR)","Bangkok (BKK)","Phuket (HKT)","Singapore (SIN)","Kuala Lumpur (KUL)","Jakarta (CGK)","Bali (DPS)","Hong Kong (HKG)","Tokyo Haneda (HND)","Tokyo Narita (NRT)","Seoul (ICN)","Sydney (SYD)","Melbourne (MEL)","Auckland (AKL)","Cairo (CAI)","Cape Town (CPT)","Johannesburg (JNB)","Nairobi (NBO)","Casablanca (CMN)"]
+const AIRPORTS = [
+  'Lahore (LHE) — Pakistan',
+  'Islamabad (ISB) — Pakistan',
+  'Karachi (KHI) — Pakistan',
+  'Peshawar (PEW) — Pakistan',
+  'Quetta (UET) — Pakistan',
+  'Multan (MUX) — Pakistan',
+  'Faisalabad (LYP) — Pakistan',
+  'Skardu (KDU) — Pakistan',
+  'Gilgit (GIL) — Pakistan',
+  'Hunza (HUN) — Pakistan',
+  'Swat (SWT) — Pakistan',
+  'Dubai (DXB) — United Arab Emirates',
+  'Abu Dhabi (AUH) — United Arab Emirates',
+  'Jeddah (JED) — Saudi Arabia',
+  'Madinah (MED) — Saudi Arabia',
+  'Riyadh (RUH) — Saudi Arabia',
+  'Doha (DOH) — Qatar',
+  'Muscat (MCT) — Oman',
+  'Kuwait (KWI) — Kuwait',
+  'Bahrain (BAH) — Bahrain',
+  'London (LHR) — United Kingdom',
+  'Manchester (MAN) — United Kingdom',
+  'Istanbul (IST) — Türkiye',
+  'Baku (GYD) — Azerbaijan',
+  'Paris (CDG) — France',
+  'Madrid (MAD) — Spain',
+  'Barcelona (BCN) — Spain',
+  'Frankfurt (FRA) — Germany',
+  'Rome (FCO) — Italy',
+  'Amsterdam (AMS) — Netherlands',
+  'New York (JFK) — United States',
+  'Toronto (YYZ) — Canada',
+  'Los Angeles (LAX) — United States',
+  'Chicago (ORD) — United States',
+  'Vancouver (YVR) — Canada',
+  'Tokyo (HND) — Japan',
+  'Singapore (SIN) — Singapore',
+  'Kuala Lumpur (KUL) — Malaysia',
+  'Bangkok (BKK) — Thailand',
+  'Seoul (ICN) — South Korea',
+  'Hong Kong (HKG) — Hong Kong',
+  'Malé (MLE) — Maldives',
+  'Sydney (SYD) — Australia',
+  'Zurich (ZRH) — Switzerland',
+  'Delhi (DEL) — India',
+  'Mumbai (BOM) — India',
+  'Cairo (CAI) — Egypt',
+  'Cape Town (CPT) — South Africa'
+]
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, Türkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const LOCATIONS = [...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport')), ...WORLD_DESTINATIONS]
 const field = 'min-w-0 w-full border-0 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-500'
@@ -25,8 +74,10 @@ function TextField({ title, value, onChange, placeholder, type = 'text' }: { tit
   return <label className={cell}><span className={label}>{title}</span><input className={field} type={type} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>
 }
 
-function LocationField({ title, value, onChange, placeholder, options = [] }: { title: string; value: string; onChange: (value: string) => void; placeholder: string; options?: string[] }) {
+function LocationField({ fieldId, title, value, onChange, placeholder, options = [] }: { fieldId: string; title: string; value: string; onChange: (value: string) => void; placeholder: string; options?: string[] }) {
   const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { const onOpen=(e:Event)=>setOpen((e as CustomEvent<string>).detail===fieldId); const outside=(e:PointerEvent)=>{if(!rootRef.current?.contains(e.target as Node))setOpen(false)}; const esc=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)}; window.addEventListener('trexifly:location-open',onOpen); document.addEventListener('pointerdown',outside); document.addEventListener('keydown',esc); return ()=>{window.removeEventListener('trexifly:location-open',onOpen);document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',esc)} },[fieldId])
   const [remote, setRemote] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const local = useMemo(() => options.filter(item => item.toLowerCase().includes(value.trim().toLowerCase())).slice(0, 8), [options, value])
@@ -45,9 +96,9 @@ function LocationField({ title, value, onChange, placeholder, options = [] }: { 
     return () => { window.clearTimeout(timer); controller.abort() }
   }, [value])
   const suggestions = [...new Set([...local, ...remote])].slice(0, 10)
-  return <div className={cell + ' relative'}><label className="block"><span className={label}>{title}</span><input className={field} role="combobox" aria-expanded={open} aria-autocomplete="list" value={value} placeholder={placeholder} autoComplete="off" onFocus={() => setOpen(true)} onChange={e => { onChange(e.target.value); setOpen(true) }} onKeyDown={e => { if (e.key === 'Escape') setOpen(false); if (e.key === 'Enter' && suggestions[0] && open) { e.preventDefault(); onChange(suggestions[0]); setOpen(false) } }} /></label>
-    {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" className="absolute left-0 right-0 top-full z-[70] mt-1 max-h-64 overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
-      {suggestions.map((item, index) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 truncate">{item}</span>{index === 0 && <span className="text-[10px] font-semibold text-[#FFB800]">Top match</span>}</button>)}
+  return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><input className={field} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></label>
+    {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
+      {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}
       {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide cities and destinations…</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No exact match yet. You can still search this destination by name.</p>}
     </div>}
     <p className="sr-only">Search worldwide cities and airports. Powered by Open-Meteo geocoding.</p>
@@ -123,12 +174,12 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   </div>
 
   return <section id="search-widget" className={compact ? 'w-full' : 'w-full'}>
-    {!compact && <div className="mb-5 text-slate-900"><h1 className="text-3xl font-bold tracking-tight text-[#171A20] sm:text-4xl">{tab === 'flights' ? <>Search <span className="text-[#B93600]">hundreds of flight sites</span> at once.</> : tab === 'hotels' ? <>Find your <span className="text-[#B93600]">next stay</span></> : tab === 'cars' ? <>Car rentals for <span className="text-[#B93600]">any kind of trip</span></> : tab === 'tours' ? <>Attractions, activities, and <span className="text-[#B93600]">experiences</span></> : <>Book your <span className="text-[#B93600]">airport transfer</span></>}</h1><p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">{copy[1]}</p></div>}
+    {!compact && <div className="mb-5 text-white"><h1 className="max-w-3xl text-3xl font-extrabold leading-tight tracking-tight text-white [text-shadow:0_2px_12px_rgba(105,35,0,.35)] sm:text-4xl">{tab === 'flights' ? <>Search <span className="text-white underline decoration-white/70 decoration-2 underline-offset-4">hundreds of flight sites</span> at once.</> : tab === 'hotels' ? <>Find your <span className="text-[#B93600]">next stay</span></> : tab === 'cars' ? <>Car rentals for <span className="text-[#B93600]">any kind of trip</span></> : tab === 'tours' ? <>Attractions, activities, and <span className="text-[#B93600]">experiences</span></> : <>Book your <span className="text-[#B93600]">airport transfer</span></>}</h1><p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">{copy[1]}</p></div>}
 
     {compact && <div className="mb-3">{tabNav}</div>}
     <form onSubmit={submit} className="rounded-2xl border-4 border-[#FFB800] bg-white p-2 shadow-[0_10px_35px_rgba(0,0,0,.16)]">
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:items-stretch">
-        <LocationField title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={WORLD_DESTINATIONS} />
+        <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={WORLD_DESTINATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
         <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" />
         <SelectField title="Guests and rooms" value={rooms} onChange={setRooms} options={['2 adults · 0 children · 1 room','1 adult · 0 children · 1 room','2 adults · 1 child · 1 room','2 adults · 0 children · 2 rooms']} />
@@ -137,29 +188,29 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
       {tab === 'hotels' && <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><Check><input type="checkbox" checked={entireHome} onChange={e => setEntireHome(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm looking for an entire home or apartment</Check><Check><input type="checkbox" checked={workTrip} onChange={e => setWorkTrip(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm traveling for work</Check></div>}
       {tab === 'flights' && <div className="flex flex-col sm:flex-row sm:items-stretch">
         <SelectField title="Trip type" value={trip} onChange={setTrip} options={['Round-trip','One-way']} />
-        <LocationField title="From" value={from} onChange={setFrom} placeholder="City or airport worldwide" options={AIRPORTS} />
-        <LocationField title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={AIRPORTS.filter(a => a !== from)} />
+        <LocationField fieldId="flight-from" title="From" value={from} onChange={setFrom} placeholder="City or airport worldwide" options={AIRPORTS} />
+        <LocationField fieldId="flight-to" title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={AIRPORTS.filter(a => a !== from)} />
         <TextField title="Departure" value={depart} onChange={setDepart} placeholder="Departure" type="date" />
         {trip === 'Round-trip' && <TextField title="Return" value={back} onChange={setBack} placeholder="Return" type="date" />}
         <SelectField title="Travellers · class" value={pax} onChange={setPax} options={['1 adult, Economy','2 adults, Economy','1 adult, Business','2 adults, Business','3 adults, Economy']} />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'cars' && <><div className="flex flex-col sm:flex-row sm:items-stretch">
-        <LocationField title="Pick-up location" value={pickup} onChange={setPickup} placeholder="Airport, city, or station worldwide" options={LOCATIONS} />
+        <LocationField fieldId="car-pickup" title="Pick-up location" value={pickup} onChange={setPickup} placeholder="Airport, city, or station worldwide" options={LOCATIONS} />
         <TextField title="Pick-up date" value={depart} onChange={setDepart} placeholder="Pick-up date" type="date" />
         <TextField title="Time" value={pickupTime} onChange={setPickupTime} placeholder="10:00 AM" type="time" />
         <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" />
         <TextField title="Time" value={dropTime} onChange={setDropTime} placeholder="10:00 AM" type="time" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
-      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30 – 65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
+      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30 – 65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
       {tab === 'tours' && <div className="flex flex-col sm:flex-row sm:items-stretch">
-        <LocationField title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={WORLD_DESTINATIONS} />
+        <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={WORLD_DESTINATIONS} />
         <TextField title="Dates" value={activityDate} onChange={setActivityDate} placeholder="Select dates" type="date" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'transfers' && <><div className="flex gap-5 px-3 pb-3 pt-1"><label className="flex items-center gap-2 text-sm text-slate-700"><input type="radio" name="transfer-type" checked={transferType === 'One-way'} onChange={() => setTransferType('One-way')} className="accent-[#FF5500]" />One-way</label><label className="flex items-center gap-2 text-sm text-slate-700"><input type="radio" name="transfer-type" checked={transferType === 'Return'} onChange={() => setTransferType('Return')} className="accent-[#FF5500]" />Return</label></div><div className="flex flex-col sm:flex-row sm:items-stretch">
-        <LocationField title="Pick-up location" value={pickup} onChange={setPickup} placeholder="Airport, city or address worldwide" options={LOCATIONS} />
-        <LocationField title="Destination" value={dropoff} onChange={setDropoff} placeholder="Airport, city or address worldwide" options={LOCATIONS} />
+        <LocationField fieldId="transfer-pickup" title="Pick-up location" value={pickup} onChange={setPickup} placeholder="Airport, city or address worldwide" options={LOCATIONS} />
+        <LocationField fieldId="transfer-destination" title="Destination" value={dropoff} onChange={setDropoff} placeholder="Airport, city or address worldwide" options={LOCATIONS} />
         <TextField title="Pick-up date" value={depart} onChange={setDepart} placeholder="Date" type="date" />
         <TextField title="Pick-up time" value={pickupTime} onChange={setPickupTime} placeholder="Time" type="time" />
         <SelectField title="Passengers" value={passengers} onChange={setPassengers} options={['1 passenger','2 passengers','3 passengers','4 passengers','5 passengers','6 passengers']} />

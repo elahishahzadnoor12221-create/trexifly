@@ -18,6 +18,7 @@ const PLACES: Place[] = [
 ]
 export function Destinations() {
   const [filter,setFilter]=useState<typeof FILTERS[number]>('All Worldwide')
+  useEffect(()=>{const activate=()=>setFilter('All Worldwide');window.addEventListener('trexifly:open-worldwide',activate);return()=>window.removeEventListener('trexifly:open-worldwide',activate)},[])
   const [query,setQuery]=useState('')
   const [remote,setRemote]=useState<{name:string;admin1?:string;country?:string}[]>([])
   const [loading,setLoading]=useState(false)

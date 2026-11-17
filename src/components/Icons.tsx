@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-export type IconName = 'plane'|'bed'|'car'|'compass'|'tag'|'globe'|'search'|'arrowRight'|'arrowUpRight'|'arrowLeft'|'star'|'check'|'chevronDown'|'calendar'|'users'|'mapPin'|'filter'|'close'|'clock'|'sparkles'|'shield'
+export type IconName = 'plane'|'bed'|'car'|'compass'|'tag'|'globe'|'search'|'arrowRight'|'arrowUpRight'|'arrowLeft'|'star'|'check'|'chevronDown'|'calendar'|'users'|'mapPin'|'filter'|'close'|'clock'|'sparkles'|'shield'|'shieldCheck'
 const PATHS: Record<IconName, ReactNode> = {
   plane:<><path d="M21 3 3 10.6l6.8 2.5L12.3 20 21 3Z"/><path d="m9.8 13.1 4.4-4.4"/></>,
   bed:<><path d="M3 19v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 16h18"/><path d="M7 10V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V10"/></>,
@@ -23,6 +23,7 @@ const PATHS: Record<IconName, ReactNode> = {
   clock:<><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></>,
   sparkles:<><path d="M12 3.5 13.6 8 18 9.6 13.6 11.2 12 15.7 10.4 11.2 6 9.6 10.4 8 12 3.5Z"/><path d="m18.5 15.5.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2Z"/></>,
   shield:<path d="M12 3.5 19 6v5.8c0 4.4-2.9 7.4-7 8.8-4.1-1.4-7-4.4-7-8.8V6l7-2.5Z"/>,
+  shieldCheck:<><path d="M12 3.5 19 6v5.8c0 4.4-2.9 7.4-7 8.8-4.1-1.4-7-4.4-7-8.8V6l7-2.5Z"/><path d="m8.5 12.2 2.2 2.2 4.8-5"/></>,
 }
 export function Icon({name,className='size-5',strokeWidth=1.6}:{name:IconName;className?:string;strokeWidth?:number}) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">{PATHS[name]}</svg>

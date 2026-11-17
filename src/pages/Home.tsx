@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { SearchWidget } from '../components/SearchWidget'
 import { Destinations } from '../components/Destinations'
 import { Icon } from '../components/Icons'
@@ -6,33 +7,27 @@ import { Icon } from '../components/Icons'
 import { TRAVEL_PROVIDERS } from '../config/travelProviders.js'
 
 export function Home() {
+  const navigate=useNavigate()
+  const [confidenceOpen,setConfidenceOpen]=useState(false)
+  const openWorldwide=()=>{window.dispatchEvent(new CustomEvent('trexifly:open-worldwide'));document.getElementById('destinations')?.scrollIntoView({behavior:'smooth',block:'start'})}
   return <>
     <section className="relative isolate overflow-hidden bg-[#FF5500] pb-10 pt-7 sm:pb-14 sm:pt-9">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[30%] overflow-hidden bg-gradient-to-br from-[#FF9A3D] via-[#F36B16] to-[#C83D17] lg:block">
-        <div className="absolute -right-20 top-8 size-[440px] rounded-full border border-white/25"/>
-        <div className="absolute -right-4 top-20 size-[320px] rounded-full border border-white/25"/>
-        <div className="absolute right-10 top-24 grid size-64 place-items-center rounded-full border border-white/40 bg-white/10 shadow-2xl backdrop-blur-sm">
-          <svg viewBox="0 0 240 240" className="size-56" fill="none">
-            <circle cx="120" cy="120" r="93" fill="#EAF3F7" stroke="#FFFFFF" strokeWidth="4"/>
-            <path d="M44 93 66 64l30-13 20 16-9 23-26 10-7 27-24-4-6-30Zm84-38 31 10 19 22-14 17-23-7-16-22 3-20Zm-4 72 27-12 34 12 20 28-18 26-35 3-20-24-8-33Zm-69 15 26-4 18 20-8 32-26-7-13-20 3-21Z" fill="#34495B" opacity=".9"/>
-            <path d="m48 171 22 8 15 22-15 13-23-17 1-26Zm107-123 14-15 16 9-5 17-19 4-6-15Z" fill="#34495B"/>
-            <path d="m80 146 105-67-35 75-17-5-19 23-6-23-28-3Z" fill="#F36B16" stroke="#B92B16" strokeWidth="3"/>
-            <path d="m135 148 23-7 35 8-39 8-19-9Z" fill="#FFF4E9"/>
-          </svg>
-        </div>
-        <div className="absolute bottom-10 right-12 text-right text-white"><p className="text-2xl font-black tracking-tight">Explore more.</p><p className="text-sm font-medium text-white/85">The world is within reach.</p></div>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[34%] overflow-hidden lg:block">
+        <div className="absolute -right-12 top-0 size-[520px] rounded-full bg-[radial-gradient(circle,rgba(255,255,255,.30),rgba(255,255,255,0)_68%)]"/>
+        <div className="absolute right-12 top-10 size-[360px] rounded-full border border-white/40 bg-[radial-gradient(circle_at_32%_25%,rgba(255,255,255,.85),rgba(255,255,255,.22)_28%,rgba(255,255,255,.06)_62%,rgba(116,36,9,.20))] shadow-[inset_-24px_-28px_55px_rgba(110,35,0,.20),0_35px_90px_rgba(105,35,0,.30)] backdrop-blur-xl"/>
+        <div className="absolute right-[82px] top-[78px] size-[300px] rounded-full border border-white/65 shadow-[inset_0_0_35px_rgba(255,255,255,.38)]"/>
+        <div className="absolute right-[115px] top-[115px] size-[235px] rotate-[-24deg] rounded-[46%] border-2 border-white/65 shadow-[0_0_24px_rgba(255,255,255,.35)]"/>
+        <div className="absolute right-[180px] top-[170px] grid size-24 place-items-center rounded-[28px] border border-white/70 bg-white/25 text-white shadow-[0_18px_45px_rgba(105,35,0,.24)] backdrop-blur-xl"><svg viewBox="0 0 64 64" className="size-14 drop-shadow-lg" fill="none"><path d="M8 35 56 12 39 55 29 39 8 35Z" fill="white"/><path d="m29 39 27-27" stroke="#D94700" strokeWidth="2.5" strokeLinecap="round"/></svg></div>
+        <div className="absolute right-8 top-24 rounded-2xl border border-white/60 bg-white/25 px-4 py-3 text-white shadow-xl backdrop-blur-xl"><p className="text-[9px] font-bold uppercase tracking-[.2em] text-white/80">Discover</p><p className="text-sm font-extrabold">Everywhere</p></div>
+        <div className="absolute bottom-10 right-10 rounded-2xl border border-white/60 bg-white/25 px-4 py-3 text-white shadow-xl backdrop-blur-xl"><p className="text-[9px] font-bold uppercase tracking-[.2em] text-white/80">One search</p><p className="text-sm font-extrabold">Global journeys</p></div>
       </div>
       <div className="relative z-10 mx-auto max-w-[1280px] px-4 sm:px-6 lg:pr-[24%]"><SearchWidget/></div>
     </section>
-    <section className="border-y border-orange-100 bg-white py-5">
-      <div className="mx-auto grid max-w-[1280px] gap-4 px-4 sm:grid-cols-3 sm:px-6">
-        {[
-          ['Worldwide discovery','Explore destinations and airports across the globe.','globe'],
-          ['One clear comparison','Review travel options and provider details in one place.','search'],
-          ['Travel with confidence','Check final prices and booking terms with providers.','shieldCheck'],
-        ].map(([title,desc,icon])=><div key={title} className="flex gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#FFB800] to-[#D99A00] text-white shadow-md shadow-orange-200"><Icon name={icon as any} className="size-5"/></span><div><h2 className="text-sm font-bold text-[#172B4D]">{title}</h2><p className="mt-1 text-xs leading-5 text-slate-600">{desc}</p></div></div>)}
-      </div>
-    </section>
+    <section className="border-y border-orange-100 bg-white py-5"><div className="mx-auto grid max-w-[1280px] gap-4 px-4 sm:grid-cols-3 sm:px-6">
+      <button type="button" onClick={openWorldwide} className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#FF5500] text-white shadow-md shadow-orange-200"><Icon name="globe" className="size-6"/></span><span><span className="block text-sm font-bold text-[#172B4D]">Worldwide discovery</span><span className="mt-1 block text-xs leading-5 text-slate-600">Explore destinations and airports across the globe.</span></span><Icon name="arrowRight" className="ml-auto size-4 text-[#FF5500]"/></button>
+      <button type="button" onClick={()=>navigate('/results?type=flights')} className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#FF5500] text-white shadow-md shadow-orange-200"><Icon name="search" className="size-6"/></span><span><span className="block text-sm font-bold text-[#172B4D]">One clear comparison</span><span className="mt-1 block text-xs leading-5 text-slate-600">Review travel options and provider details in one place.</span></span><Icon name="arrowRight" className="ml-auto size-4 text-[#FF5500]"/></button>
+      <button type="button" onClick={()=>setConfidenceOpen(true)} className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#FF5500] text-white shadow-md shadow-orange-200"><Icon name="shieldCheck" className="size-6" strokeWidth={2}/></span><span><span className="block text-sm font-bold text-[#172B4D]">Travel with confidence</span><span className="mt-1 block text-xs leading-5 text-slate-600">Check final prices and booking terms with providers.</span></span><Icon name="arrowRight" className="ml-auto size-4 text-[#FF5500]"/></button>
+    </div></section>
     <Destinations/>
     <section className="bg-white py-10">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
@@ -71,5 +66,12 @@ export function Home() {
       </div>
       <div className="mt-10"><h2 className="text-xl font-bold text-[#172B4D]">Frequently asked questions</h2><div className="mt-4 divide-y divide-orange-100 rounded-xl border border-orange-100 bg-white px-5">{[['How does Trexifly work?','Trexifly helps compare travel options and redirects you to the booking partner to review availability and complete your reservation.'],['Are prices live and guaranteed?','Some displayed comparison examples may be indicative. Confirm current availability, taxes and final prices with the booking provider.'],['Can I cancel a transfer?','Cancellation rules vary by provider and vehicle. Review the policy before confirming your booking.']].map(([q,a])=><details key={q} className="py-4"><summary className="cursor-pointer text-sm font-semibold text-[#172B4D]">{q}</summary><p className="mt-2 text-sm leading-6 text-slate-600">{a}</p></details>)}</div></div>
     </section>
+    {confidenceOpen && <div role="dialog" aria-modal="true" aria-labelledby="confidence-title" className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/65 p-4 backdrop-blur-sm" onClick={()=>setConfidenceOpen(false)}><div className="w-full max-w-xl rounded-3xl border border-orange-100 bg-white p-6 shadow-2xl sm:p-8" onClick={e=>e.stopPropagation()}>
+      <div className="flex items-start justify-between gap-4"><div className="flex items-center gap-3"><span className="grid size-12 place-items-center rounded-2xl bg-orange-50 text-[#FF5500]"><Icon name="shieldCheck" className="size-7" strokeWidth={2}/></span><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Partner transparency</p><h2 id="confidence-title" className="mt-1 text-xl font-extrabold text-[#172B4D]">Verified Partner &amp; Booking Confidence</h2></div></div><button type="button" aria-label="Close" onClick={()=>setConfidenceOpen(false)} className="rounded-full p-2 text-slate-500 hover:bg-orange-50 hover:text-[#FF5500]"><Icon name="close"/></button></div>
+      <p className="mt-5 text-sm leading-6 text-slate-600">Trexifly helps you discover and compare travel options, then connects you directly to the relevant booking partner to review availability, final prices, payment and booking conditions. Trexifly does not issue tickets or take payment for partner bookings.</p>
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{['Aviasales','Klook','KKday','AutoEurope','QEEQ','Tiqets','Kiwitaxi','GetTransfer'].map(name=><span key={name} className="rounded-xl border border-orange-100 bg-[#FFF7F2] px-3 py-2 text-center text-xs font-semibold text-[#7C2D12]">{name}</span>)}</div>
+      <p className="mt-5 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">No extra Trexifly booking fee. Partner prices, taxes, availability, cancellation rules and any supplier fees are confirmed on the partner website. Trexifly may earn a commission from qualifying referrals.</p>
+      <button type="button" onClick={()=>setConfidenceOpen(false)} className="mt-6 w-full rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white hover:bg-[#E64A00]">Got it</button>
+    </div></div>}
   </>
 }
