@@ -22,7 +22,7 @@ const guides = {
   road: {
     path: '/guides/northern-pakistan-road-safety-packing',
     title: 'Northern Pakistan Road Travel & Packing Checklist: Safety Tips for Mountain Routes',
-    description: 'Prepare for road travel in northern Pakistan with Karakoram Highway safety checks, vehicle readiness, weather updates, altitude awareness and a practical packing list.',
+    description: 'Prepare for northern Pakistan road trips with KKH/N-35 safety checks, vehicle readiness, weather updates, altitude awareness and a practical packing list.',
   },
 }
 
