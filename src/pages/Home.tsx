@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { SearchWidget } from '../components/SearchWidget'
 import { Destinations } from '../components/Destinations'
 import { Icon } from '../components/Icons'
-// @ts-ignore — provider configuration is intentionally kept as plain JavaScript for easy editing.
+// @ts-ignore â€” provider configuration is intentionally kept as plain JavaScript for easy editing.
 import { TRAVEL_PROVIDERS } from '../config/travelProviders.js'
 
 export function Home() {
@@ -39,12 +39,16 @@ export function Home() {
             <span className="inline-flex rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold text-[#D94700]">{offer.provider}</span>
             <h3 className="mt-3 text-sm font-bold text-[#242424]">{offer.title}</h3>
             <p className="mt-3 text-lg font-extrabold text-[#FF5500]">From {offer.currency} {offer.priceFrom}</p>
-            <p className="mt-1 text-[10px] text-slate-500">Indicative sample · check provider for current rates</p>
+            <p className="mt-1 text-[10px] text-slate-500">Indicative sample Â· check provider for current rates</p>
           </a>)}
         </div>
       </div>
     </section>
-    <section className="bg-[#FFF7F2] py-12">
+    <section className="bg-white py-12"><div className="mx-auto max-w-[1280px] px-4 sm:px-6">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Plan with confidence</p>
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-2xl font-bold text-[#172B4D]">Popular Travel Guides &amp; Route Insights</h2><p className="mt-2 text-sm text-slate-600">Practical advice for routes, seasons, car hire and airport pickups.</p></div><Link to="/guides" className="text-sm font-bold text-[#FF5500]">All travel guides â†’</Link></div>
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[['/guides#hunza-skardu-guide','Hunza & Skardu Valley Travel Planning & Best Season Guide'],['/guides#cheap-flights-pakistan-dubai-jeddah-london','How to Find Cheap Flights from Pakistan to Dubai, Jeddah & London'],['/guides#europe-uae-car-rental-guide','Europe & UAE Car Rental Guide: Comparing AutoEurope & QEEQ'],['/guides#airport-transfers-istanbul-dubai-saudi','Hassle-Free Airport Transfers in Istanbul, Dubai & Saudi Arabia']].map(([href,title])=><Link key={href} to={href} className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm hover:border-[#FF5500] hover:shadow-lg"><h3 className="font-bold leading-6 text-[#172B4D]">{title}</h3><span className="mt-4 inline-block text-xs font-bold text-[#FF5500]">Read guide â†’</span></Link>)}</div>
+    </div></section>    <section className="bg-[#FFF7F2] py-12">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Explore Pakistan and beyond</p>
         <h2 className="mt-2 text-2xl font-bold text-[#172B4D]">Popular travel searches</h2>
@@ -62,7 +66,7 @@ export function Home() {
     <section className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6">
       <div className="grid gap-8 lg:grid-cols-2">
         <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Airport transfers</p><h2 className="mt-2 text-2xl font-bold text-[#172B4D]">How it works</h2><div className="mt-5 grid gap-4 sm:grid-cols-3">{[['01','Choose your route','Enter pickup point, destination and travel time.'],['02','Select a vehicle','Compare passenger and luggage capacity.'],['03','Confirm with provider','Review final price and booking conditions.']].map(([n,t,d])=><div key={n} className="rounded-xl border border-orange-100 bg-[#FFF7F2] p-4"><span className="text-lg font-bold text-[#FF5500]">{n}</span><h3 className="mt-2 text-sm font-bold text-[#172B4D]">{t}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{d}</p></div>)}</div></div>
-        <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Vehicle classes</p><h2 className="mt-2 text-2xl font-bold text-[#172B4D]">Choose your ride</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{[['Standard','3 passengers','2 bags'],['Full-size sedan','4 passengers','3 bags']].map(([name,people,bags])=><div key={name} className="rounded-xl border border-orange-100 p-4"><div className="flex items-center justify-between gap-2"><h3 className="font-bold text-[#172B4D]">{name}</h3><span className="rounded-full bg-green-50 px-2 py-1 text-[10px] font-bold text-green-700">Free cancellation*</span></div><p className="mt-3 text-sm text-slate-600">{people} · {bags}</p><p className="mt-3 text-[11px] text-slate-500">*Cancellation terms depend on the selected provider.</p></div>)}</div></div>
+        <div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Vehicle classes</p><h2 className="mt-2 text-2xl font-bold text-[#172B4D]">Choose your ride</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{[['Standard','3 passengers','2 bags'],['Full-size sedan','4 passengers','3 bags']].map(([name,people,bags])=><div key={name} className="rounded-xl border border-orange-100 p-4"><div className="flex items-center justify-between gap-2"><h3 className="font-bold text-[#172B4D]">{name}</h3><span className="rounded-full bg-green-50 px-2 py-1 text-[10px] font-bold text-green-700">Free cancellation*</span></div><p className="mt-3 text-sm text-slate-600">{people} Â· {bags}</p><p className="mt-3 text-[11px] text-slate-500">*Cancellation terms depend on the selected provider.</p></div>)}</div></div>
       </div>
       <div className="mt-10"><h2 className="text-xl font-bold text-[#172B4D]">Frequently asked questions</h2><div className="mt-4 divide-y divide-orange-100 rounded-xl border border-orange-100 bg-white px-5">{[['How does Trexifly work?','Trexifly helps compare travel options and redirects you to the booking partner to review availability and complete your reservation.'],['Are prices live and guaranteed?','Some displayed comparison examples may be indicative. Confirm current availability, taxes and final prices with the booking provider.'],['Can I cancel a transfer?','Cancellation rules vary by provider and vehicle. Review the policy before confirming your booking.']].map(([q,a])=><details key={q} className="py-4"><summary className="cursor-pointer text-sm font-semibold text-[#172B4D]">{q}</summary><p className="mt-2 text-sm leading-6 text-slate-600">{a}</p></details>)}</div></div>
     </section>

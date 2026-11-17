@@ -19,7 +19,7 @@ export function Logo({ className }: { className?: string }) {
   return <Link to="/" aria-label="Trexifly home" className={cx('flex shrink-0 items-center', className)}>
     <img
       src="/trexifly-logo.png"
-      alt="Trexifly — Worldwide travel discovery"
+      alt="Trexifly â€” Worldwide travel discovery"
       className="h-11 w-[158px] rounded-lg bg-white px-1.5 py-1 object-contain shadow-md"
       width={500}
       height={140}
@@ -65,7 +65,7 @@ function PrefsMenu() {
     : fxStatus === 'cached'
       ? 'Using recently cached exchange rates.'
       : fxStatus === 'loading'
-        ? 'Loading current reference exchange rates…'
+        ? 'Loading current reference exchange ratesâ€¦'
         : 'Live rates are unavailable. Supported fallback rates are shown; other currencies remain in USD.'
 
   return (
@@ -79,7 +79,7 @@ function PrefsMenu() {
       >
         <span className="text-[#FFB800]">{symbol}</span>
         <span>{currency}</span>
-        <span className="text-slate-400">·</span>
+        <span className="text-slate-400">Â·</span>
         <span className="text-slate-500">{short}</span>
         <Icon name="chevronDown" className={cx('size-3.5 text-faint transition', open && 'rotate-180')} />
       </button>
@@ -94,7 +94,7 @@ function PrefsMenu() {
             <div>
               <h2 className="font-display text-base font-semibold text-ink">Select your currency</h2>
               <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                Where applicable, prices will be converted to—and shown in—the currency you select. The currency you pay in may differ based on your reservation, and a service fee may also apply.
+                Where applicable, prices will be converted toâ€”and shown inâ€”the currency you select. The currency you pay in may differ based on your reservation, and a service fee may also apply.
               </p>
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close currency selector" className="rounded-full p-1.5 text-muted hover:bg-white/10 hover:text-ink">
@@ -169,7 +169,7 @@ function PrefsMenu() {
               <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-3 py-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-semibold text-slate-700">Property's currency</span>
-                  <span className="text-sm font-semibold text-slate-500">€ $ £</span>
+                  <span className="text-sm font-semibold text-slate-500">â‚¬ $ Â£</span>
                 </div>
                 <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
                   Original property currency will be shown when the booking partner provides it.
@@ -236,7 +236,7 @@ export function Header() {
       {notice && <div role="dialog" aria-modal="true" className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 p-4" onClick={() => setNotice('')}><div className="max-w-md rounded-2xl bg-white p-6 text-slate-900 shadow-2xl" onClick={e => e.stopPropagation()}><h2 className="text-lg font-bold">Trexifly</h2><p className="mt-2 text-sm leading-6 text-slate-600">{notice}</p><button onClick={() => setNotice('')} className="mt-5 rounded-lg bg-[#FF5500] px-5 py-2.5 text-sm font-bold text-white">Close</button></div></div>}
       {authMode && <div role="dialog" aria-modal="true" aria-labelledby="trexifly-auth-title" className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/65 p-4 backdrop-blur-sm" onClick={()=>setAuthMode(null)}>
         <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_30px_90px_rgba(80,25,0,.35)]" onClick={e=>e.stopPropagation()}>
-          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">×</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
+          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">Ã—</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
           <div className="p-6"><div className="mb-5 grid grid-cols-2 rounded-xl bg-orange-50 p-1"><button type="button" onClick={()=>{setAuthMode('signin');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='signin'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Sign in</button><button type="button" onClick={()=>{setAuthMode('register');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='register'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Register</button></div>
             <form onSubmit={(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();setAuthMessage('Your details passed browser validation. Secure account sign-in/registration is not connected yet; no password has been saved.')}} className="space-y-3">
               {authMode==='register'&&<label className="block text-xs font-semibold text-slate-600">Full name<input required minLength={2} value={authName} onChange={e=>setAuthName(e.target.value)} autoComplete="name" className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-3 text-sm text-slate-900 outline-none focus:border-[#FF5500]" placeholder="Your name"/></label>}
@@ -264,7 +264,7 @@ export function Footer() {
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(60%_100%_at_50%_0%,rgba(47,216,160,0.08),transparent)]"
       />
-      <div className="mx-auto grid max-w-[1280px] gap-10 px-4 sm:px-6 md:grid-cols-[1.3fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-[1280px] gap-10 px-4 sm:px-6 md:grid-cols-[1.2fr_1fr_1.2fr_1fr]">
         <div>
           <Logo />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">
@@ -286,7 +286,17 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="eyebrow text-faint">Good to know</p>
+          <p className="eyebrow text-faint">Company &amp; support</p>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li><Link to="/about" className="text-muted hover:text-[#FF5500]">About Trexifly</Link></li>
+            <li><Link to="/contact" className="text-muted hover:text-[#FF5500]">Contact us</Link></li>
+            <li><Link to="/guides" className="text-muted hover:text-[#FF5500]">Travel guides</Link></li>
+            <li><Link to="/privacy" className="text-muted hover:text-[#FF5500]">Privacy policy</Link></li>
+            <li><Link to="/terms" className="text-muted hover:text-[#FF5500]">Terms &amp; conditions</Link></li>
+            <li><Link to="/affiliate-disclosure" className="text-muted hover:text-[#FF5500]">Affiliate disclosure</Link></li>
+            <li><a href="https://wa.me/923244921494" target="_blank" rel="noreferrer" className="font-semibold text-[#FF5500]">WhatsApp +92 324 4921494</a></li>
+          </ul>
+          <p className="eyebrow mt-5 text-faint">Good to know</p>
           <ul className="mt-3 space-y-2 text-sm text-muted">
             <li>Prices are indicative in {currency} until confirmed by the booking partner.</li>
             <li>Trexifly never charges a booking fee.</li>
@@ -296,8 +306,8 @@ export function Footer() {
       </div>
 
       <div className="mx-auto mt-10 flex max-w-[1280px] flex-col gap-2 border-t border-white/10 px-4 pt-5 text-[11px] text-faint sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>© {new Date().getFullYear()} Trexifly. All rights reserved.</p>
-        <p>Affiliate-ready metasearch · Flights, stays, cars and tours.</p>
+        <p>Â© {new Date().getFullYear()} Trexifly. All rights reserved.</p>
+        <p>Affiliate-ready metasearch Â· Flights, stays, cars and tours.</p>
       </div>
     </footer>
   )

@@ -6,6 +6,7 @@ import { PrefsProvider } from './lib/prefs'
 import { Home } from './pages/Home'
 import { Results } from './pages/Results'
 import { Landing, type LandingConfig } from './pages/Landing'
+import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
 
 const seoPages: LandingConfig[] = [
   {
@@ -99,9 +100,15 @@ export function App() {
     <main id="main"><Routes>
       <Route index element={<Home />} />
       <Route path="results" element={<Results />} />
+      <Route path="about" element={<LegalPage page="about" />} />
+      <Route path="contact" element={<LegalPage page="contact" />} />
+      <Route path="privacy" element={<LegalPage page="privacy" />} />
+      <Route path="terms" element={<LegalPage page="terms" />} />
+      <Route path="affiliate-disclosure" element={<LegalPage page="affiliate-disclosure" />} />
+      <Route path="guides" element={<GuidesPage />} />
       {seoPages.map((page) => <Route key={page.path} path={page.path} element={<Landing config={page} />} />)}
       <Route path="*" element={<NotFound />} />
     </Routes></main>
-    <Footer /><MobileTabBar />
+    <Footer /><MobileTabBar /><WhatsAppFloat />
   </PrefsProvider></BrowserRouter>
 }
