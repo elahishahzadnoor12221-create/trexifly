@@ -1,0 +1,535 @@
+@import 'tailwindcss';
+
+/*
+  Trexifly design tokens. A midnight-luxury palette: near-black navy, emerald
+  jade and warm gold on frosted glass. Panels are translucent white over the
+  night sky, so text stays light and borders are white at low alpha.
+*/
+@theme {
+  --font-sans: 'Inter Tight', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Sora', 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+
+  --color-abyss: #F8FAFC;
+  --color-night: #0F172A;
+  --color-deep: #F1F5F9;
+  --color-panel: #FFFFFF;
+  --color-ink: #0F172A;
+  --color-muted: #475569;
+  --color-faint: #64748B;
+  --color-line: #E2E8F0;
+  --color-line-soft: #F1F5F9;
+  --color-jade: #E63946;
+  --color-jade-deep: #DC2626;
+  --color-jade-soft: #FEE2E2;
+  --color-gold: #FFB703;
+  --color-gold-deep: #D99400;
+  --color-sky: #2563EB;
+  --color-rose: #E63946;
+
+  --radius-pill: 999px;
+  --radius-field: 16px;
+  --radius-card: 24px;
+  --radius-glass: 30px;
+
+  --shadow-glass: 0 44px 90px -54px rgb(0 0 0 / 0.95), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  --shadow-lift: 0 34px 60px -32px rgb(0 0 0 / 0.8);
+  --shadow-gold: 0 20px 44px -20px rgb(255 183 3 / 0.45);
+  --shadow-jade: 0 20px 50px -22px rgb(230 57 70 / 0.4);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-rise: rise 0.85s var(--ease-out-soft) both;
+  --animate-fade: fade 0.6s ease both;
+  --animate-spin-slow: spin-slow 34s linear infinite;
+  --animate-float: float 9s ease-in-out infinite;
+  --animate-float-slow: float 13s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 3.4s ease-out infinite;
+  --animate-marquee: marquee 46s linear infinite;
+  --animate-shimmer: shimmer 2.6s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(26px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes spin-slow {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -16px, 0);
+    }
+  }
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.8;
+    }
+    70% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 0.45;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes globe-spin {
+    to {
+      transform: rotateY(360deg);
+    }
+  }
+  @keyframes orbit-run {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: #F8FAFC;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overflow-x: clip;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  ::selection {
+    background: rgb(230 57 70 / 0.3);
+    color: #fff;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-jade);
+    outline-offset: 3px;
+  }
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  select,
+  label[for] {
+    cursor: pointer;
+  }
+  select option {
+    background: #FFFFFF;
+    color: #0F172A;
+  }
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.55;
+    cursor: pointer;
+  }
+}
+
+@utility glass {
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.1) 0%, rgb(255 255 255 / 0.03) 46%, rgb(255 255 255 / 0.07) 100%);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(28px) saturate(150%);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  box-shadow: var(--shadow-glass);
+}
+
+@utility glass-soft {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.02));
+  border: 1px solid rgb(255 255 255 / 0.09);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+@utility glass-field {
+  background: rgb(6 12 24 / 0.55);
+  border: 1px solid rgb(255 255 255 / 0.09);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    border-color: rgb(255 255 255 / 0.16);
+  }
+  &:focus-within {
+    border-color: rgb(230 57 70 / 0.55);
+    background: rgb(6 12 24 / 0.72);
+    box-shadow: 0 0 0 3px rgb(230 57 70 / 0.12);
+  }
+}
+
+@utility text-gradient {
+  background: linear-gradient(100deg, var(--color-jade-soft) 0%, var(--color-jade) 38%, var(--color-gold) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+@layer components {
+  /* ---- 3D hero globe ------------------------------------------------- */
+  .globe-stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 380px;
+    perspective: 1100px;
+    perspective-origin: 50% 45%;
+  }
+  .globe-tilt {
+    position: relative;
+    width: 340px;
+    height: 340px;
+    transform-style: preserve-3d;
+    transform: rotateX(calc(var(--my, 0) * -9deg)) rotateY(calc(var(--mx, 0) * 13deg));
+    transition: transform 0.5s var(--ease-out-soft);
+    will-change: transform;
+  }
+  .globe-aura {
+    position: absolute;
+    inset: -18%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, rgb(230 57 70 / 0.22) 0%, rgb(230 57 70 / 0.06) 42%, transparent 68%);
+    filter: blur(18px);
+    pointer-events: none;
+  }
+  .globe-sphere {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 26%, rgb(255 183 3 / 0.4) 0%, rgb(14 122 95 / 0.34) 26%, rgb(7 16 31 / 0.86) 60%, rgb(2 6 15 / 0.98) 88%);
+    box-shadow: inset -42px -28px 90px rgb(0 0 0 / 0.85), inset 28px 22px 70px rgb(230 57 70 / 0.16),
+      0 0 0 1px rgb(255 183 3 / 0.22), 0 0 110px rgb(230 57 70 / 0.18);
+  }
+  .globe-grid {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    animation: globe-spin 40s linear infinite;
+  }
+  .globe-meridian,
+  .globe-parallel {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgb(230 57 70 / 0.15);
+  }
+  .globe-parallel {
+    border-color: rgb(255 183 3 / 0.13);
+  }
+  .globe-marker {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+  }
+  .globe-marker > span {
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-gold);
+    box-shadow: 0 0 12px 2px rgb(255 183 3 / 0.85);
+  }
+  .globe-marker > span::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid rgb(255 183 3 / 0.6);
+    animation: pulse-ring 3.4s ease-out infinite;
+  }
+  .globe-orbit {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 300px;
+    height: 300px;
+    margin: -150px 0 0 -150px;
+    border-radius: 50%;
+    border: 1px solid rgb(255 183 3 / 0.22);
+    transform: rotateX(74deg) rotateZ(-16deg);
+    transform-style: preserve-3d;
+  }
+  .globe-orbit--b {
+    width: 372px;
+    height: 372px;
+    margin: -186px 0 0 -186px;
+    border-color: rgb(37 99 235 / 0.2);
+    transform: rotateX(66deg) rotateZ(28deg);
+  }
+  .orbit-runner {
+    position: absolute;
+    inset: 0;
+    animation: orbit-run 18s linear infinite;
+  }
+  .globe-orbit--b .orbit-runner {
+    animation-duration: 26s;
+    animation-direction: reverse;
+  }
+  .orbit-dot {
+    position: absolute;
+    left: 50%;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--color-gold);
+    box-shadow: 0 0 14px 3px rgb(255 183 3 / 0.55);
+  }
+  .globe-orbit--b .orbit-dot {
+    background: var(--color-sky);
+    box-shadow: 0 0 14px 3px rgb(37 99 235 / 0.55);
+  }
+
+  /* ---- tilt cards ---------------------------------------------------- */
+  .tilt-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.45s var(--ease-out-soft), box-shadow 0.45s var(--ease-out-soft);
+    will-change: transform;
+  }
+  /* ---- price range --------------------------------------------------- */
+  .price-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-jade) 0%, var(--color-gold) 100%);
+    outline-offset: 6px;
+  }
+  .price-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #f7fbff;
+    border: 3px solid var(--color-jade);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.55);
+    cursor: grab;
+  }
+  .price-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #f7fbff;
+    border: 3px solid var(--color-jade);
+    cursor: grab;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Yellow-red premium travel interface overrides */
+@layer base {
+  body { background:#F8FAFC; color:#0F172A; }
+  html { color-scheme:light; }
+  ::selection { background:rgb(255 183 3 / .35); color:#0F172A; }
+  select option { background:#fff; color:#0F172A; }
+  input[type=date]::-webkit-calendar-picker-indicator { filter:none; opacity:.75; }
+}
+@utility glass {
+  background:rgba(255,255,255,.96);
+  border:1px solid #E2E8F0;
+  backdrop-filter:blur(24px) saturate(140%);
+  -webkit-backdrop-filter:blur(24px) saturate(140%);
+  box-shadow:0 18px 48px -32px rgb(15 23 42 / .25);
+}
+@utility glass-soft {
+  background:#fff;
+  border:1px solid #E2E8F0;
+  box-shadow:0 10px 28px -24px rgb(15 23 42 / .25);
+}
+@utility glass-field {
+  background:#fff;
+  border:1px solid #CBD5E1;
+  &:hover { border-color:#94A3B8; }
+  &:focus-within { border-color:#E63946; box-shadow:0 0 0 3px rgb(230 57 70 / .12); }
+}
+@utility text-gradient {
+  background:linear-gradient(100deg,#E63946 0%,#DC2626 45%,#D99400 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+@layer components {
+  .site-header .glass { background:#0F172A; border-color:#1E293B; color:#fff; box-shadow:0 12px 34px -20px rgb(15 23 42 / .7); }
+  .site-header .text-ink { color:#fff; }
+  .site-header .text-muted { color:#CBD5E1; }
+  .site-header .text-faint { color:#94A3B8; }
+  .site-header .bg-white\/10 { background:rgb(255 255 255 / .12); }
+  .site-header .border-white\/12 { border-color:rgb(255 255 255 / .2); }
+  .site-header .text-jade { color:#FFB703; }
+  .globe-aura { background:radial-gradient(circle at 50% 50%,rgb(255 183 3 / .24) 0%,rgb(230 57 70 / .08) 42%,transparent 68%); }
+  .globe-sphere { background:radial-gradient(circle at 32% 26%,rgb(255 183 3 / .48) 0%,rgb(230 57 70 / .28) 26%,rgb(15 23 42 / .92) 60%,#0F172A 88%); }
+  .globe-grid { filter:drop-shadow(0 0 5px rgb(230 57 70 / .2)); }
+  .globe-meridian,.globe-parallel { border-color:rgb(255 183 3 / .32); }
+  .globe-parallel { border-color:rgb(230 57 70 / .28); }
+  .globe-marker>span { background:#FFB703; box-shadow:0 0 12px 2px rgb(255 183 3 / .85); }
+  .globe-marker>span::after { border-color:rgb(255 183 3 / .7); }
+  .globe-orbit { border-color:rgb(230 57 70 / .38); }
+  .globe-orbit--b { border-color:rgb(255 183 3 / .42); }
+  .orbit-dot { background:#FFB703; box-shadow:0 0 14px 3px rgb(255 183 3 / .65); }
+  .globe-orbit--b .orbit-dot { background:#E63946; box-shadow:0 0 14px 3px rgb(230 57 70 / .65); }
+  .price-range { background:linear-gradient(90deg,#E63946 0%,#FFB703 100%); }
+  .price-range::-webkit-slider-thumb { border-color:#E63946; }
+  .price-range::-moz-range-thumb { border-color:#E63946; }
+}
+
+/* Trexifly international travel refresh */
+@theme {
+  --color-jade: #006CE4;
+  --color-jade-deep: #0057B8;
+  --color-jade-soft: #EAF2FF;
+  --color-rose: #006CE4;
+  --color-gold: #FEBA02;
+  --color-gold-deep: #D99A00;
+  --color-sky: #006CE4;
+  --color-ink: #172B4D;
+  --color-muted: #52627A;
+  --color-faint: #6B7890;
+}
+@layer base {
+  body { background:#FFFFFF; color:#172B4D; }
+  ::selection { background:rgb(0 108 228 / .18); color:#003580; }
+  :focus-visible { outline-color:#006CE4; }
+  input[type=date]::-webkit-calendar-picker-indicator { filter:none; opacity:.8; }
+}
+.site-header { box-shadow:0 2px 10px rgb(0 25 70 / .12); }
+.site-header .text-ink { color:#FFFFFF; }
+.site-header .text-muted { color:#DBEAFE; }
+.site-header .text-faint { color:#BFDBFE; }
+.site-header .text-jade { color:#FEBA02; }
+.site-header .glass { background:#FFFFFF; border-color:#D7E2F0; color:#172B4D; }
+.site-header [aria-label="Select your currency and language"] { background:#FFFFFF; color:#172B4D; }
+.site-header [aria-label="Select your currency and language"] .text-ink { color:#172B4D; }
+.site-header [aria-label="Select your currency and language"] .text-muted,
+.site-header [aria-label="Select your currency and language"] .text-faint { color:#64748B; }
+.site-header [aria-label="Select your currency and language"] .text-jade { color:#006CE4; }
+footer { color:#172B4D; }
+footer .text-muted { color:#52627A; }
+footer .text-faint { color:#6B7890; }
+footer .border-white\/10 { border-color:#E2E8F0; }
+footer .text-ink { color:#172B4D; }
+.price-range { background:#006CE4; }
+.price-range::-webkit-slider-thumb { border-color:#006CE4; }
+.price-range::-moz-range-thumb { border-color:#006CE4; }
+
+/* Booking-inspired Trexifly blue and signature-gold refresh */
+:root { color-scheme: light; }
+body { background:#FFFFFF; color:#172B4D; }
+.site-header { background:#003580 !important; color:#FFFFFF !important; border-color:#003580 !important; }
+.site-header .text-slate-700 { color:#FFFFFF; }
+.site-header a:hover, .site-header button:hover { color:#FEBA02; }
+.site-header .font-display { color:#FFFFFF; }
+#search-widget h1 { color:#FFFFFF !important; }
+#search-widget h1 span { color:#FEBA02 !important; }
+#search-widget > div:first-child p { color:#EAF2FF !important; }
+#search-widget form { border-color:#FEBA02 !important; background:#FFFFFF; box-shadow:0 12px 34px rgba(0,20,60,.22); }
+#search-widget form button[type=submit] { background:#006CE4 !important; color:#FFFFFF !important; }
+#search-widget form button[type=submit]:hover { background:#0057B8 !important; }
+#search-widget form input:focus, #search-widget form select:focus { outline-color:#006CE4; }
+#search-widget form [role=listbox] { border-color:#D7E2F0; }
+#search-widget form [role=option]:hover { background:#EAF2FF; }
+/* Trexifly original Orange + White 3D brand restoration (2026-11-17) */
+:root {
+  --color-jade:#FF5500; --color-jade-deep:#E64A00; --color-jade-soft:#FFF0E8;
+  --color-rose:#E62E00; --color-gold:#FFB800; --color-gold-deep:#D99400;
+  --color-sky:#FF8A3D; --color-ink:#242424; --color-muted:#626262; --color-faint:#858585;
+}
+html,body { background:#FFFFFF; color:#242424; }
+::selection { background:rgb(255 85 0 / .22); color:#242424; }
+:focus-visible { outline-color:#FF5500; }
+.site-header { background:linear-gradient(115deg,#FF5500 0%,#E64A00 58%,#C93400 100%) !important; border-color:#FF5500 !important; color:#FFFFFF !important; }
+.site-header .text-ink { color:#FFFFFF; }
+.site-header .text-muted { color:#FFF1E8; }
+.site-header .text-faint { color:#FFE0CC; }
+.site-header .glass { background:#FFFFFF; color:#242424; border-color:#FFE0CC; }
+.site-header .font-display { color:#FFFFFF; }
+#search-widget h1 { color:#242424 !important; }
+#search-widget h1 span { color:#FF5500 !important; }
+#search-widget > div:first-child p { color:#626262 !important; }
+#search-widget form { border-color:#FF5500 !important; background:#FFFFFF; box-shadow:0 14px 38px rgb(255 85 0 / .15),0 8px 24px rgb(0 0 0 / .08); }
+#search-widget form button[type=submit] { background:linear-gradient(135deg,#FF5500,#E64A00) !important; color:#FFFFFF !important; }
+#search-widget form button[type=submit]:hover { background:#C93400 !important; }
+#search-widget form [role=listbox] { border-color:#FFD1B8; }
+#search-widget form [role=option]:hover { background:#FFF0E8; }
+.globe-aura { background:radial-gradient(circle at 50% 50%,rgb(255 85 0 / .25),rgb(255 184 0 / .12) 42%,transparent 68%); }
+.globe-sphere { background:radial-gradient(circle at 32% 26%,rgb(255 184 0 / .5) 0%,rgb(255 85 0 / .32) 26%,rgb(45 20 12 / .9) 60%,#17100D 88%); }
+.globe-meridian,.globe-parallel { border-color:rgb(255 184 0 / .28); }
+.globe-orbit { border-color:rgb(255 85 0 / .42); }
+.globe-orbit--b { border-color:rgb(255 184 0 / .46); }
+.globe-marker>span,.orbit-dot { background:#FFB800; box-shadow:0 0 14px 3px rgb(255 184 0 / .65); }
+.globe-orbit--b .orbit-dot { background:#E62E00; box-shadow:0 0 14px 3px rgb(230 46 0 / .65); }
+.price-range { background:linear-gradient(90deg,#FF5500,#FFB800); }
+.price-range::-webkit-slider-thumb,.price-range::-moz-range-thumb { border-color:#FF5500; }
