@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="light" />
     <meta name="theme-color" content="#0F172A" />
     <meta name="travelpayouts-partner-id" content="806576" />
+    <link rel="canonical" href="https://trexifly.com/" />
     <title>Trexifly — Compare Flights, Hotels & Global Adventures</title>
     <meta name="description" content="Compare flights, hotels and travel experiences with Trexifly. Explore routes across Pakistan and worldwide." />
     <meta name="google-site-verification" content="3AO4ND4DHIcthxfOuoyQR_tAgp6604RC1fFOhKWEUEQ" />
@@ -18,8 +19,53 @@
     {
       "@context": "https://schema.org",
       "@graph": [
-        {"@type":"TravelAgency","@id":"https://trexifly.com/#travel-agency","name":"Trexifly","url":"https://trexifly.com/","description":"Trexifly helps travellers compare flights, stays, car rentals, activities and airport transfers worldwide.","areaServed":"Worldwide","sameAs":[]},
-        {"@type":"WebSite","@id":"https://trexifly.com/#website","url":"https://trexifly.com/","name":"Trexifly","publisher":{"@id":"https://trexifly.com/#travel-agency"},"inLanguage":"en"}
+        {
+          "@type": "TravelAgency",
+          "@id": "https://trexifly.com/#travel-agency",
+          "name": "Trexifly",
+          "url": "https://trexifly.com/",
+          "description": "Trexifly helps travellers compare flights, stays, car rentals, activities and airport transfers worldwide.",
+          "areaServed": "Worldwide"
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://trexifly.com/#website",
+          "url": "https://trexifly.com/",
+          "name": "Trexifly",
+          "publisher": { "@id": "https://trexifly.com/#travel-agency" },
+          "inLanguage": "en"
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://trexifly.com/#faq",
+          "url": "https://trexifly.com/",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "How does Trexifly work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Trexifly helps compare travel options and redirects you to the booking partner to review availability and complete your reservation."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Are prices live and guaranteed?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Some displayed comparison examples may be indicative. Confirm current availability, taxes and final prices with the booking provider."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I cancel a transfer?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Cancellation rules vary by provider and vehicle. Review the policy before confirming your booking."
+              }
+            }
+          ]
+        }
       ]
     }
     </script>
