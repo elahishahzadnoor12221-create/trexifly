@@ -273,7 +273,7 @@ export function dealsFor(query: SearchQuery): Deal[] {
         subtitle,
         perks: perks.slice(0, 2),
         badges: [],
-        affiliateUrl: buildAffiliateUrl(providerId, query),
+        affiliateUrl: buildAffiliateUrl(query.type, providerIndex),
       })
     }
   })

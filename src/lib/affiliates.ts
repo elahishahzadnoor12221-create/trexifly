@@ -1,79 +1,50 @@
-import type { ProviderId, SearchQuery } from './data'
+import type { TripType } from './data'
+
+export type AffiliateCategory = TripType | 'transfers'
+
+export type AffiliatePartner = {
+  id: string
+  name: string
+  category: AffiliateCategory
+  url: string
+}
+
+/** Verified Travelpayouts Partner ID supplied by the account owner. */
+export const TRAVELPAYOUTS_MARKER_ID = '806576'
+export const AFFILIATE_IDS = { aviasales: TRAVELPAYOUTS_MARKER_ID } as const
 
 /**
- * Affiliate wiring.
- *
- * 1. Drop your programme IDs into `AFFILIATE_IDS` (Travelpayouts, Booking.com
- *    partner programme, Agoda, Trip.com affiliate, ...).
- * 2. Every "View Deal" button already points at `buildAffiliateUrl(provider, query)`
- *    and opens in a new tab with `rel="sponsored"`.
- * 3. For white-label banner/booking widgets use `<AffiliateWidgetSlot />`.
+ * Exact generated Travelpayouts links. These are short partner URLs and must
+ * remain intact: do not append unrelated marker/query parameters to them.
  */
-/** Verified Travelpayouts partner marker. */
-export const TRAVELPAYOUTS_MARKER_ID = '601763'
-
-/**
- * IDs are provider-specific. The verified Travelpayouts marker is valid for
- * the Aviasales/Travelpayouts link only; other brands must use their own
- * generated Travelpayouts deep links or partner-program IDs.
- */
-export const AFFILIATE_IDS: Partial<Record<ProviderId, string>> = {
-  aviasales: TRAVELPAYOUTS_MARKER_ID,
+export const TRAVELPAYOUTS_PARTNERS: Record<AffiliateCategory, AffiliatePartner[]> = {
+  flights: [
+    { id: 'aviasales', name: 'Aviasales', category: 'flights', url: 'https://aviasales.tpx.lv/ZOqzJHaf' },
+  ],
+  hotels: [
+    { id: 'klook-hotels', name: 'Klook Hotels', category: 'hotels', url: 'https://klook.tpx.lv/agWneWmu' },
+    { id: 'kkday', name: 'KKday Package Tours', category: 'hotels', url: 'https://kkday.tpx.lv/2zFYXTf7' },
+  ],
+  cars: [
+    { id: 'autoeurope', name: 'AutoEurope', category: 'cars', url: 'https://autoeurope.tpx.lv/1NuZscel' },
+    { id: 'qeeq', name: 'QEEQ Global Car Rental', category: 'cars', url: 'https://qeeq.tpx.lv/xVJH8wOZ' },
+  ],
+  tours: [
+    { id: 'tiqets', name: 'Tiqets', category: 'tours', url: 'https://tiqets.tpx.lv/JkNGKSuf' },
+  ],
+  transfers: [
+    { id: 'kiwitaxi', name: 'Kiwitaxi', category: 'transfers', url: 'https://kiwitaxi.tpx.lv/rPk61mni' },
+    { id: 'gettransfer', name: 'GetTransfer.com', category: 'transfers', url: 'https://gettransfer.tpx.lv/dt5dWuQv' },
+  ],
 }
 
-/** Query-string name each network uses for its tracking ID. */
-const ID_PARAM: Record<ProviderId, string> = {
-  booking: 'aid',
-  agoda: 'cid',
-  aviasales: 'marker',
-  trip: 'Allianceid',
-  kiwi: 'affilid',
-  expedia: 'affcid',
+export function getAffiliatePartners(category: AffiliateCategory): AffiliatePartner[] {
+  return TRAVELPAYOUTS_PARTNERS[category]
 }
 
-const BASE_URL: Record<ProviderId, string> = {
-  booking: 'https://www.booking.com/searchresults.html',
-  agoda: 'https://www.agoda.com/search',
-  aviasales: 'https://www.aviasales.com/search',
-  trip: 'https://www.trip.com/search',
-  kiwi: 'https://www.kiwi.com/en/search/results',
-  expedia: 'https://www.expedia.com/search',
-}
-
-/** Booking.com and Agoda deep-link the destination under their own key. */
-const DEST_PARAM: Partial<Record<ProviderId, string>> = {
-  booking: 'ss',
-  agoda: 'textToSearch',
-}
-
-function adultsFrom(pax: string): number {
-  const adults = Number.parseInt(pax, 10)
-  return Number.isFinite(adults) && adults > 0 ? adults : 1
-}
-
-export function buildAffiliateUrl(provider: ProviderId, query: SearchQuery): string {
-  const url = new URL(BASE_URL[provider])
-  const params = url.searchParams
-  const city = query.type === 'cars' ? query.from : query.to
-
-  params.set(DEST_PARAM[provider] ?? 'destination', city)
-  if (query.type === 'flights') {
-    params.set('origin', query.from)
-    params.set('depart', query.out)
-    params.set('return', query.back)
-  } else {
-    params.set('checkIn', query.out)
-    params.set('checkOut', query.back)
-  }
-  if (query.type === 'cars') params.set('vehicle', query.vehicle)
-  if (query.type === 'tours') {
-    params.set('duration', query.duration)
-    params.set('package', query.pkg)
-  }
-  params.set('adults', String(adultsFrom(query.pax)))
-
-  const id = AFFILIATE_IDS[provider]
-  if (id) params.set(ID_PARAM[provider], id)
-
-  return url.toString()
+/** Return the official generated short link for a category/provider slot. */
+export function buildAffiliateUrl(category: AffiliateCategory, partnerIndex = 0): string {
+  const partners = getAffiliatePartners(category)
+  if (!partners.length) throw new Error(`No affiliate partner configured for ${category}`)
+  return partners[partnerIndex % partners.length].url
 }

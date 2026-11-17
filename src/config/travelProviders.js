@@ -6,7 +6,7 @@
  */
 export const TRAVEL_PROVIDERS = Object.freeze({
   travelpayouts: {
-    markerId: import.meta.env?.VITE_TRAVELPAYOUTS_MARKER_ID || '601763',
+    markerId: import.meta.env?.VITE_TRAVELPAYOUTS_MARKER_ID || '806576',
     driveScript: 'https://tpembars.com',
   },
   flights: {

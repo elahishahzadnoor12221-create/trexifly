@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router'
 import { Icon } from '../components/Icons'
 import { SearchWidget } from '../components/SearchWidget'
 import { readQuery, dealsFor, type Deal } from '../lib/data'
+import { getAffiliatePartners } from '../lib/affiliates'
 import { usePrefs } from '../lib/prefs'
 
 type SortMode = 'Best' | 'Cheapest' | 'Fastest'
@@ -20,7 +21,7 @@ function OfferCard({ deal }: { deal: Deal }) {
       </div>
       <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:min-w-[190px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
         <div className="sm:text-right"><p className="text-[11px] text-slate-500">{deal.priceUnit}</p><p className="text-2xl font-bold tracking-tight text-slate-900">{money(deal.price)}</p><p className="text-[10px] text-slate-500">Indicative estimate</p></div>
-        <a href={deal.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#E64A00]">See availability / Book <Icon name="arrowUpRight" className="size-4"/></a>
+        <a href={deal.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#E64A00]">View Deal <Icon name="arrowUpRight" className="size-4"/></a>
       </div>
     </div>
   </article>
@@ -30,6 +31,7 @@ export function Results() {
   const query = readQuery(params)
   const transfer = params.get('service') === 'airport-transfer'
   const deals = transfer ? [] : dealsFor(query)
+  const partnerLinks = getAffiliatePartners(transfer ? 'transfers' : query.type)
   const { money } = usePrefs()
   const max = deals.length ? Math.max(...deals.map(d=>d.price)) : 0
   const [cap,setCap] = useState(max)
@@ -46,9 +48,10 @@ export function Results() {
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">← Back to search</Link>
       <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only · Final prices and availability must be confirmed with the booking provider.</p></div>
       <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
+      <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Continue to a Travelpayouts-tracked partner site. Search details may need to be entered again on the partner website.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>
       <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="rounded-xl border border-slate-200 bg-white p-4">
-          {transfer ? <><h2 className="font-bold text-slate-900">Transfer search</h2><p className="mt-2 text-xs leading-5 text-slate-600">Your route details are ready, but a dedicated airport-transfer booking provider is not connected yet. Trexifly will show transfer offers here once that integration is enabled.</p></> : <>
+          {transfer ? <><h2 className="font-bold text-slate-900">Airport transfer search</h2><p className="mt-2 text-xs leading-5 text-slate-600">Your pickup, destination, date and passenger details are retained here. Choose one of the official transfer partners to continue on its booking site.</p></> : <>
             <div className="mb-3 flex items-center justify-between"><h2 className="font-bold text-slate-900">Filter by</h2><button onClick={()=>{setCap(max);setStops([]);setAirlines([]);setBaggage(false)}} className="text-xs font-semibold text-[#FF5500]">Reset</button></div>
             {query.type==='flights' && <FilterGroup title="Stops">{['Non-stop','1 stop'].map(v=>check(v,stops.includes(v),()=>toggle(stops,v,setStops)))}</FilterGroup>}
             <FilterGroup title="Baggage">{check('Cabin baggage included',baggage,()=>setBaggage(!baggage))}</FilterGroup>
@@ -58,7 +61,7 @@ export function Results() {
           </>}
         </aside>
         <section className="min-w-0">
-          {transfer ? <div className="rounded-xl border border-orange-100 bg-white p-8"><span className="inline-flex size-11 items-center justify-center rounded-xl bg-orange-50 text-[#FF5500]"><Icon name="car" className="size-5"/></span><h2 className="mt-4 text-lg font-bold text-slate-900">Airport transfer provider connection pending</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">We have not connected a live transfer inventory provider yet, so we will not show made-up vehicle prices or booking links. Your selected pickup, destination, date and passenger details are retained in this search.</p><Link to="/?tab=transfers#search-widget" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-2.5 text-sm font-bold text-white">Edit transfer search</Link></div> : <>
+          {transfer ? <div className="rounded-xl border border-orange-100 bg-white p-8"><span className="inline-flex size-11 items-center justify-center rounded-xl bg-orange-50 text-[#FF5500]"><Icon name="car" className="size-5"/></span><h2 className="mt-4 text-lg font-bold text-slate-900">Choose an airport transfer partner</h2><p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">Your route details are ready. Select Kiwitaxi or GetTransfer.com above to open its official tracked booking page. Final vehicle options, prices and availability are provided by the partner.</p><Link to="/?tab=transfers#search-widget" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-2.5 text-sm font-bold text-white">Edit transfer search</Link></div> : <>
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">{filtered.length} options to compare</h2><p className="mt-1 text-xs text-slate-600">Select a provider to continue</p></div><div className="flex rounded-lg border border-slate-200 bg-white p-1">{(['Best','Cheapest','Fastest'] as SortMode[]).map(v=><button key={v} onClick={()=>setSort(v)} className={`rounded-md px-3 py-2 text-xs font-bold ${sort===v?'bg-[#D94700] text-white':'text-slate-600 hover:bg-slate-100'}`}>{v}</button>)}</div></div>
             <div className="space-y-3">{filtered.length?filtered.map(deal=><OfferCard key={deal.id} deal={deal}/>):<div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No offers match these filters. Reset your filters to see all options.</div>}</div>
             <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700">Trexifly currently displays illustrative comparison estimates, not live inventory. These are not guaranteed fares, room rates or vehicle availability. Confirm the final price, taxes, terms and availability with the booking provider before paying.</div>
