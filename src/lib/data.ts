@@ -35,8 +35,6 @@ export const PLACES: Place[] = [
   { city: 'Faisalabad', code: 'LYP', country: 'Pakistan' },
   { city: 'Skardu', code: 'KDU', country: 'Pakistan' },
   { city: 'Gilgit', code: 'GIL', country: 'Pakistan' },
-  { city: 'Hunza', code: 'HUN', country: 'Pakistan' },
-  { city: 'Swat', code: 'SWT', country: 'Pakistan' },
   { city: 'Dubai', code: 'DXB', country: 'United Arab Emirates' },
   { city: 'Abu Dhabi', code: 'AUH', country: 'United Arab Emirates' },
   { city: 'Jeddah', code: 'JED', country: 'Saudi Arabia' },
