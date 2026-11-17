@@ -109,6 +109,8 @@ export function App() {
       <Route path="guides" element={<><GuideIndexEnhancements /><GuidesPage /></>} />
       <Route path="guides/international-airport-transfers" element={<TravelGuideArticle guide="transfers" />} />
       <Route path="guides/hunza-skardu-best-time" element={<TravelGuideArticle guide="northern" />} />
+      <Route path="guides/smart-flight-comparison-tips" element={<TravelGuideArticle guide="flights" />} />
+      <Route path="guides/northern-pakistan-road-safety-packing" element={<TravelGuideArticle guide="road" />} />
       {seoPages.map((page) => <Route key={page.path} path={page.path} element={<Landing config={page} />} />)}
       <Route path="*" element={<NotFound />} />
     </Routes></main>

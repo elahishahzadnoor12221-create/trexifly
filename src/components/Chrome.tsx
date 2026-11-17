@@ -291,7 +291,7 @@ export function Footer() {
           <h3 className="mb-3 font-semibold text-gray-900">Need Help?</h3>
           <p className="mb-2 text-sm text-gray-600">Northern Pakistan trip-planning assistance and travel support:</p>
           <a
-            href="https://wa.me/923244921494"
+            href="https://wa.me/923244921494?text=Hello%20Trexifly%2C%20I%20would%20like%20travel%20planning%20assistance."
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center rounded-lg bg-[#FF5500] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#D94700] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"

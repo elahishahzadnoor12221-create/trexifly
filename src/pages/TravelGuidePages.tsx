@@ -14,6 +14,16 @@ const guides = {
     title: 'Best Time to Visit Hunza & Skardu: Seasonal Weather & Travel Preparation Guide',
     description: 'Understand typical Hunza and Skardu seasons, mountain road access, flights, packing and practical preparation before travelling in northern Pakistan.',
   },
+  flights: {
+    path: '/guides/smart-flight-comparison-tips',
+    title: 'How to Compare International & Domestic Flights Smartly: Booking & Baggage Checklist',
+    description: 'Compare international and domestic flights with practical advice on flexible dates, connections, baggage allowances and a clear pre-booking checklist.',
+  },
+  road: {
+    path: '/guides/northern-pakistan-road-safety-packing',
+    title: 'Northern Pakistan Road Travel & Packing Checklist: Safety Tips for Mountain Routes',
+    description: 'Prepare for road travel in northern Pakistan with Karakoram Highway safety checks, vehicle readiness, weather updates, altitude awareness and a practical packing list.',
+  },
 }
 
 function Seo({ title, description, path }: { title: string; description: string; path: string }) {
@@ -54,7 +64,7 @@ function ArticleShell({ title, description, children, path }: { title: string; d
 }
 
 export function GuideIndexEnhancements() {
-  return <><Seo title="Travel Guides & Route Insights | Trexifly" description="Read practical Trexifly travel guides covering international airport transfers and the best time to visit Hunza and Skardu, with seasonal and route-planning advice." path="/guides" /><section className="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
+  return <><Seo title="Travel Guides & Route Insights | Trexifly" description="Read practical travel guides on airport transfers, comparing flights, baggage rules, Hunza and Skardu seasons, and safe road travel in northern Pakistan." path="/guides" /><section className="mx-auto max-w-4xl px-4 pt-10 sm:px-6">
     <div className="grid gap-4 md:grid-cols-2">
       <Link to={guides.transfers.path} className="group rounded-2xl border border-orange-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
         <p className="text-xs font-bold uppercase tracking-wider text-[#FF5500]">Airport transfers</p>
@@ -68,11 +78,147 @@ export function GuideIndexEnhancements() {
         <p className="mt-2 text-sm leading-6 text-slate-600">Understand seasonal variation, mountain access, flight weather and practical preparation.</p>
         <span className="mt-4 inline-block text-sm font-bold text-[#D94700]">Read guide →</span>
       </Link>
+      <Link to={guides.flights.path} className="group rounded-2xl border border-orange-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <p className="text-xs font-bold uppercase tracking-wider text-[#FF5500]">Flight planning</p>
+        <h2 className="mt-2 text-xl font-extrabold text-slate-900 group-hover:text-[#D94700]">Compare International &amp; Domestic Flights</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Compare dates, connections, baggage rules and booking conditions before checkout.</p>
+        <span className="mt-4 inline-block text-sm font-bold text-[#D94700]">Read guide →</span>
+      </Link>
+      <Link to={guides.road.path} className="group rounded-2xl border border-orange-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <p className="text-xs font-bold uppercase tracking-wider text-[#FF5500]">Mountain road safety</p>
+        <h2 className="mt-2 text-xl font-extrabold text-slate-900 group-hover:text-[#D94700]">Northern Pakistan Road Travel &amp; Packing</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Prepare your vehicle, check weather and route advisories, and pack for mountain travel.</p>
+        <span className="mt-4 inline-block text-sm font-bold text-[#D94700]">Read guide →</span>
+      </Link>
     </div>
   </section></>
 }
 
-export function TravelGuideArticle({ guide }: { guide: 'transfers' | 'northern' }) {
+export function TravelGuideArticle({ guide }: { guide: 'transfers' | 'northern' | 'flights' | 'road' }) {
+  if (guide === 'flights') return <ArticleShell title={guides.flights.title} description={guides.flights.description} path={guides.flights.path}>
+    <p>Comparing flights is more than choosing the first result or the shortest displayed journey. A useful comparison checks the complete itinerary: airports, travel dates, connection time, baggage included in the fare, change conditions and the booking provider. These details matter for domestic journeys within Pakistan as well as international travel.</p>
+
+    <h2>Compare flexible dates, not just one departure day</h2>
+    <p>If your plans allow flexibility, search nearby departure dates and compare return dates separately. Flight schedules and available fares change by date, route and provider. Use Trexifly's flight search to explore the options currently returned by its partners, then open the provider's page to confirm the itinerary and final live fare before booking.</p>
+    <ul>
+      <li>Compare the dates immediately before and after your preferred departure where your schedule allows.</li>
+      <li>For return journeys, compare the return date as well as the outbound date.</li>
+      <li>Check the exact departure and arrival airports. A city may have more than one airport, and changing airports during a connection can require separate ground transport.</li>
+      <li>Compare the total journey duration and local departure/arrival times, including overnight travel and date changes.</li>
+    </ul>
+
+    <h2>Check layovers and connection details carefully</h2>
+    <p>A lower number of stops does not automatically make an itinerary the best fit. Review the scheduled connection time, the airports and terminals involved, and whether you must pass immigration, collect checked baggage or check in again. These requirements depend on the airports, countries, airline arrangements and ticket conditions.</p>
+    <ul>
+      <li><strong>Connection time:</strong> Make sure the scheduled interval is workable for the airport and itinerary. Do not assume a short connection is protected if flights are booked separately.</li>
+      <li><strong>Single ticket or separate tickets:</strong> Confirm whether the complete journey is issued on one ticket. Separate-ticket connections can leave you responsible for missed onward travel if the first flight is delayed.</li>
+      <li><strong>Airport changes:</strong> Check whether the connection uses a different airport and allow for the required ground transfer, border formalities and baggage collection.</li>
+      <li><strong>Transit requirements:</strong> Check visa and transit rules with the relevant official government authority for your passport and itinerary.</li>
+      <li><strong>Disruption terms:</strong> Read the airline or booking provider's rules for missed connections, delays, cancellations and rebooking.</li>
+    </ul>
+
+    <h2>Understand carry-on and checked baggage allowances</h2>
+    <p>Baggage is not one universal allowance. Cabin-bag size and weight, personal-item rules, checked-bag quantity and weight, and charges for additional baggage can differ by airline, route, aircraft, cabin and fare family. A baggage allowance shown for one flight in a multi-airline itinerary may not automatically apply to every segment.</p>
+    <h3>Before you pay, verify these baggage details</h3>
+    <ul>
+      <li>Whether a personal item and a cabin bag are included, and the permitted dimensions and weight for each.</li>
+      <li>Whether checked baggage is included in the selected fare, and the permitted number, weight and dimensions of bags.</li>
+      <li>Rules for sports equipment, musical instruments, strollers, mobility aids and other special items.</li>
+      <li>Whether baggage must be collected and rechecked during a connection.</li>
+      <li>Any additional-baggage fees and the deadline or process for purchasing extra allowance.</li>
+      <li>Which airline's baggage rules apply when more than one carrier operates the itinerary; confirm this with the airline or ticket provider.</li>
+    </ul>
+    <p>The <a href="https://www.iata.org/en/programs/ops-infra/baggage/" target="_blank" rel="noreferrer">International Air Transport Association (IATA) baggage guidance</a> provides general passenger and baggage information. It does not replace the operating airline's rules for your specific ticket. Always check the airline's current baggage page and the fare conditions displayed at checkout.</p>
+
+    <h2>Use Trexifly's Flights search</h2>
+    <ol>
+      <li>Open the <Link to="/?tab=flights#search-widget">Flights search tab on Trexifly</Link>.</li>
+      <li>Enter the departure and arrival cities or airports, then choose one-way or return travel and your dates.</li>
+      <li>Set the passenger count and cabin preference that match your trip.</li>
+      <li>Compare the options shown, paying attention to airports, stopovers, total journey time and fare conditions—not just the headline result.</li>
+      <li>Open the airline or partner booking page and verify the live fare, baggage allowance for every segment, taxes, seat and change options before completing payment.</li>
+    </ol>
+    <div className="not-prose mt-8 rounded-2xl bg-orange-50 p-5">
+      <h2 className="text-xl font-extrabold text-slate-900">Compare flights online</h2>
+      <p className="mt-2 text-sm leading-6 text-slate-700">Search your route and dates, then confirm current availability and all fare conditions with the booking provider.</p>
+      <Link to="/?tab=flights#search-widget" className="mt-4 inline-flex rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00]">Search Flights on Trexifly</Link>
+    </div>
+
+    <h2>Flight booking checklist</h2>
+    <ul>
+      <li>Correct passenger names and travel-document details.</li>
+      <li>Correct departure and arrival airports, dates and local times.</li>
+      <li>Connection time, airport changes and transit requirements checked.</li>
+      <li>Carry-on and checked baggage allowance confirmed for every flight segment.</li>
+      <li>Fare rules, change/refund terms, seat selection and check-in requirements reviewed.</li>
+      <li>Final live fare, taxes and payment currency checked on the airline or partner page.</li>
+    </ul>
+    <h2>Source and disclaimer</h2>
+    <p><a href="https://www.iata.org/" target="_blank" rel="noreferrer">IATA — International Air Transport Association</a>: general passenger, travel and baggage guidance. Airline-specific rules and ticket conditions take precedence for the journey being booked.</p>
+    <p className="text-sm"><strong>Disclaimer:</strong> Flight schedules, baggage policies, availability and live partner fares can change without notice. Trexifly search results are comparison options, not a ticket or a guarantee of inventory. Verify the exact itinerary, baggage allowance, transit requirements, final fare and all conditions on the airline or official booking partner's page before payment.</p>
+  </ArticleShell>
+
+  if (guide === 'road') return <ArticleShell title={guides.road.title} description={guides.road.description} path={guides.road.path}>
+    <p>Mountain road journeys in northern Pakistan require more preparation than an ordinary city drive. Routes toward Naran, Hunza and Skardu cross varied terrain and can be affected by weather, road works, landslides, rockfall, flooding, snow and local traffic restrictions. A route that was passable on a previous trip may have different conditions on the day you travel.</p>
+
+    <h2>Know the route and check current advisories</h2>
+    <p>The Karakoram Highway (KKH), designated N-35, is a major road corridor through the northern mountain region, serving routes toward Gilgit, Hunza and the Khunjerab Pass area. Travel toward Naran follows a different mountain-road corridor, including the Mansehra–Naran–Jalkhad route; seasonal access around high sections such as Babusar Pass is weather-dependent. Skardu journeys also require checking the current status of the selected approach and any alternate route.</p>
+    <p>Before departure, check the <a href="https://nha.gov.pk/" target="_blank" rel="noreferrer">National Highway Authority (NHA)</a> for official highway information and advisories where available. Review the <a href="https://pmd.gov.pk/" target="_blank" rel="noreferrer">Pakistan Meteorological Department (PMD)</a> forecast for the districts and elevations along your planned route—not only the weather at your starting point. Confirm local closures and restrictions with the relevant district administration or traffic police as well.</p>
+    <ul>
+      <li>Check road and weather information again shortly before leaving and during the journey.</li>
+      <li>Ask a reliable local source about any recent landslide, road work, diversion or closure on your exact route.</li>
+      <li>Allow schedule flexibility. Do not plan a mountain drive around an unverified fixed journey time.</li>
+      <li>Never pass a road closure, barricade or instruction from traffic or safety officials.</li>
+    </ul>
+
+    <h2>Vehicle readiness before a mountain drive</h2>
+    <p>Use a roadworthy vehicle appropriate for the route and expected conditions. A qualified mechanic should inspect the vehicle before a demanding mountain journey, especially if it has not been serviced recently. The following checks are a preparation prompt, not a substitute for a professional inspection.</p>
+    <ul>
+      <li><strong>Tyres:</strong> Check tyre condition, tread and pressure, including the spare tyre. Carry the correct jack and wheel tools.</li>
+      <li><strong>Brakes and steering:</strong> Have brakes, steering and suspension checked by a qualified mechanic. Do not start if warning signs or faults remain.</li>
+      <li><strong>Fluids and cooling:</strong> Check engine oil, coolant, brake fluid and washer fluid according to the vehicle manual. Watch for overheating and never open a hot pressurised cooling system.</li>
+      <li><strong>Lights and visibility:</strong> Confirm headlights, brake lights, indicators, wipers and windscreen condition are working properly.</li>
+      <li><strong>Fuel and power:</strong> Plan refuelling around known services, keep devices charged and carry a suitable power bank. Do not assume fuel or mobile coverage is available at every remote point.</li>
+      <li><strong>Safety equipment:</strong> Carry seat belts for every occupant, a first-aid kit, warning triangle, torch, basic tools and drinking water.</li>
+    </ul>
+
+    <h2>Drive defensively on mountain roads</h2>
+    <ul>
+      <li>Use a driver familiar with mountain roads and the vehicle; avoid fatigue and take breaks.</li>
+      <li>Reduce speed for bends, narrow sections, loose gravel, poor visibility and wet or icy surfaces.</li>
+      <li>Keep a safe following distance and use a lower gear where appropriate on long descents, following the vehicle manual and driver training.</li>
+      <li>Do not overtake where visibility is limited or where road markings, signs or local conditions make it unsafe.</li>
+      <li>Watch for pedestrians, livestock, cyclists, falling rocks and vehicles approaching on narrow sections.</li>
+      <li>Avoid driving into heavy rain, snowfall, dense fog or darkness when conditions make the route unsafe. Stop only in a safe designated place away from unstable slopes and exposed road edges.</li>
+      <li>Do not attempt to cross flowing water, debris, a landslide area or a snow-affected section if its safety is uncertain.</li>
+    </ul>
+
+    <h2>Mountain travel packing checklist</h2>
+    <ul>
+      <li><strong>Clothing:</strong> Pack layers, a warm insulating layer and a wind- and water-resistant outer shell. Conditions can change with elevation and time of day.</li>
+      <li><strong>Footwear:</strong> Bring sturdy shoes with grip for uneven ground, plus spare socks.</li>
+      <li><strong>Sun and weather protection:</strong> Carry sunscreen, sunglasses, a hat and rain protection.</li>
+      <li><strong>Health essentials:</strong> Bring personal medicines, a basic first-aid kit and any supplies recommended by your healthcare professional.</li>
+      <li><strong>Water and food:</strong> Carry drinking water and suitable snacks, especially for stretches where services may be limited.</li>
+      <li><strong>Navigation:</strong> Download offline maps for the route and save accommodation details, key contacts and important directions before leaving coverage.</li>
+      <li><strong>Documents and power:</strong> Keep identification, driving documents, booking details, emergency contacts, charging cables and a power bank accessible.</li>
+    </ul>
+
+    <h2>Altitude, hydration and personal wellbeing</h2>
+    <p>Some northern Pakistan itineraries reach substantially higher elevations than the plains. Allow time to adjust when ascending, drink water regularly and avoid strenuous activity if you feel unwell. Headache, nausea, dizziness or unusual fatigue after gaining elevation should not be ignored. Seek medical advice for symptoms and urgent help for severe or worsening illness; do not continue to a higher elevation while unwell. Travellers with medical concerns should discuss their itinerary with a qualified healthcare professional before departure.</p>
+
+    <h2>Plan a custom northern Pakistan trip</h2>
+    <p>For general trip-planning guidance, send Trexifly your intended travel month, route (such as Naran, Hunza or Skardu), group size and any mobility or itinerary considerations. Our WhatsApp contact is an enquiry and consultation channel only. It is not a direct tour contract and does not guarantee a driver, vehicle, accommodation, road access or package availability.</p>
+    <a href={WA + '?text=' + encodeURIComponent('Hello Trexifly, I am planning a road trip in northern Pakistan. My intended month is [month], route is [Naran / Hunza / Skardu], and group size is [number]. Please share general seasonal route-safety and packing guidance, and advise which official weather and road updates I should check before departure.')} target="_blank" rel="noreferrer" className="not-prose mt-2 inline-flex rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00]">Plan Your Custom Trip on WhatsApp</a>
+
+    <h2>Official sources and final checks</h2>
+    <ul>
+      <li><a href="https://nha.gov.pk/" target="_blank" rel="noreferrer">National Highway Authority Pakistan</a> — official national highway information and advisories where published.</li>
+      <li><a href="https://pmd.gov.pk/" target="_blank" rel="noreferrer">Pakistan Meteorological Department</a> — official weather forecasts and warnings.</li>
+    </ul>
+    <p className="text-sm"><strong>Disclaimer:</strong> This checklist is general preparation guidance, not a live road-status report or a substitute for professional vehicle inspection, local instructions or medical advice. Weather, road conditions, closures and mountain access can change rapidly. Verify the latest NHA and PMD information and local authority updates immediately before and during travel. Any live travel or partner rates should be checked directly with the relevant provider; Trexifly does not guarantee route access or package availability.</p>
+  </ArticleShell>
+
   if (guide === 'transfers') return <ArticleShell title={guides.transfers.title} description={guides.transfers.description} path={guides.transfers.path}>
     <p>Arriving in an unfamiliar city after a long flight can make the journey from the airport to your accommodation harder to organise. Planning the pickup details in advance helps you identify the correct airport, share a precise destination and understand the provider's meeting and waiting rules.</p>
 
