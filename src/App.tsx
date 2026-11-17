@@ -7,6 +7,7 @@ import { Home } from './pages/Home'
 import { Results } from './pages/Results'
 import { Landing, type LandingConfig } from './pages/Landing'
 import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
+import { GuideIndexEnhancements, TravelGuideArticle } from './pages/TravelGuidePages'
 
 const seoPages: LandingConfig[] = [
   {
@@ -105,7 +106,9 @@ export function App() {
       <Route path="privacy" element={<LegalPage page="privacy" />} />
       <Route path="terms" element={<LegalPage page="terms" />} />
       <Route path="affiliate-disclosure" element={<LegalPage page="affiliate-disclosure" />} />
-      <Route path="guides" element={<GuidesPage />} />
+      <Route path="guides" element={<><GuideIndexEnhancements /><GuidesPage /></>} />
+      <Route path="guides/international-airport-transfers" element={<TravelGuideArticle guide="transfers" />} />
+      <Route path="guides/hunza-skardu-best-time" element={<TravelGuideArticle guide="northern" />} />
       {seoPages.map((page) => <Route key={page.path} path={page.path} element={<Landing config={page} />} />)}
       <Route path="*" element={<NotFound />} />
     </Routes></main>

@@ -65,6 +65,7 @@ const LOCATIONS = [...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport'))
 const field = 'min-w-0 w-full border-0 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-500'
 const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'
+let lastNominatimRequestAt = 0
 
 function SelectField({ title, value, onChange, options }: { title: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return <label className={cell}><span className={label}>{title}</span><select className={field} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
@@ -91,27 +92,27 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
     const source=countryCode?[...options.filter(item=>countryNames[countryCode]?.test(item)),...(curated[countryCode]??[])]:options
     return source.filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,8)
   }, [options, value, countryCode])
-  useEffect(() => {
+  const searchAddress = () => {
     const term = value.trim()
-    if (term.length < 2) { setRemote([]); setLoading(false); return }
-    const controller = new AbortController()
-    const timer = window.setTimeout(() => {
-      setLoading(true)
-      fetch(countryCode ? 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&countrycodes=' + countryCode + '&q=' + encodeURIComponent(term) : 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(term) + '&count=20&language=en&format=json', { signal: controller.signal })
-        .then(response => response.ok ? response.json() as Promise<any> : Promise.reject(new Error('Search unavailable')))
-        .then(data => setRemote(Array.isArray(data) ? data.map((place: {display_name:string}) => place.display_name) : (data.results ?? []).map((place: {name:string;admin1?:string;country?:string}) => [place.name, place.admin1, place.country].filter(Boolean).join(', '))))
-        .catch(() => { if (!controller.signal.aborted) setRemote([]) })
-        .finally(() => { if (!controller.signal.aborted) setLoading(false) })
-    }, 300)
-    return () => { window.clearTimeout(timer); controller.abort() }
-  }, [value, countryCode])
+    if (term.length < 2 || loading || !countryCode) return
+    const now = Date.now()
+    if (now - lastNominatimRequestAt < 1100) return
+    lastNominatimRequestAt = now
+    setLoading(true)
+    const endpoint = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&countrycodes=' + countryCode + '&q=' + encodeURIComponent(term)
+    fetch(endpoint)
+      .then(response => response.ok ? response.json() as Promise<Array<{display_name:string}>> : Promise.reject(new Error('Address lookup unavailable')))
+      .then(data => setRemote(data.map(place => place.display_name)))
+      .catch(() => setRemote([]))
+      .finally(() => setLoading(false))
+  }
   const suggestions = [...new Set([...local, ...remote])].slice(0, 10)
-  return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><input className={field} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></label>
+  return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} />{countryCode && <button type="button" disabled={loading || value.trim().length < 2} onClick={searchAddress} className="shrink-0 rounded-lg bg-orange-50 px-2 py-2 text-[10px] font-bold text-[#D94700] disabled:opacity-40">{loading ? 'Searching…' : 'Find address'}</button>}</div></label>
     {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
       {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}
-      {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide cities and destinationsÃ¢â‚¬Â¦</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No exact match yet. You can still search this destination by name.</p>}
+      {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching address data…</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No exact match yet. Check the address spelling or use the entered location.</p>}
     </div>}
-    <p className="sr-only">Search worldwide cities and airports. Powered by Open-Meteo geocoding.</p>
+    {countryCode && <p className="mt-1 text-[9px] text-slate-500">Address data © OpenStreetMap contributors · <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer" className="underline">Usage policy</a></p>}
   </div>
 }
 function Check({ children }: { children: ReactNode }) { return <label className="inline-flex items-center gap-2 text-xs text-slate-700">{children}</label> }
