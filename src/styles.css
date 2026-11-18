@@ -488,9 +488,9 @@ footer .text-ink { color:#172B4D; }
 /* Booking-inspired Trexifly blue and signature-gold refresh */
 :root { color-scheme: light; }
 body { background:#FFFFFF; color:#172B4D; }
-.site-header { background:#003580 !important; color:#FFFFFF !important; border-color:#003580 !important; }
-.site-header .text-slate-700 { color:#FFFFFF; }
-.site-header a:hover, .site-header button:hover { color:#FEBA02; }
+.site-header { background:#FFFFFF !important; color:#0F172A !important; border-color:#E2E8F0 !important; }
+/* header is white: nav text keeps its own slate colour */
+/* header hover colours come from the Tailwind classes on each link */
 .site-header .font-display { color:#FFFFFF; }
 #search-widget h1 { color:#FFFFFF !important; }
 #search-widget h1 span { color:#FEBA02 !important; }
@@ -510,7 +510,7 @@ body { background:#FFFFFF; color:#172B4D; }
 html,body { background:#FFFFFF; color:#242424; }
 ::selection { background:rgb(255 85 0 / .22); color:#242424; }
 :focus-visible { outline-color:#FF5500; }
-.site-header { background:linear-gradient(115deg,#FF5500 0%,#E64A00 58%,#C93400 100%) !important; border-color:#FF5500 !important; color:#FFFFFF !important; }
+.site-header { background:#FFFFFF !important; border-color:#E2E8F0 !important; color:#0F172A !important; }
 .site-header .text-ink { color:#FFFFFF; }
 .site-header .text-muted { color:#FFF1E8; }
 .site-header .text-faint { color:#FFE0CC; }
@@ -556,3 +556,7 @@ html,body { background:#FFFFFF; color:#242424; }
 @media (prefers-reduced-motion: reduce) {
   .globe-grid, .orbit-runner, .globe-marker > span::after { animation: none !important; }
 }
+
+/* Trexifly clean white header + canvas globe (2026-11-18) */
+.site-header { background:#FFFFFF !important; border-color:#E2E8F0 !important; color:#0F172A !important; box-shadow:0 1px 0 #E2E8F0 !important; }
+.world-globe-canvas { display:block; width:100%; max-width:420px; aspect-ratio:1 / 1; }

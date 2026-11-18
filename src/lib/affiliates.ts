@@ -35,6 +35,7 @@ export const TRAVELPAYOUTS_PARTNERS: Record<AffiliateCategory, AffiliatePartner[
   transfers: [
     { id: 'kiwitaxi', name: 'Kiwitaxi', category: 'transfers', url: 'https://kiwitaxi.tpx.lv/rPk61mni' },
     { id: 'gettransfer', name: 'GetTransfer.com', category: 'transfers', url: 'https://gettransfer.tpx.lv/dt5dWuQv' },
+    { id: 'intui', name: 'Intui.travel', category: 'transfers', url: 'https://intui.tpx.lv/XuaKpcpV' },
   ],
 }
 

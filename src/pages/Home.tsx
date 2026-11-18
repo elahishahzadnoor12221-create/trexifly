@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { SearchWidget } from '../components/SearchWidget'
 import { Destinations } from '../components/Destinations'
 import { PromoDeals } from '../components/PromoDeals'
+import { WorldGlobe } from '../components/WorldGlobe'
 import { Icon } from '../components/Icons'
 // @ts-ignore — provider configuration is intentionally kept as plain JavaScript for easy editing.
 import { TRAVEL_PROVIDERS } from '../config/travelProviders.js'
@@ -13,25 +14,13 @@ export function Home() {
   const openWorldwide=()=>{window.dispatchEvent(new CustomEvent('trexifly:open-worldwide'));document.getElementById('destinations')?.scrollIntoView({behavior:'smooth',block:'start'})}
   return <>
     <section className="relative isolate overflow-hidden bg-white pb-9 pt-7 sm:pb-12 sm:pt-10">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[38%] overflow-hidden bg-[#FF5500] lg:block">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[32%] overflow-hidden bg-[#FF5500] lg:block">
         <div className="absolute -left-24 top-0 h-full w-48 rounded-full bg-white/90 blur-3xl" />
       </div>
-      <div className="relative z-10 mx-auto grid max-w-[1280px] items-center gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,.85fr)]">
-        <div className="min-w-0"><SearchWidget/></div>
+      <div className="relative z-10 mx-auto grid max-w-[1280px] items-center gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(340px,.7fr)]">
+        <div className="min-w-0 max-w-4xl"><SearchWidget/></div>
         <div className="relative hidden min-h-[430px] items-center justify-center lg:flex" aria-label="3D globe and airplane travel illustration">
-          <div className="globe-stage">
-            <div className="globe-tilt animate-float">
-              <div className="globe-aura" />
-              <div className="globe-sphere" />
-              <div className="globe-grid"><span className="globe-meridian" /><span className="globe-meridian" style={{transform:'rotateY(60deg)'}}/><span className="globe-meridian" style={{transform:'rotateY(120deg)'}}/><span className="globe-parallel" style={{transform:'rotateX(55deg)'}}/><span className="globe-parallel" style={{transform:'rotateX(-55deg)'}}/></div>
-              <div className="globe-orbit"><div className="orbit-runner"><span className="orbit-dot"/></div></div>
-              <div className="globe-orbit globe-orbit--b"><div className="orbit-runner"><span className="orbit-dot"/></div></div>
-              <span className="globe-marker" style={{transform:'translate3d(62px,-55px,110px)'}}><span/></span>
-              <span className="globe-marker" style={{transform:'translate3d(-82px,30px,82px)'}}><span/></span>
-            </div>
-            <div className="absolute right-[8%] top-[18%] rounded-full border border-white/50 bg-white/20 p-4 text-white shadow-2xl backdrop-blur-md"><Icon name="plane" className="size-10 rotate-[-18deg]"/></div>
-            <div className="absolute bottom-[8%] left-[3%] h-1 w-40 rotate-[-24deg] rounded-full bg-gradient-to-r from-white/0 via-white to-orange-200 shadow-[0_0_22px_rgba(255,255,255,.9)]"/>
-          </div>
+          <WorldGlobe />
         </div>
       </div>
     </section>
@@ -86,7 +75,7 @@ export function Home() {
     {confidenceOpen && <div role="dialog" aria-modal="true" aria-labelledby="confidence-title" className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/65 p-4 backdrop-blur-sm" onClick={()=>setConfidenceOpen(false)}><div className="w-full max-w-xl rounded-3xl border border-orange-100 bg-white p-6 shadow-2xl sm:p-8" onClick={e=>e.stopPropagation()}>
       <div className="flex items-start justify-between gap-4"><div className="flex items-center gap-3"><span className="grid size-12 place-items-center rounded-2xl bg-orange-50 text-[#FF5500]"><Icon name="shieldCheck" className="size-7" strokeWidth={2}/></span><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Partner transparency</p><h2 id="confidence-title" className="mt-1 text-xl font-extrabold text-[#172B4D]">Verified Partner &amp; Booking Confidence</h2></div></div><button type="button" aria-label="Close" onClick={()=>setConfidenceOpen(false)} className="rounded-full p-2 text-slate-500 hover:bg-orange-50 hover:text-[#FF5500]"><Icon name="close"/></button></div>
       <p className="mt-5 text-sm leading-6 text-slate-600">Trexifly helps you discover and compare travel options, then connects you directly to the relevant booking partner to review availability, final prices, payment and booking conditions. Trexifly does not issue tickets or take payment for partner bookings.</p>
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{['Aviasales','Klook','KKday','AutoEurope','QEEQ','Tiqets','Kiwitaxi','GetTransfer'].map(name=><span key={name} className="rounded-xl border border-orange-100 bg-[#FFF7F2] px-3 py-2 text-center text-xs font-semibold text-[#7C2D12]">{name}</span>)}</div>
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">{['Aviasales','Klook','KKday','AutoEurope','QEEQ','Tiqets','Kiwitaxi','GetTransfer','Intui.travel'].map(name=><span key={name} className="rounded-xl border border-orange-100 bg-[#FFF7F2] px-3 py-2 text-center text-xs font-semibold text-[#7C2D12]">{name}</span>)}</div>
       <p className="mt-5 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">No extra Trexifly booking fee. Partner prices, taxes, availability, cancellation rules and any supplier fees are confirmed on the partner website. Trexifly may earn a commission from qualifying referrals.</p>
       <button type="button" onClick={()=>setConfidenceOpen(false)} className="mt-6 w-full rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white hover:bg-[#E64A00]">Got it</button>
     </div></div>}
