@@ -22,7 +22,7 @@ function HotelCard({ deal, index, city }: { deal: Deal; index: number; city: str
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 transition hover:border-orange-300 hover:shadow-lg">
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl bg-orange-50 md:h-auto md:w-60">
-          <img src={"https://unsplash.com" + photoId + "?auto=format&fit=crop&w=800&q=85"} alt={deal.title} loading="lazy" onError={imgFallback} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
+          <img src={"https://images.unsplash.com/" + photoId + "?auto=format&fit=crop&w=800&q=85"} alt={deal.title} loading="lazy" onError={imgFallback} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
           <button type="button" onClick={() => setSaved(!saved)} aria-label="Save property" className="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm">
             <span className={saved ? 'text-[#FF5500]' : 'text-slate-500'}>{saved ? '?' : '?'}</span>
           </button>

@@ -131,23 +131,32 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
     transfers: ['Book your airport transfer', 'Easy transportation between the airport and your accommodations'],
   } as Record<Tab, string[]>)[tab], [tab])
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const type = tab === 'hotels' ? 'hotels' : tab === 'flights' ? 'flights' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
-    const query = new URLSearchParams({ type })
-    if (tab === 'flights') {
-      query.set('from', from); query.set('to', to); query.set('out', depart); query.set('back', trip === 'One-way' ? depart : back); query.set('pax', pax)
-    } else if (tab === 'hotels') {
-      query.set('to', destination); query.set('out', depart); query.set('back', back); query.set('pax', rooms)
-    } else if (tab === 'cars') {
-      query.set('from', pickup); query.set('to', carDifferent ? dropoff : pickup); query.set('out', depart); query.set('back', back); query.set('vehicle', 'Standard')
-    } else if (tab === 'tours') {
-      query.set('to', destination); query.set('out', activityDate || depart); query.set('back', activityDate || back); query.set('duration', '5-7 days'); query.set('pkg', 'Private')
-    } else {
-      query.set('from', pickup); query.set('to', dropoff); query.set('out', depart); query.set('back', transferType === 'Return' ? back : depart); query.set('pax', passengers); query.set('service', 'airport-transfer'); query.set('pickupTime', pickupTime)
-    }
     setSearching(true)
-    window.setTimeout(() => navigate('/results?' + query.toString()), 1500)
+    try {
+      const type = tab === 'hotels' ? 'hotels' : tab === 'flights' ? 'flights' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
+      const query = new URLSearchParams({ type })
+      if (tab === 'flights') {
+        query.set('from', from); query.set('to', to); query.set('out', depart); query.set('back', trip === 'One-way' ? depart : back); query.set('pax', pax)
+      } else if (tab === 'hotels') {
+        query.set('to', destination); query.set('out', depart); query.set('back', back); query.set('pax', rooms)
+      } else if (tab === 'cars') {
+        query.set('from', pickup); query.set('to', carDifferent ? dropoff : pickup); query.set('out', depart); query.set('back', back); query.set('vehicle', 'Standard')
+      } else if (tab === 'tours') {
+        query.set('to', destination); query.set('out', activityDate || depart); query.set('back', activityDate || back); query.set('duration', '5-7 days'); query.set('pkg', 'Private')
+      } else {
+        query.set('from', pickup); query.set('to', dropoff); query.set('out', depart); query.set('back', transferType === 'Return' ? back : depart); query.set('pax', passengers); query.set('service', 'airport-transfer'); query.set('pickupTime', pickupTime)
+      }
+
+      // Keep the progress overlay brief, then navigate; finally always releases it.
+      await new Promise<void>(resolve => window.setTimeout(resolve, 500))
+      await navigate(`/results?${query.toString()}`)
+    } catch (error) {
+      console.error('Trexifly search navigation failed:', error)
+    } finally {
+      setSearching(false)
+    }
   }
 
   const tabNav = <div role="tablist" aria-label="Travel search type" className="flex flex-wrap gap-2">
