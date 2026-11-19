@@ -2,39 +2,162 @@ import { useEffect, useMemo, useState } from 'react'
 import { Icon } from './Icons'
 import { imgFallback } from '../lib/imageFallback'
 
-type Region = 'Northern Pakistan'|'Middle East & Umrah'|'Europe & UK'|'Americas'|'Asia-Pacific'|'Africa & Oceania'
-type Place = {name:string;country:string;region:Region;image:string;caption:string}
-const FILTERS = ['All Worldwide','Northern Areas of Pakistan','Middle East & Umrah','Europe & UK','North & South America','Asia-Pacific','Africa & Oceania'] as const
-const RAW_PLACES:Place[] = [
- ...[['Hunza','Pakistan','photo-1544735716-392fe2489ffa','Karakoram peaks and valley stays'],['Skardu','Pakistan','photo-1589553416260-f586c8f1514f','Lakes and mountain adventures'],['Swat','Pakistan','photo-1562602833-0f4ab2fc46e3','Green valleys and rivers'],['New York','United States','photo-1499092346589-b9b6be3e94b2','Iconic skyline and city discovery'],['Tokyo','Japan','photo-1536098561742-ca998e48cbcc','Modern culture and city escapes'],['Naran Kaghan','Pakistan','photo-1500530855697-b586d89ba3ee','Alpine lakes and scenic roads'],['Fairy Meadows','Pakistan','photo-1464822759023-fed622ff2c3b','Nanga Parbat views'],['Neelum Valley','Pakistan','photo-1470770841072-f978cf4d019e','Forest and river escapes'],['Gilgit','Pakistan','photo-1500534623283-312aade485b7','Gateway to the mountains'],['Lahore','Pakistan','photo-1518005020951-eccb494ad742','Heritage and food'],['Islamabad','Pakistan','photo-1519501025264-65ba15a82390','Capital city and Margalla Hills'],['Karachi','Pakistan','photo-1519046904884-53103b34b206','Coastal city breaks']].map(([name,country,image,caption])=>({name,country,image,caption,region:(['Lahore','Islamabad','Karachi'].includes(name)?'Asia-Pacific':'Northern Pakistan') as Region})),
- ...[['Dubai','United Arab Emirates'],['Abu Dhabi','United Arab Emirates'],['Jeddah & Makkah','Saudi Arabia'],['Riyadh','Saudi Arabia'],['Istanbul','Türkiye']].map(([name,country])=>({name,country,region:'Middle East & Umrah' as Region,image:'photo-1512453979798-5ea266f8880c',caption:'City stays and cultural discoveries'})),
- ...[['London','United Kingdom'],['Madrid','Spain'],['Paris','France'],['Rome','Italy']].map(([name,country])=>({name,country,region:'Europe & UK' as Region,image:'photo-1513635269975-59663e0ac1ad',caption:'Culture, landmarks and local experiences'})),
- ...[['Toronto','Canada'],['New York','United States']].map(([name,country])=>({name,country,region:'Americas' as Region,image:'photo-1499092346589-b9b6be3e94b2',caption:'Iconic skylines and neighbourhoods'})),
-]
-// Verified-working Unsplash photos (HTTP 200) for the cities that previously shared one generic image.
-const IMAGE_OVERRIDES: Record<string,string> = {
-  'New York':'photo-1499092346589-b9b6be3e94b2', Tokyo:'photo-1536098561742-ca998e48cbcc', Toronto:'photo-1517935706615-2717063c2225',
-  Istanbul:'photo-1524231757912-21f4fe3a7200', 'Abu Dhabi':'photo-1512632578888-169bbbc64f33', London:'photo-1513635269975-59663e0ac1ad',
-  Paris:'photo-1502602898657-3e91760cbb34', Rome:'photo-1552832230-c0197dd311b5', Madrid:'photo-1543783207-ec64e4d95325',
+type Category = 'Northern Pakistan' | 'Middle East' | 'Europe' | 'Global Hubs'
+type Place = {
+  name: string
+  country: string
+  category: Category
+  image: string
+  tagline: string
+  /** Text pre-filled into the hotel / activity destination field. */
+  query: string
+  /** Airport label pre-filled into the flight "To" field. */
+  flight: string
+  whatsapp?: boolean
 }
-const PLACES:Place[] = RAW_PLACES.map(place=>({...place,image:IMAGE_OVERRIDES[place.name]??place.image}))
-export function Destinations(){
- const [filter,setFilter]=useState<typeof FILTERS[number]>('All Worldwide')
- const [query,setQuery]=useState('')
- const [remote,setRemote]=useState<{name:string;admin1?:string;country?:string}[]>([])
- const [loading,setLoading]=useState(false)
- useEffect(()=>{const activate=()=>setFilter('All Worldwide');window.addEventListener('trexifly:open-worldwide',activate);return()=>window.removeEventListener('trexifly:open-worldwide',activate)},[])
- useEffect(()=>{const term=query.trim();if(term.length<2){setRemote([]);setLoading(false);return}const c=new AbortController();const t=window.setTimeout(()=>{setLoading(true);fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(term)+'&count=15&language=en&format=json',{signal:c.signal}).then(r=>r.ok?r.json() as Promise<{results?:{name:string;admin1?:string;country?:string}[]}>:Promise.reject()).then(x=>setRemote(x.results??[])).catch(()=>{if(!c.signal.aborted)setRemote([])}).finally(()=>{if(!c.signal.aborted)setLoading(false)})},250);return()=>{window.clearTimeout(t);c.abort()}},[query])
- const filtered=useMemo(()=>PLACES.filter(p=>(filter==='All Worldwide'||(filter==='Northern Areas of Pakistan'?p.region==='Northern Pakistan':filter==='North & South America'?p.region==='Americas':p.region===filter))&&(!query.trim()||[p.name,p.country].join(' ').toLowerCase().includes(query.trim().toLowerCase()))),[filter,query])
- const choose=(name:string,country:string)=>{const destination=[name,country].filter(Boolean).join(', ');window.dispatchEvent(new CustomEvent('trexifly:select-destination',{detail:{destination}}));document.getElementById('search-widget')?.scrollIntoView({behavior:'smooth',block:'center'})}
- const wa=(name:string)=>'https://wa.me/923244921494?text='+encodeURIComponent('Hello Trexifly, I would like trip planning assistance for '+name+', Pakistan.')
- const northern=['Hunza','Skardu','Swat','Naran Kaghan','Fairy Meadows','Neelum Valley']
- return <section id="destinations" className="bg-white py-12 sm:py-16"><div className="mx-auto max-w-[1280px] px-4 sm:px-6">
-  <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Explore worldwide</p><h2 className="mt-2 text-2xl font-bold text-[#242424] sm:text-3xl">Discover destinations around the world</h2><p className="mt-2 text-sm text-slate-600">Explore featured destinations or search the worldwide city directory.</p>
-  <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Destination regions">{FILTERS.map(f=><button key={f} type="button" role="tab" aria-selected={filter===f} onClick={()=>setFilter(f)} className={`rounded-full border px-3.5 py-2 text-xs font-semibold ${filter===f?'border-[#FF5500] bg-[#FF5500] text-white':'border-orange-100 bg-white text-slate-700 hover:border-[#FF5500]'}`}>{f}</button>)}</div>
-  <label className="mt-5 flex max-w-2xl items-center gap-3 rounded-2xl border-2 border-[#FF5500] px-4 py-3"><Icon name="globe" className="size-5 text-[#FF5500]"/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search any city, country or destination worldwide" className="w-full bg-transparent text-sm outline-none" aria-label="Search worldwide destinations"/></label>
-  {query.trim().length>=2&&(remote.length>0||loading)&&<div className="mt-2 max-w-2xl rounded-xl border border-orange-100 bg-white p-2 shadow-lg">{remote.map((p,i)=><button key={p.name+i} type="button" onClick={()=>choose(p.name,[p.admin1,p.country].filter(Boolean).join(', '))} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-orange-50">{[p.name,p.admin1,p.country].filter(Boolean).join(', ')}</button>)}{loading&&<p className="px-3 py-2 text-xs text-slate-500">Searching worldwide…</p>}</div>}
-  <div className="mt-7 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4">{filtered.map(item=><div key={item.name} className="w-[220px] shrink-0 snap-start overflow-hidden rounded-2xl border border-orange-100 bg-white transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-xl sm:w-[240px]"><img src={`https://images.unsplash.com/${item.image}?auto=format&fit=crop&w=800&q=85`} alt={item.name} loading="lazy" onError={imgFallback} className="h-40 w-full object-cover"/><div className="p-3.5"><p className="text-[11px] font-semibold text-[#C93400]">{item.country}</p><h3 className="mt-1 font-extrabold uppercase tracking-wide text-[#242424]">{item.name}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{item.caption}</p><button type="button" onClick={()=>choose(item.name,item.country)} className="mt-3 text-xs font-bold text-[#FF5500]">Compare online deals</button>{northern.includes(item.name)&&<a href={wa(item.name)} target="_blank" rel="noreferrer" className="mt-3 block rounded-lg border border-[#FF5500] px-3 py-2 text-center text-[11px] font-bold text-[#D94700] hover:bg-orange-50">Ask on WhatsApp</a>}</div></div>)}</div>
-  {filtered.length===0&&<p className="mt-8 rounded-xl bg-orange-50 p-5 text-sm text-slate-600">No featured destination in this filter. Try the worldwide search above.</p>}<p className="mt-4 text-xs text-slate-500">Worldwide directory suggestions use Open-Meteo geocoding. Search results are destination names, not live travel availability.</p>
- </div></section>
+
+const FILTERS = ['All Destinations', 'Northern Pakistan', 'Middle East', 'Europe', 'Global Hubs'] as const
+type Filter = (typeof FILTERS)[number]
+
+// Every photo below was checked to return HTTP 200 from images.unsplash.com.
+const PLACES: Place[] = [
+  { name: 'Hunza Valley', country: 'Pakistan', category: 'Northern Pakistan', image: 'photo-1612128952123-88ed13410495', tagline: 'Attabad Lake, forts and Karakoram views', query: 'Hunza Valley, Pakistan', flight: 'Gilgit (GIL)', whatsapp: true },
+  { name: 'Skardu', country: 'Pakistan', category: 'Northern Pakistan', image: 'photo-1667922210719-566cbfec2b11', tagline: 'Glacier rivers, high lakes and cold deserts', query: 'Skardu, Pakistan', flight: 'Skardu (KDU)', whatsapp: true },
+  { name: 'Swat Valley', country: 'Pakistan', category: 'Northern Pakistan', image: 'photo-1655403991405-2aa41eb455cc', tagline: 'Pine forests, rivers and Mahodand Lake', query: 'Swat Valley, Pakistan', flight: 'Islamabad (ISB)', whatsapp: true },
+  { name: 'Naran & Kaghan', country: 'Pakistan', category: 'Northern Pakistan', image: 'photo-1572707582365-0ee1c8e71173', tagline: 'Alpine lakes and Saif-ul-Muluk scenery', query: 'Naran Kaghan, Pakistan', flight: 'Islamabad (ISB)', whatsapp: true },
+  { name: 'Dubai', country: 'United Arab Emirates', category: 'Middle East', image: 'photo-1512453979798-5ea266f8880c', tagline: 'Skyline stays, shopping and desert escapes', query: 'Dubai, United Arab Emirates', flight: 'Dubai (DXB)' },
+  { name: 'Makkah & Madinah', country: 'Saudi Arabia', category: 'Middle East', image: 'photo-1591604129939-f1efa4d9f7fa', tagline: 'Umrah and Ziyarat journeys', query: 'Makkah, Saudi Arabia', flight: 'Jeddah (JED)' },
+  { name: 'Istanbul', country: 'T\u00fcrkiye', category: 'Middle East', image: 'photo-1524231757912-21f4fe3a7200', tagline: 'Where Europe meets Asia', query: 'Istanbul, T\u00fcrkiye', flight: 'Istanbul (IST)' },
+  { name: 'London', country: 'United Kingdom', category: 'Europe', image: 'photo-1513635269975-59663e0ac1ad', tagline: 'Royal landmarks and world-class museums', query: 'London, United Kingdom', flight: 'London (LHR)' },
+  { name: 'Baku', country: 'Azerbaijan', category: 'Europe', image: 'photo-1596306499398-8d88944a5ec4', tagline: 'Flame Towers and the Caspian waterfront', query: 'Baku, Azerbaijan', flight: 'Baku (GYD)' },
+  { name: 'New York', country: 'United States', category: 'Global Hubs', image: 'photo-1499092346589-b9b6be3e94b2', tagline: 'Iconic skyline and city discovery', query: 'New York, United States', flight: 'New York (JFK)' },
+  { name: 'Tokyo', country: 'Japan', category: 'Global Hubs', image: 'photo-1536098561742-ca998e48cbcc', tagline: 'Modern culture and city escapes', query: 'Tokyo, Japan', flight: 'Tokyo (HND)' },
+  { name: 'Kuala Lumpur', country: 'Malaysia', category: 'Global Hubs', image: 'photo-1768466246117-d64a918528af', tagline: 'Twin towers and street-food capital', query: 'Kuala Lumpur, Malaysia', flight: 'Kuala Lumpur (KUL)' },
+]
+
+const imageUrl = (id: string, width: number) => 'https://images.unsplash.com/' + id + '?auto=format&fit=crop&w=' + width + '&q=80'
+const whatsappLink = (name: string) => 'https://wa.me/923244921494?text=' + encodeURIComponent('Hello Trexifly, I would like trip planning assistance for ' + name + ', Pakistan.')
+
+type Suggestion = { name: string; admin1?: string; country?: string }
+
+export function Destinations() {
+  const [filter, setFilter] = useState<Filter>('All Destinations')
+  const [query, setQuery] = useState('')
+  const [remote, setRemote] = useState<Suggestion[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const activate = () => setFilter('All Destinations')
+    window.addEventListener('trexifly:open-worldwide', activate)
+    return () => window.removeEventListener('trexifly:open-worldwide', activate)
+  }, [])
+
+  useEffect(() => {
+    const term = query.trim()
+    if (term.length < 2) { setRemote([]); setLoading(false); return }
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      setLoading(true)
+      fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(term) + '&count=15&language=en&format=json', { signal: controller.signal })
+        .then((response) => (response.ok ? (response.json() as Promise<{ results?: Suggestion[] }>) : Promise.reject()))
+        .then((data) => setRemote(data.results ?? []))
+        .catch(() => { if (!controller.signal.aborted) setRemote([]) })
+        .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    }, 250)
+    return () => { window.clearTimeout(timer); controller.abort() }
+  }, [query])
+
+  const visible = useMemo(() => {
+    const term = query.trim().toLowerCase()
+    return PLACES.filter((place) =>
+      (filter === 'All Destinations' || place.category === filter) &&
+      (!term || (place.name + ' ' + place.country).toLowerCase().includes(term)),
+    )
+  }, [filter, query])
+
+  // Pre-fills the search bar, scrolls to it and highlights it (see SearchWidget).
+  const choose = (destination: string, flight?: string) => {
+    window.dispatchEvent(new CustomEvent('trexifly:select-destination', { detail: { destination, flight: flight ?? destination } }))
+    const target = document.getElementById('search-widget')
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    target?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' })
+  }
+
+  return (
+    <section id="destinations" className="bg-white py-12 sm:py-16">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Explore worldwide</p>
+        <h2 className="mt-2 text-2xl font-extrabold text-[#242424] sm:text-3xl">World Destinations</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Pick a destination to jump straight to the search bar with it pre-filled, then compare live flights, hotels and more with our partners.</p>
+
+        <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Destination categories">
+          {FILTERS.map((name) => (
+            <button
+              key={name}
+              type="button"
+              role="tab"
+              aria-selected={filter === name}
+              onClick={() => setFilter(name)}
+              className={'rounded-full border px-4 py-2 text-sm font-semibold transition ' + (filter === name
+                ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-md shadow-orange-200'
+                : 'border-orange-100 bg-white text-slate-700 hover:border-[#FF5500] hover:text-[#FF5500]')}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+
+        <label className="mt-5 flex max-w-2xl items-center gap-3 rounded-2xl border-2 border-[#FF5500] bg-white px-4 py-3">
+          <Icon name="globe" className="size-5 shrink-0 text-[#FF5500]" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search any city, country or destination worldwide" className="w-full bg-transparent text-sm outline-none" aria-label="Search worldwide destinations" />
+        </label>
+        {query.trim().length >= 2 && (remote.length > 0 || loading) && (
+          <div className="mt-2 max-w-2xl rounded-xl border border-orange-100 bg-white p-2 shadow-lg">
+            {remote.map((place, index) => {
+              const label = [place.name, place.admin1, place.country].filter(Boolean).join(', ')
+              return <button key={place.name + index} type="button" onClick={() => choose(label)} className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-orange-50">{label}</button>
+            })}
+            {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide{'\u2026'}</p>}
+          </div>
+        )}
+
+        <div className="mt-7 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {visible.map((place) => (
+            <article key={place.name} className="group flex flex-col overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-[0_8px_24px_rgba(255,85,0,.08)] transition duration-300 hover:-translate-y-1.5 hover:border-[#FF5500] hover:shadow-[0_18px_40px_rgba(255,85,0,.24)]">
+              <button
+                type="button"
+                onClick={() => choose(place.query, place.flight)}
+                aria-label={'Search ' + place.name + ': compare flights and hotels'}
+                className="flex flex-1 flex-col text-left focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#FF5500]"
+              >
+                <span className="relative block aspect-[4/3] w-full overflow-hidden bg-orange-50">
+                  <img
+                    src={imageUrl(place.image, 800)}
+                    srcSet={imageUrl(place.image, 480) + ' 480w, ' + imageUrl(place.image, 800) + ' 800w, ' + imageUrl(place.image, 1200) + ' 1200w'}
+                    sizes="(min-width:1280px) 290px, (min-width:1024px) 31vw, (min-width:640px) 46vw, 92vw"
+                    alt={place.name + ', ' + place.country}
+                    loading="lazy"
+                    decoding="async"
+                    onError={imgFallback}
+                    className="size-full object-cover transition duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-bold text-[#C93400] shadow">{place.country}</span>
+                </span>
+                <span className="flex flex-1 flex-col p-4">
+                  <span className="text-lg font-extrabold text-[#242424]">{place.name}</span>
+                  <span className="mt-1 text-sm leading-5 text-slate-600">{place.tagline}</span>
+                  <span className="mt-auto pt-4 text-sm font-bold text-[#FF5500]">Compare flights &amp; hotels <span aria-hidden="true">{'\u2192'}</span></span>
+                </span>
+              </button>
+              {place.whatsapp && (
+                <a href={whatsappLink(place.name)} target="_blank" rel="noreferrer" className="mx-4 mb-4 block rounded-lg border border-[#FF5500] px-3 py-2 text-center text-xs font-bold text-[#D94700] hover:bg-orange-50">Ask on WhatsApp</a>
+              )}
+            </article>
+          ))}
+        </div>
+        {visible.length === 0 && <p className="mt-8 rounded-xl bg-orange-50 p-5 text-sm text-slate-600">No featured destination matches. Try one of the worldwide suggestions above.</p>}
+        <p className="mt-5 text-xs text-slate-500">Worldwide suggestions use Open-Meteo geocoding. Results are destination names, not live travel availability.</p>
+      </div>
+    </section>
+  )
 }

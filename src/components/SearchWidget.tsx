@@ -129,15 +129,28 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [destination, setDestination] = useState(initial?.to ?? 'Dubai')
   const [from, setFrom] = useState(initial?.from ?? 'Lahore (LHE)')
   const [to, setTo] = useState(initial?.to ?? 'Dubai (DXB)')
+  const tabRef = useRef<Tab>(tab)
+  tabRef.current = tab
+  const [highlight, setHighlight] = useState(false)
+  const highlightTimer = useRef<number | undefined>(undefined)
   useEffect(() => {
     const onDestination = (event: Event) => {
-      const detail = (event as CustomEvent<{ destination?: string }>).detail
+      const detail = (event as CustomEvent<{ destination?: string; flight?: string }>).detail
       if (!detail?.destination) return
       setDestination(detail.destination)
-      setTo(detail.destination)
+      setTo(detail.flight ?? detail.destination)
+      const current = tabRef.current
+      if (current === 'transfers') setDropoff(detail.destination)
+      if (current === 'cars') setPickup(detail.destination)
+      setHighlight(true)
+      window.clearTimeout(highlightTimer.current)
+      highlightTimer.current = window.setTimeout(() => setHighlight(false), 2600)
     }
     window.addEventListener('trexifly:select-destination', onDestination)
-    return () => window.removeEventListener('trexifly:select-destination', onDestination)
+    return () => {
+      window.removeEventListener('trexifly:select-destination', onDestination)
+      window.clearTimeout(highlightTimer.current)
+    }
   }, [])
   const [depart, setDepart] = useState(initial?.out ?? isoIn(21))
   const [back, setBack] = useState(initial?.back ?? isoIn(28))
@@ -192,7 +205,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
     {!compact && <div className="mb-5 text-[#111111]"><h1 className="max-w-3xl text-3xl font-extrabold uppercase leading-tight tracking-tight text-[#111111] sm:text-4xl lg:text-[2.8rem]">{tab === 'flights' ? <>Search <span className="text-[#FF5500] underline decoration-orange-300 decoration-2 underline-offset-4">hundreds of flight sites</span> at once.</> : tab === 'hotels' ? <>Find your <span className="text-[#FF5500]">next stay</span></> : tab === 'cars' ? <>Car rentals for <span className="text-[#FF5500]">any kind of trip</span></> : tab === 'tours' ? <>Attractions, activities, and <span className="text-[#FF5500]">experiences</span></> : <>Book your <span className="text-[#FF5500]">airport transfer</span></>}</h1><p className="mt-2 max-w-2xl text-sm font-medium text-slate-700 sm:text-base">{copy[1]}</p></div>}
 
     {compact && <div className="mb-3">{tabNav}</div>}
-    <form onSubmit={submit} className="rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50">
+    <form onSubmit={submit} className={'rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50' + (highlight ? ' search-flash' : '')}>
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={WORLD_DESTINATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
