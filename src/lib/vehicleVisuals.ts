@@ -1,20 +1,33 @@
-// Clean studio-style vehicle visuals. No external/Unsplash URLs.
-// Files live in public/vehicles/*.svg (served at /vehicles/...).
-
+// Real vehicle photographs sourced from Wikimedia Commons.
+// Attribution and license details are recorded beside each asset mapping.
 export type VehicleKey =
   | 'economy-hatchback' | 'midsize-sedan' | 'compact-suv' | 'fullsize-suv'
   | 'luxury-executive' | 'family-mpv-van' | 'airport-shuttle-minibus'
 
 export interface VehicleVisual { key: VehicleKey; src: string; label: string; models: string }
 
-const LABELS: Record<VehicleKey, { label: string; models: string }> = {
-  'economy-hatchback': { label: 'Economy', models: 'Toyota Yaris, Kia Picanto, Suzuki Swift' },
-  'midsize-sedan': { label: 'Sedan', models: 'Toyota Corolla, Honda Civic, Toyota Camry' },
-  'compact-suv': { label: 'Compact SUV', models: 'Kia Sportage, Hyundai Tucson, Toyota RAV4' },
-  'fullsize-suv': { label: 'Full-size SUV', models: 'Toyota Prado, Fortuner, Land Cruiser' },
-  'luxury-executive': { label: 'Luxury', models: 'Mercedes E-Class, BMW 5 Series, Audi A6' },
-  'family-mpv-van': { label: 'Van / MPV', models: 'Hyundai Staria, Kia Carnival, Toyota HiAce' },
-  'airport-shuttle-minibus': { label: 'Shuttle', models: 'Mercedes Sprinter, Toyota Coaster' },
+const VISUALS: Record<VehicleKey, VehicleVisual> = {
+  // Toyota Yaris — Vauxford — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:2020_Toyota_Yaris_Design_HEV_CVT_1.5_Front.jpg
+  'economy-hatchback': { key: 'economy-hatchback', src: '/vehicles/economy-hatchback.jpg', label: 'Economy', models: 'Toyota Yaris, Kia Picanto, Suzuki Swift' },
+  // Toyota Camry — EurovisionNim — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:2018_Toyota_Camry_(ASV70R)_Ascent_sedan_(2018-08-27)_01.jpg
+  'midsize-sedan': { key: 'midsize-sedan', src: '/vehicles/midsize-sedan.jpg', label: 'Sedan', models: 'Toyota Corolla, Honda Civic, Toyota Camry' },
+  // Kia Sportage — LuvsMG481 — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:2025_Kia_Sportage_S_front_only.jpg
+  'compact-suv': { key: 'compact-suv', src: '/vehicles/compact-suv.jpg', label: 'Compact SUV', models: 'Kia Sportage, Hyundai Tucson, Toyota RAV4' },
+  // Toyota Land Cruiser 250 — Mr.choppers — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:2024_Toyota_Land_Cruiser_250_VX_in_Platinum_White_Pearl_Mica,_front_left.jpg
+  'fullsize-suv': { key: 'fullsize-suv', src: '/vehicles/fullsize-suv.jpg', label: 'Full-size SUV', models: 'Toyota Prado, Fortuner, Land Cruiser' },
+  // Mercedes-Benz E-Class — Alexander-93 — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:Mercedes-Benz_W214_1X7A1841.jpg
+  'luxury-executive': { key: 'luxury-executive', src: '/vehicles/luxury-executive.jpg', label: 'Luxury', models: 'Mercedes E-Class, BMW 5 Series, Audi A6' },
+  // Hyundai Staria — Alexander Migl — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:Hyundai_Staria_1X7A0321.jpg
+  'family-mpv-van': { key: 'family-mpv-van', src: '/vehicles/family-mpv-van.jpg', label: 'Van / MPV', models: 'Hyundai Staria, Kia Carnival, Toyota HiAce' },
+  // Mercedes-Benz Sprinter — Vauxford — CC BY-SA 4.0
+  // https://commons.wikimedia.org/wiki/File:2019_Mercedes-Benz_Sprinter_314_CDi_2.1.jpg
+  'airport-shuttle-minibus': { key: 'airport-shuttle-minibus', src: '/vehicles/airport-shuttle-minibus.jpg', label: 'Shuttle', models: 'Mercedes Sprinter, Toyota Coaster' },
 }
 
 // Specific models first, then generic category words.
@@ -31,8 +44,7 @@ const RULES: [RegExp, VehicleKey][] = [
 ]
 
 export function getVehicleVisual(title = '', category = ''): VehicleVisual {
-  // Match the model/title first, then fall back to the category.
   const hit = RULES.find(([re]) => re.test(title.toLowerCase())) ?? RULES.find(([re]) => re.test(category.toLowerCase()))
   const key: VehicleKey = hit ? hit[1] : 'economy-hatchback'
-  return { key, src: `/vehicles/${key}.svg`, ...LABELS[key] }
+  return VISUALS[key]
 }
