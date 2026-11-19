@@ -136,7 +136,7 @@ export function Results() {
   const filtered=useMemo(()=>[...eligibleDeals].sort((a,b)=>sort==='Cheapest'?a.price-b.price:sort==='Fastest'?a.durationMinutes-b.durationMinutes:b.score-a.score),[eligibleDeals,sort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
   const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' ? '+query.to
-  return <div className="min-h-screen bg-[#FFF7F2] pb-16 pt-8">
+  return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8">
     <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">? Back to search</Link>
       <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only � Final prices and availability must be confirmed with the booking provider.</p></div>

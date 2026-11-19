@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
 import { cx } from '../lib/cx'
@@ -215,6 +215,7 @@ export function Header() {
   const [authName, setAuthName] = useState('')
   const [authPassword, setAuthPassword] = useState('')
   useEffect(() => { const openAccount = () => { setAuthMode('signin'); setAuthMessage('') }; window.addEventListener('trexifly:open-account', openAccount); return () => window.removeEventListener('trexifly:open-account', openAccount) }, [])
+  const { theme, setTheme } = usePrefs()
   const activeTab = params.get('tab') ?? (params.get('service') === 'airport-transfer' ? 'transfers' : params.get('type') === 'hotels' ? 'hotels' : params.get('type') === 'cars' ? 'cars' : params.get('type') === 'tours' ? 'tours' : 'hotels')
   const isActive = (key: string) => pathname === '/' ? activeTab === key : (params.get('type') === key || (key === 'transfers' && params.get('service') === 'airport-transfer'))
   return (
@@ -226,6 +227,7 @@ export function Header() {
           {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
         </nav>
           <div className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
+            <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} aria-pressed={theme === 'dark'} className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[#FF5500] hover:text-[#FF5500]" title={theme === 'dark' ? 'Light mode' : 'Dark mode'}><span aria-hidden="true" className="text-base leading-none">{theme === 'dark' ? '☀' : '☾'}</span></button>
             <PrefsMenu />
             
             

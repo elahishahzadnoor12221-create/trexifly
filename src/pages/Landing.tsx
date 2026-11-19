@@ -51,7 +51,7 @@ export function Landing({ config }: { config: LandingConfig }) {
   }, [config])
 
   return (
-    <div className="min-h-screen bg-abyss pb-12 pt-28 sm:pt-32">
+    <div className="landing-page min-h-screen bg-abyss pb-12 pt-28 sm:pt-32">
       <div className="mx-auto max-w-[1180px] px-4 sm:px-6">
         <nav aria-label="Breadcrumb" className="mb-5 text-xs text-faint">
           <Link to="/" className="hover:text-ink">Home</Link><span className="mx-2">/</span><span>{config.eyebrow}</span>

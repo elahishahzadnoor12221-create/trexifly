@@ -12,13 +12,13 @@ export function Home() {
   const navigate=useNavigate()
   const [confidenceOpen,setConfidenceOpen]=useState(false)
   const openWorldwide=()=>{window.dispatchEvent(new CustomEvent('trexifly:open-worldwide'));document.getElementById('destinations')?.scrollIntoView({behavior:'smooth',block:'start'})}
-  return <>
-    <section className="relative isolate overflow-hidden bg-white pb-9 pt-7 sm:pb-12 sm:pt-10">
+  return <div className="home-page">
+    <section className="trexifly-home-hero relative isolate overflow-hidden pb-9 pt-7 sm:pb-12 sm:pt-10">
       <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[32%] overflow-hidden bg-[#FF5500] lg:block">
         <div className="absolute -left-24 top-0 h-full w-48 rounded-full bg-white/90 blur-3xl" />
       </div>
       <div className="relative z-10 mx-auto grid max-w-[1280px] items-center gap-6 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(340px,.7fr)]">
-        <div className="min-w-0 max-w-4xl"><SearchWidget/></div>
+        <div className="min-w-0 max-w-4xl"><div className="mb-6 max-w-3xl text-white"><p className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.16em] text-amber-300"><span className="size-2 rounded-full bg-amber-400 shadow-[0_0_12px_#f59e0b]"/> Global travel metasearch</p><h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-5xl">Where to next, Explorer? <span className="text-amber-400">Go further.</span></h1><p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Compare flights, stays, car rentals, tours and airport transfers — all in one place.</p></div><SearchWidget/></div>
         <div className="relative hidden min-h-[430px] items-center justify-center lg:flex" aria-label="3D globe and airplane travel illustration">
           <WorldGlobe />
         </div>
@@ -79,5 +79,5 @@ export function Home() {
       <p className="mt-5 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-600">No extra Trexifly booking fee. Partner prices, taxes, availability, cancellation rules and any supplier fees are confirmed on the partner website. Trexifly may earn a commission from qualifying referrals.</p>
       <button type="button" onClick={()=>setConfidenceOpen(false)} className="mt-6 w-full rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white hover:bg-[#E64A00]">Got it</button>
     </div></div>}
-  </>
+  </div>
 }

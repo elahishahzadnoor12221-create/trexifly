@@ -565,3 +565,141 @@ html,body { background:#FFFFFF; color:#242424; }
 @keyframes search-flash-pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(255,85,0,.30), 0 18px 48px rgba(255,85,0,.30); } 50% { box-shadow: 0 0 0 9px rgba(255,85,0,.18), 0 18px 56px rgba(255,85,0,.45); } }
 #search-widget form.search-flash { border-color: #FF5500 !important; animation: search-flash-pulse 1.1s ease-in-out 2; }
 @media (prefers-reduced-motion: reduce) { #search-widget form.search-flash { animation: none; box-shadow: 0 0 0 5px rgba(255,85,0,.35); } }
+
+
+/* Stitch-inspired Trexifly landing system: amber signal, crimson route accents, midnight hero. */
+.trexifly-home-hero {
+  background:
+    radial-gradient(ellipse at 82% 26%, rgb(245 158 11 / .18), transparent 34%),
+    radial-gradient(ellipse at 58% 100%, rgb(186 0 53 / .18), transparent 42%),
+    linear-gradient(118deg, #101827 0%, #17243a 58%, #101827 100%);
+  color: #f8fafc;
+}
+.trexifly-home-hero > div:first-child { display: none; }
+.trexifly-home-hero #search-widget h1 { color: #f8fafc !important; }
+.trexifly-home-hero #search-widget > div:first-child p { color: #cbd5e1 !important; }
+.trexifly-home-hero #search-widget form {
+  border: 1px solid rgb(245 158 11 / .48) !important;
+  border-radius: 18px;
+  box-shadow: 0 22px 55px rgb(0 0 0 / .28), 0 0 0 1px rgb(255 255 255 / .06);
+}
+.trexifly-home-hero #search-widget [role="tab"][aria-selected="true"] {
+  background: #17243a !important;
+  border-color: #f59e0b !important;
+  color: #fff !important;
+}
+.trexifly-home-hero #search-widget [role="tab"][aria-selected="false"] {
+  background: #f8fafc !important;
+}
+.home-page > section:not(.trexifly-home-hero) { transition: background-color .2s ease, color .2s ease; }
+.site-header { position: sticky !important; top: 0; backdrop-filter: blur(18px); }
+.site-header > div { min-height: 76px; }
+.results-page, .landing-page { transition: background-color .2s ease, color .2s ease; }
+
+/* Persistent global dark mode. Theme preference is stored in local storage and shared by every route. */
+html[data-theme="dark"], html[data-theme="dark"] body {
+  color-scheme: dark;
+  background: #0b0f19 !important;
+  color: #e5e7eb !important;
+}
+html[data-theme="dark"] .site-header {
+  background: #101827 !important;
+  color: #f8fafc !important;
+  border-color: #263244 !important;
+  box-shadow: 0 1px 0 #263244 !important;
+}
+html[data-theme="dark"] .site-header [class~="text-slate-700"],
+html[data-theme="dark"] .site-header [class~="text-slate-900"],
+html[data-theme="dark"] .site-header [class~="text-gray-900"] { color: #e5e7eb !important; }
+html[data-theme="dark"] .site-header button:not([class*="bg-[#FF5500]"]) {
+  border-color: #344155;
+}
+html[data-theme="dark"] .home-page,
+html[data-theme="dark"] .results-page,
+html[data-theme="dark"] .landing-page,
+html[data-theme="dark"] #main { background: #0b0f19 !important; color: #e5e7eb !important; }
+html[data-theme="dark"] .home-page [class~="bg-white"],
+html[data-theme="dark"] .results-page [class~="bg-white"],
+html[data-theme="dark"] .landing-page [class~="bg-white"] {
+  background-color: #151e2d !important;
+  border-color: #2c394c !important;
+}
+html[data-theme="dark"] .home-page [class~="bg-orange-50"],
+html[data-theme="dark"] .results-page [class~="bg-orange-50"],
+html[data-theme="dark"] .landing-page [class~="bg-orange-50"],
+html[data-theme="dark"] .home-page [class~="bg-[#FFF7F2]"] {
+  background-color: #1c2637 !important;
+}
+html[data-theme="dark"] .home-page [class~="text-[#172B4D]"],
+html[data-theme="dark"] .home-page [class~="text-[#242424]"],
+html[data-theme="dark"] .results-page [class~="text-slate-900"],
+html[data-theme="dark"] .landing-page [class~="text-ink"],
+html[data-theme="dark"] .landing-page h1,
+html[data-theme="dark"] .landing-page h2,
+html[data-theme="dark"] .landing-page summary {
+  color: #f1f5f9 !important;
+}
+html[data-theme="dark"] .home-page [class~="text-slate-600"],
+html[data-theme="dark"] .home-page [class~="text-slate-500"],
+html[data-theme="dark"] .results-page [class~="text-slate-600"],
+html[data-theme="dark"] .results-page [class~="text-slate-500"],
+html[data-theme="dark"] .landing-page [class~="text-muted"] {
+  color: #aab6c7 !important;
+}
+html[data-theme="dark"] .home-page [class*="border-orange-"],
+html[data-theme="dark"] .results-page [class*="border-orange-"],
+html[data-theme="dark"] .landing-page [class*="border-slate-"] {
+  border-color: #334155 !important;
+}
+html[data-theme="dark"] .results-page aside,
+html[data-theme="dark"] .results-page article,
+html[data-theme="dark"] .landing-page aside,
+html[data-theme="dark"] .landing-page section > div {
+  border-color: #2c394c;
+}
+html[data-theme="dark"] .results-page input,
+html[data-theme="dark"] .results-page select,
+html[data-theme="dark"] .landing-page input,
+html[data-theme="dark"] .landing-page select {
+  color: #f1f5f9;
+  background-color: #111827;
+  border-color: #3b4a60;
+}
+html[data-theme="dark"] footer {
+  background: #101827 !important;
+  color: #cbd5e1 !important;
+  border-color: #263244 !important;
+}
+html[data-theme="dark"] footer [class~="text-gray-900"],
+html[data-theme="dark"] footer [class~="text-gray-700"],
+html[data-theme="dark"] footer [class~="text-gray-600"] { color: #cbd5e1 !important; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form { background: #f8fafc !important; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form input,
+html[data-theme="dark"] .trexifly-home-hero #search-widget form select { color: #172033 !important; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form label { color: #475569 !important; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form [role="tab"] { color: #334155 !important; }
+@media (prefers-reduced-motion: reduce) {
+  .home-page > section:not(.trexifly-home-hero), .results-page, .landing-page { transition: none; }
+}
+
+
+/* Extend the global theme to informational, legal and guide routes as well. */
+html[data-theme="dark"] #main [class~="bg-white"],
+html[data-theme="dark"] #main [class~="bg-slate-50"] {
+  background-color: #151e2d !important;
+  border-color: #2c394c !important;
+}
+html[data-theme="dark"] #main [class~="text-slate-900"],
+html[data-theme="dark"] #main [class~="text-gray-900"],
+html[data-theme="dark"] #main [class~="text-[#172B4D]"] { color: #f1f5f9 !important; }
+html[data-theme="dark"] #main [class~="text-slate-700"],
+html[data-theme="dark"] #main [class~="text-slate-600"],
+html[data-theme="dark"] #main [class~="text-gray-700"],
+html[data-theme="dark"] #main [class~="text-gray-600"] { color: #aab6c7 !important; }
+html[data-theme="dark"] #main [class*="border-slate-"],
+html[data-theme="dark"] #main [class*="divide-slate-"] { border-color: #334155 !important; }
+html[data-theme="dark"] .site-header button[aria-label^="Switch to"] {
+  background: #17243a !important;
+  color: #f8fafc !important;
+  border-color: #3b4a60 !important;
+}

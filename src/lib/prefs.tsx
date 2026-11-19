@@ -53,6 +53,7 @@ const STRINGS: Record<Lang, Record<string, string>> = {
 
 type FxRates = Partial<Record<Currency, number>>
 type Prefs = {
+  theme: 'light' | 'dark'; setTheme: (theme: 'light' | 'dark') => void
   currency: Currency; setCurrency: (currency: Currency) => void
   lang: Lang; setLang: (lang: Lang) => void
   t: (key: string) => string; money: (usd: number) => string; symbol: string
@@ -86,6 +87,7 @@ function currencySymbol(code: Currency) {
 }
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => readStored('trexifly.theme', ['light', 'dark'], 'light'))
   const [currency, setCurrencyState] = useState<Currency>(() => readStored('trexifly.currency', CURRENCIES, 'USD'))
   const [lang, setLangState] = useState<Lang>(() => readStored('trexifly.lang', ['en', 'ur', 'ar'], 'en'))
   const [rates, setRates] = useState<FxRates>(() => ({ ...FALLBACK_RATES, ...(readFxCache()?.rates ?? {}) }))
@@ -93,6 +95,10 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   const [fxUpdatedAt, setFxUpdatedAt] = useState<number | null>(() => readFxCache()?.updatedAt ?? null)
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+  }, [theme])
   useEffect(() => {
     const cached = readFxCache()
     if (cached) {
@@ -124,6 +130,10 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     return () => controller.abort()
   }, [])
 
+  const setTheme = useCallback((next: 'light' | 'dark') => {
+    setThemeState(next)
+    store('trexifly.theme', next)
+  }, [])
   const setCurrency = useCallback((next: Currency) => {
     setCurrencyState(next)
     store('trexifly.currency', next)
@@ -143,9 +153,9 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
   }, [currency, rates])
 
   const value = useMemo<Prefs>(() => ({
-    currency, setCurrency, lang, setLang, t, money,
+    theme, setTheme, currency, setCurrency, lang, setLang, t, money,
     symbol: currencySymbol(currency), fxStatus, fxUpdatedAt,
-  }), [currency, setCurrency, lang, setLang, t, money, fxStatus, fxUpdatedAt])
+  }), [theme, setTheme, currency, setCurrency, lang, setLang, t, money, fxStatus, fxUpdatedAt])
 
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>
 }
