@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Icon, type IconName } from './Icons'
-import { isoIn, type SearchQuery } from '../lib/data'
+import {  isoIn, type SearchQuery , PLACES } from '../lib/data'
 import { imgFallback } from '../lib/imageFallback'
 
 type Tab = 'hotels' | 'flights' | 'cars' | 'tours' | 'transfers'
@@ -204,4 +204,5 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
     {!compact && tab === 'transfers' && <div className="mt-6 grid gap-3 sm:grid-cols-3">{[['Flight tracking','We monitor your flight arrival details.'],['One clear price','Know the fare before you travel.'],['Tried and true service','Choose a vehicle class for your journey.']].map(([title,desc])=><div key={title} className="rounded-xl border border-white/20 bg-white/10 p-4 text-white"><p className="font-semibold">{title}</p><p className="mt-1 text-xs text-white/75">{desc}</p></div>)}</div>}
   </section>
 }
+
 
