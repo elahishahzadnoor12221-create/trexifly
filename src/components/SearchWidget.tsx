@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+﻿import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Icon, type IconName } from './Icons'
 import { isoIn, type SearchQuery } from '../lib/data'
@@ -12,54 +12,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'tours', label: 'Activities', icon: 'compass' },
   { id: 'transfers', label: 'Airport Transfers', icon: 'car' },
 ]
-const AIRPORTS = [
-  'Lahore (LHE) — Pakistan',
-  'Islamabad (ISB) — Pakistan',
-  'Karachi (KHI) — Pakistan',
-  'Peshawar (PEW) — Pakistan',
-  'Quetta (UET) — Pakistan',
-  'Multan (MUX) — Pakistan',
-  'Faisalabad (LYP) — Pakistan',
-  'Skardu (KDU) — Pakistan',
-  'Gilgit (GIL) — Pakistan',
-  'Dubai (DXB) — United Arab Emirates',
-  'Abu Dhabi (AUH) — United Arab Emirates',
-  'Jeddah (JED) — Saudi Arabia',
-  'Madinah (MED) — Saudi Arabia',
-  'Riyadh (RUH) — Saudi Arabia',
-  'Doha (DOH) — Qatar',
-  'Muscat (MCT) — Oman',
-  'Kuwait (KWI) — Kuwait',
-  'Bahrain (BAH) — Bahrain',
-  'London (LHR) — United Kingdom',
-  'Manchester (MAN) — United Kingdom',
-  'Istanbul (IST) — Türkiye',
-  'Baku (GYD) — Azerbaijan',
-  'Paris (CDG) — France',
-  'Madrid (MAD) — Spain',
-  'Barcelona (BCN) — Spain',
-  'Frankfurt (FRA) — Germany',
-  'Rome (FCO) — Italy',
-  'Amsterdam (AMS) — Netherlands',
-  'New York (JFK) — United States',
-  'Toronto (YYZ) — Canada',
-  'Los Angeles (LAX) — United States',
-  'Chicago (ORD) — United States',
-  'Vancouver (YVR) — Canada',
-  'Tokyo (HND) — Japan',
-  'Singapore (SIN) — Singapore',
-  'Kuala Lumpur (KUL) — Malaysia',
-  'Bangkok (BKK) — Thailand',
-  'Seoul (ICN) — South Korea',
-  'Hong Kong (HKG) — Hong Kong',
-  'Malé (MLE) — Maldives',
-  'Sydney (SYD) — Australia',
-  'Zurich (ZRH) — Switzerland',
-  'Delhi (DEL) — India',
-  'Mumbai (BOM) — India',
-  'Cairo (CAI) — Egypt',
-  'Cape Town (CPT) — South Africa'
-]
+const AIRPORTS = PLACES.filter(p => p.code).map(p => `\ (\) — \\`)
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, Türkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const LOCATIONS = [...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport')), ...WORLD_DESTINATIONS]
@@ -158,7 +111,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [pax, setPax] = useState(initial?.pax ?? '1 adult, Economy')
   const [rooms, setRooms] = useState('2 adults · 0 children · 1 room')
   const [pickup, setPickup] = useState('Dubai International Airport')
-  const transferCountryCode = (() => { const v=pickup.toLowerCase(); const match=v.match(/\(([a-z]{3})\)/i); const code=match?.[1]?.toUpperCase(); const byCode:Record<string,string>={DXB:'ae',AUH:'ae',JED:'sa',MED:'sa',RUH:'sa',LHR:'gb',MAN:'gb',IST:'tr',LHE:'pk',ISB:'pk',KHI:'pk',PEW:'pk',UET:'pk',MUX:'pk',LYP:'pk',KDU:'pk',GIL:'pk'}; if(code&&byCode[code])return byCode[code]; if(/dubai|abu dhabi|sharjah|ajman|ras al khaimah|fujairah|al ain|united arab emirates|\buae\b/i.test(v))return 'ae'; if(/jeddah|madinah|riyadh|makkah|saudi arabia/i.test(v))return 'sa'; if(/london|manchester|united kingdom|\buk\b/i.test(v))return 'gb'; if(/istanbul|turkey|türkiye|turkiye/i.test(v))return 'tr'; if(/lahore|islamabad|karachi|pakistan/i.test(v))return 'pk'; return undefined })()
+  const transferCountryCode = (() => { const v=pickup.toLowerCase(); const match=v.match(/\(([a-z]{3})\)/i); const code=match?.[1]?.toUpperCase(); const byCode:Record<string,string>={DXB:'ae',AUH:'ae',SHJ:'ae',JED:'sa',MED:'sa',RUH:'sa',DMM:'sa',DOH:'qa',MCT:'om',KWI:'kw',BAH:'bh',LHR:'gb',LGW:'gb',MAN:'gb',BHX:'gb',IST:'tr',SAW:'tr',AYT:'tr',GYD:'az',CDG:'fr',MAD:'es',BCN:'es',FRA:'de',MUC:'de',FCO:'it',MXP:'it',AMS:'nl',ZRH:'ch',JFK:'us',EWR:'us',LAX:'us',ORD:'us',IAD:'us',IAH:'us',YYZ:'ca',YVR:'ca',YUL:'ca',HND:'jp',NRT:'jp',SIN:'sg',KUL:'my',BKK:'th',ICN:'kr',HKG:'hk',SYD:'au',MEL:'au',CAI:'eg',JNB:'za',CPT:'za',LHE:'pk',ISB:'pk',KHI:'pk',PEW:'pk',UET:'pk',MUX:'pk',LYP:'pk',SKT:'pk',KDU:'pk',GIL:'pk',GWD:'pk',BHV:'pk',SKZ:'pk',RYK:'pk',DEA:'pk'}; if(code&&byCode[code])return byCode[code]; if(/dubai|abu dhabi|sharjah|ajman|ras al khaimah|fujairah|al ain|united arab emirates|\buae\b/i.test(v))return 'ae'; if(/jeddah|madinah|riyadh|makkah|saudi arabia/i.test(v))return 'sa'; if(/london|manchester|united kingdom|\buk\b/i.test(v))return 'gb'; if(/istanbul|turkey|türkiye|turkiye/i.test(v))return 'tr'; if(/lahore|islamabad|karachi|pakistan/i.test(v))return 'pk'; return undefined })()
   const [dropoff, setDropoff] = useState('Dubai International Airport')
   const [pickupTime, setPickupTime] = useState('10:00')
   const [dropTime, setDropTime] = useState('10:00')
@@ -251,3 +204,4 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
     {!compact && tab === 'transfers' && <div className="mt-6 grid gap-3 sm:grid-cols-3">{[['Flight tracking','We monitor your flight arrival details.'],['One clear price','Know the fare before you travel.'],['Tried and true service','Choose a vehicle class for your journey.']].map(([title,desc])=><div key={title} className="rounded-xl border border-white/20 bg-white/10 p-4 text-white"><p className="font-semibold">{title}</p><p className="mt-1 text-xs text-white/75">{desc}</p></div>)}</div>}
   </section>
 }
+
