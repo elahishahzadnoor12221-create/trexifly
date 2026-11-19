@@ -15,12 +15,16 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 const AIRPORTS = PLACES.filter((p) => p.code).map((p) => `${p.city} (${p.code}) � ${p.airport ? p.airport + ', ' : ''}${p.country}`)
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, T�rkiye","Antalya, T�rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","S�o Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
-const WORLD_LANDMARKS = ['Downtown Dubai, United Arab Emirates','Dubai Marina, United Arab Emirates','Palm Jumeirah, Dubai, United Arab Emirates','Deira, Dubai, United Arab Emirates','Makkah Clock Tower, Makkah, Saudi Arabia','Haram Hotels, Makkah, Saudi Arabia','Madinah Haram Area, Madinah, Saudi Arabia','Jeddah Corniche, Jeddah, Saudi Arabia','Gulberg, Lahore, Pakistan','F-7, Islamabad, Pakistan','Clifton, Karachi, Pakistan','Taksim Square, Istanbul, Turkey','Central London, United Kingdom','Hunza Valley, Pakistan','Skardu, Pakistan','Swat Valley, Pakistan','Kalam, Swat, Pakistan','Cappadocia, Turkey']
+const WORLD_LANDMARKS = [
+  'Burj Khalifa, Downtown Dubai, United Arab Emirates','Atlantis The Palm, Palm Jumeirah, Dubai, United Arab Emirates','Burj Al Arab, Jumeirah, Dubai, United Arab Emirates','Dubai Mall, Downtown Dubai, United Arab Emirates','Downtown Dubai, United Arab Emirates','Dubai Marina, United Arab Emirates','Palm Jumeirah, Dubai, United Arab Emirates','Deira, Dubai, United Arab Emirates',
+  'Makkah Clock Royal Tower, Makkah, Saudi Arabia','Makkah Clock Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Haram Hotels, Makkah, Saudi Arabia','Anwar Al Madinah M?venpick, Madinah, Saudi Arabia','Madinah Haram Area, Madinah, Saudi Arabia','Jeddah Corniche, Jeddah, Saudi Arabia','King Abdulaziz International Airport, Jeddah, Saudi Arabia','Riyadh, Saudi Arabia',
+  'Pearl Continental Lahore, Lahore, Pakistan','Serena Hotel Islamabad, Islamabad, Pakistan','Marriott Karachi, Karachi, Pakistan','Gulberg, Lahore, Pakistan','F-7, Islamabad, Pakistan','Clifton, Karachi, Pakistan',
+  'Taksim Square, Istanbul, Turkey','Central London, United Kingdom','Heathrow Airport, London, United Kingdom','Hunza Valley, Pakistan','Skardu, Pakistan','Swat Valley, Pakistan','Kalam, Swat, Pakistan','Cappadocia, Turkey'
+]
 const LOCATIONS = [...new Set([...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport')), ...WORLD_DESTINATIONS, ...WORLD_LANDMARKS])]
 const field = 'min-w-0 w-full border-0 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-500'
 const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'
-let lastNominatimRequestAt = 0
 
 function SelectField({ title, value, onChange, options, wide = false }: { title: string; value: string; onChange: (value: string) => void; options: string[]; wide?: boolean }) {
   return <label className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : '')}><span className={label}>{title}</span><select className={field} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
@@ -32,42 +36,63 @@ function TextField({ title, value, onChange, placeholder, type = 'text' }: { tit
 function LocationField({ fieldId, title, value, onChange, placeholder, options = [], countryCode }: { fieldId: string; title: string; value: string; onChange: (value: string) => void; placeholder: string; options?: string[]; countryCode?: string }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  useEffect(() => { const onOpen=(e:Event)=>setOpen((e as CustomEvent<string>).detail===fieldId); const outside=(e:PointerEvent)=>{if(!rootRef.current?.contains(e.target as Node))setOpen(false)}; const esc=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)}; window.addEventListener('trexifly:location-open',onOpen); document.addEventListener('pointerdown',outside); document.addEventListener('keydown',esc); return ()=>{window.removeEventListener('trexifly:location-open',onOpen);document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',esc)} },[fieldId])
   const [remote, setRemote] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  useEffect(() => { const onOpen=(e:Event)=>setOpen((e as CustomEvent<string>).detail===fieldId); const outside=(e:PointerEvent)=>{if(!rootRef.current?.contains(e.target as Node))setOpen(false)}; const esc=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)}; window.addEventListener('trexifly:location-open',onOpen); document.addEventListener('pointerdown',outside); document.addEventListener('keydown',esc); return ()=>{window.removeEventListener('trexifly:location-open',onOpen);document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',esc)} },[fieldId])
   const local = useMemo(() => {
     const curated:Record<string,string[]> = {
-      ae:['Dubai, United Arab Emirates','Abu Dhabi, United Arab Emirates','Sharjah, United Arab Emirates','Ajman, United Arab Emirates','Ras Al Khaimah, United Arab Emirates','Fujairah, United Arab Emirates','Al Ain, United Arab Emirates','Dubai Mall, Dubai, United Arab Emirates','Downtown Dubai, United Arab Emirates','Palm Jumeirah, Dubai, United Arab Emirates'],
-      pk:['Lahore, Pakistan','Islamabad, Pakistan','Karachi, Pakistan','Peshawar, Pakistan','Quetta, Pakistan','Multan, Pakistan','Skardu, Pakistan'],
-      sa:['Jeddah, Saudi Arabia','Madinah, Saudi Arabia','Makkah, Saudi Arabia','Riyadh, Saudi Arabia','King Abdulaziz International Airport, Jeddah, Saudi Arabia'],
-      gb:['London, United Kingdom','Manchester, United Kingdom','Heathrow Airport, London, United Kingdom'],
-      tr:['Istanbul, T�rkiye','Antalya, T�rkiye','Ankara, T�rkiye','Sabiha G�k�en Airport, Istanbul, T�rkiye']
+      ae:['Dubai, United Arab Emirates','Abu Dhabi, United Arab Emirates','Sharjah, United Arab Emirates','Dubai Mall, Downtown Dubai, United Arab Emirates','Burj Khalifa, Downtown Dubai, United Arab Emirates','Atlantis The Palm, Palm Jumeirah, Dubai, United Arab Emirates'],
+      pk:['Lahore, Pakistan','Islamabad, Pakistan','Karachi, Pakistan','Peshawar, Pakistan','Quetta, Pakistan','Multan, Pakistan','Skardu, Pakistan','Pearl Continental Lahore, Lahore, Pakistan','Serena Hotel Islamabad, Islamabad, Pakistan','Marriott Karachi, Karachi, Pakistan'],
+      sa:['Jeddah, Saudi Arabia','Madinah, Saudi Arabia','Makkah, Saudi Arabia','Riyadh, Saudi Arabia','Makkah Clock Royal Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Anwar Al Madinah M?venpick, Madinah, Saudi Arabia'],
+      gb:['London, United Kingdom','Manchester, United Kingdom','Heathrow Airport, London, United Kingdom','Central London, United Kingdom'],
+      tr:['Istanbul, T?rkiye','Antalya, T?rkiye','Ankara, T?rkiye','Sabiha G?k?en Airport, Istanbul, T?rkiye','Taksim Square, Istanbul, T?rkiye']
     }
-    const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/T�rkiye|Turkey/i}
+    const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/T?rkiye|Turkey/i}
     const source=countryCode?[...options.filter(item=>countryNames[countryCode]?.test(item)),...(curated[countryCode]??[])]:options
-    return source.filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,15)
+    return [...new Set(source)].filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,18)
   }, [options, value, countryCode])
-  const searchAddress = () => {
-    const term = value.trim()
-    if (term.length < 2 || loading || !countryCode) return
-    const now = Date.now()
-    if (now - lastNominatimRequestAt < 1100) return
-    lastNominatimRequestAt = now
-    setLoading(true)
-    const endpoint = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=12&countrycodes=' + countryCode + '&q=' + encodeURIComponent(term)
-    fetch(endpoint)
-      .then(response => response.ok ? response.json() as Promise<Array<{display_name:string}>> : Promise.reject(new Error('Address lookup unavailable')))
-      .then(data => setRemote(data.map(place => place.display_name)))
-      .catch(() => setRemote([]))
-      .finally(() => setLoading(false))
-  }
-  const suggestions = [...new Set([...local, ...remote])].slice(0, 15)
-  return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} />{countryCode && <button type="button" disabled={loading || value.trim().length < 2} onClick={searchAddress} className="shrink-0 rounded-lg bg-orange-50 px-2 py-2 text-[10px] font-bold text-[#D94700] disabled:opacity-40">{loading ? 'Searching�' : 'Find address'}</button>}</div></label>
+  useEffect(() => {
+    const term=value.trim()
+    if(term.length<2){setRemote([]);setLoading(false);return}
+    const controller=new AbortController()
+    const timer=window.setTimeout(async()=>{
+      setLoading(true)
+      const formatPhoton=(items:Array<{properties?:Record<string,string>}>)=>items.map(item=>{
+        const a=item.properties??{}
+        const name=a.name??a.street??a.locality??a.city
+        const city=a.city??a.district??a.county??a.state
+        return [name,city,a.country].filter((v,i,arr)=>v&&arr.indexOf(v)===i).join(', ')
+      }).filter(Boolean)
+      const formatNominatim=(items:Array<{name?:string;display_name?:string;address?:Record<string,string>}>)=>items.map(item=>{
+        const a=item.address??{}
+        return [item.name??a.amenity??a.tourism??a.road??a.suburb,a.city??a.town??a.village??a.city_district??a.county??a.state,a.country].filter((v,i,arr)=>v&&arr.indexOf(v)===i).join(', ') || item.display_name || ''
+      }).filter(Boolean)
+      try{
+        const primary=await fetch('https://photon.komoot.io/api/?q='+encodeURIComponent(term)+'&limit=12&lang=en',{signal:controller.signal})
+        if(!primary.ok)throw new Error('Primary geocoder unavailable')
+        const data=await primary.json() as {features?:Array<{properties?:Record<string,string>}>}
+        let results=formatPhoton(data.features??[])
+        if(!results.length)throw new Error('No primary geocoding results')
+        setRemote(results)
+      }catch(error){
+        if(controller.signal.aborted)return
+        try{
+          const fallback=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&q='+encodeURIComponent(term),{signal:controller.signal})
+          if(!fallback.ok)throw new Error('Fallback geocoder unavailable')
+          const data=await fallback.json() as Array<{name?:string;display_name?:string;address?:Record<string,string>}>
+          setRemote(formatNominatim(data))
+        }catch(fallbackError){if(!controller.signal.aborted)setRemote([])}
+      }finally{if(!controller.signal.aborted)setLoading(false)}
+    },300)
+    return ()=>{window.clearTimeout(timer);controller.abort()}
+  },[value])
+  const suggestions = [...new Set([...local, ...remote])].slice(0,20)
+  return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></div></label>
     {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
       {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}
-      {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching address data�</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No exact match yet. Check the address spelling or use the entered location.</p>}
+      {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide locations?</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No geocoding match yet. You can still use the entered location.</p>}
     </div>}
-    {countryCode && <p className="mt-1 text-[9px] text-slate-500">Address data � OpenStreetMap contributors � <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer" className="underline">Usage policy</a></p>}
+    <p className="mt-1 text-[9px] text-slate-500">Worldwide address suggestions ? OpenStreetMap contributors ? <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer" className="underline">Usage policy</a></p>
   </div>
 }
 function Check({ children }: { children: ReactNode }) { return <label className="inline-flex items-center gap-2 text-xs text-slate-700">{children}</label> }
@@ -169,7 +194,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
     {compact && <div className="mb-3">{tabNav}</div>}
     <form onSubmit={submit} className={'rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50' + (highlight ? ' search-flash' : '')}>
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
-        <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={WORLD_DESTINATIONS} />
+        <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={LOCATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
         <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" />
         <SelectField wide title="Guests and rooms" value={rooms} onChange={setRooms} options={["2 adults � 0 children � 1 room","1 adult � 0 children � 1 room","2 adults � 1 child � 1 room","2 adults � 0 children � 2 rooms"]} />
@@ -194,7 +219,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30�65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
       {tab === 'tours' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
-        <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={WORLD_DESTINATIONS} />
+        <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={LOCATIONS} />
         <TextField title="Dates" value={activityDate} onChange={setActivityDate} placeholder="Select dates" type="date" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}

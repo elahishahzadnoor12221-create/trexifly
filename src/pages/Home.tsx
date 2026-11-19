@@ -5,12 +5,23 @@ import { Destinations } from '../components/Destinations'
 import { PromoDeals } from '../components/PromoDeals'
 import { WorldGlobe } from '../components/WorldGlobe'
 import { Icon } from '../components/Icons'
+import { buildAffiliateUrl } from '../lib/affiliates'
 // @ts-ignore — provider configuration is intentionally kept as plain JavaScript for easy editing.
 import { TRAVEL_PROVIDERS } from '../config/travelProviders.js'
+
+const CAR_DESTINATIONS=['Dubai','London','New York','Istanbul','Riyadh','Lahore','Auckland','Toronto']
+const SHOWCASE_CARS=[
+  {name:'Toyota Yaris',category:'Economy',price:16,supplier:'Europcar',rating:'8.6',photo:'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=85'},
+  {name:'Toyota Camry',category:'Standard',price:30,supplier:'Hertz',rating:'8.4',photo:'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=900&q=85'},
+  {name:'MG ZS / Hyundai Tucson',category:'Small SUV',price:36,supplier:'Avis',rating:'8.9',photo:'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=900&q=85'},
+  {name:'Toyota Prado',category:'Full-Size SUV',price:72,supplier:'Sixt',rating:'8.7',photo:'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=900&q=85'}
+]
+const CAR_FALLBACK='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"%3E%3Crect width="640" height="360" rx="24" fill="%23fff3eb"/%3E%3Cpath d="M120 226h400l-28-68q-10-24-38-24H220q-27 0-42 23z" fill="%23ff5500"/%3E%3Cpath d="M220 142h220l-26-58H266z" fill="%23fca36c"/%3Ccircle cx="220" cy="238" r="34" fill="%23242b36"/%3E%3Ccircle cx="220" cy="238" r="14" fill="%23dbe4ee"/%3Ccircle cx="430" cy="238" r="34" fill="%23242b36"/%3Ccircle cx="430" cy="238" r="14" fill="%23dbe4ee"/%3C/svg%3E'
 
 export function Home() {
   const navigate=useNavigate()
   const [confidenceOpen,setConfidenceOpen]=useState(false)
+  const [carDestination,setCarDestination]=useState('Dubai')
   const openWorldwide=()=>{window.dispatchEvent(new CustomEvent('trexifly:open-worldwide'));document.getElementById('destinations')?.scrollIntoView({behavior:'smooth',block:'start'})}
   return <div className="home-page">
     <section className="trexifly-home-hero relative isolate overflow-hidden pb-9 pt-7 sm:pb-12 sm:pt-10">
@@ -30,6 +41,17 @@ export function Home() {
       <button type="button" onClick={()=>setConfidenceOpen(true)} className="group flex w-full items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[#FF5500] text-white shadow-md shadow-orange-200"><Icon name="shieldCheck" className="size-6" strokeWidth={2}/></span><span><span className="block text-sm font-bold text-[#172B4D]">Travel with confidence</span><span className="mt-1 block text-xs leading-5 text-slate-600">Check final prices and booking terms with providers.</span></span><Icon name="arrowRight" className="ml-auto size-4 text-[#FF5500]"/></button>
     </div></section>
     <Destinations/>
+    <section className="bg-[#FFF8F3] py-12">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">QEEQ-style car discovery</p><h2 className="mt-2 text-2xl font-extrabold text-[#172B4D] sm:text-3xl">Top Car Rental Destinations</h2><p className="mt-2 text-sm text-slate-600">Explore sample vehicles by destination, then compare partner offers.</p></div><a href={buildAffiliateUrl('cars',0)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-xl bg-[#FF5500] px-4 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#E64A00]">Compare all car rentals ?</a></div>
+        <div className="mt-6 flex gap-2 overflow-x-auto pb-2">{CAR_DESTINATIONS.map(city=><button key={city} type="button" onClick={()=>setCarDestination(city)} aria-pressed={carDestination===city} className={'shrink-0 rounded-full px-4 py-2.5 text-xs font-bold transition '+(carDestination===city?'bg-[#172B4D] text-white shadow':'border border-orange-200 bg-white text-slate-700 hover:border-[#FF5500]')}>{city}</button>)}</div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {SHOWCASE_CARS.map((car,index)=><article key={car.name} className="overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"><div className="relative h-40 bg-slate-100"><img src={car.photo} alt={car.name+' rental car'} loading="lazy" onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src=CAR_FALLBACK}} className="h-full w-full object-cover"/><span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold text-[#172B4D]">{car.supplier}</span><span className="absolute right-3 top-3 rounded-full bg-[#172B4D]/90 px-2.5 py-1 text-[10px] font-bold text-white">? {car.rating}</span></div><div className="p-4"><h3 className="font-extrabold text-[#172B4D]">{car.name}</h3><p className="mt-1 text-xs text-slate-500">{car.category} ? {carDestination}</p><div className="mt-4 flex items-end justify-between gap-2"><div><p className="text-[10px] text-slate-500">From</p><p className="text-xl font-black text-[#FF5500]">From US$ {car.price}/day</p></div><a href={buildAffiliateUrl('cars',index%2)} target="_blank" rel="noopener noreferrer sponsored" className="rounded-lg border border-orange-200 px-3 py-2 text-[11px] font-bold text-[#D94700] hover:bg-orange-50">Check rates ?</a></div><p className="mt-3 text-[10px] text-slate-500">Illustrative partner rates ? verify live availability</p></div></article>)}
+          <a href={buildAffiliateUrl('cars',1)} target="_blank" rel="noopener noreferrer sponsored" className="flex min-h-[290px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#FF9A65] bg-white p-6 text-center transition hover:border-[#FF5500] hover:bg-orange-50"><span className="grid size-14 place-items-center rounded-2xl bg-orange-100 text-[#FF5500]"><Icon name="car" className="size-7"/></span><h3 className="mt-4 text-lg font-extrabold text-[#172B4D]">Compare All Cars</h3><p className="mt-2 text-xs leading-5 text-slate-600">View more vehicle classes and partner offers in {carDestination}.</p><span className="mt-5 rounded-xl bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">View more cars ?</span><span className="mt-3 text-[10px] text-slate-500">QEEQ ? AutoEurope</span></a>
+        </div>
+        <p className="mt-4 text-[10px] text-slate-500">All displayed vehicle names, supplier badges, ratings and daily prices are illustrative examples, not live quotes or confirmed inventory.</p>
+      </div>
+    </section>
     <PromoDeals />
     <section className="bg-white py-10">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
