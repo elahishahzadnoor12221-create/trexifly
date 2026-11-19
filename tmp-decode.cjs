@@ -1,0 +1,2 @@
+const u='https://imgs.search.brave.com/LNnMYxYHn6N0YRGi-_9AZUMwypgQEl6t9afPu13BWe8/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly90aHVt/Yi53aWtpbWVkaWEu/b3JnL3dpa2lwZWRp/YS9jb21tb25zL3Ro/dW1iLzcvNzcvVG95/b3RhX1lhcmlzXzEu/M19WVlQtaV9mcm9u/dC5KUEcvOTYwcHgt/VG95b3RhX1lhcmlz/XzEuM19WVlQtaV9m/cm9udC5KUEc_dXRt/X3NvdXJjZT1jb21t/b25zLndpa2ltZWRpYS5vcmcmdXRtX2Nh/bXBhaWduPWluZGV4JmJ1dG1fY29udGVudD10aHVtYm5haWwmXz0yMDA5MDMyMTExNTA1Ng';
+const e=u.slice(u.indexOf('/g:ce/')+6).replace(/\//g,'');console.log(Buffer.from(e,'base64').toString('utf8'));

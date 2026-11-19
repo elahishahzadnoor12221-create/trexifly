@@ -1,0 +1,25 @@
+## FFFD
+  @8252: 00">Indicative estimate</p>{deal.title.includes(" � ") && <p className="mt-1 text-[10px] te
+  @30672: xt-xs text-slate-600">Illustrative estimates only � Final prices and availability must be c
+  @39853: ate-500')}>{durationText(chosen.durationMinutes)} � {airlineName(chosen)}</span><span class
+## /10
+  @2681: ext-slate-500">Illustrative rating: {hotel.score.toFixed(1)}/10 · {hotel.reviews.toLocaleStri
+  @21141: stimate',price:Math.round(r[2]*factor*(0.92+((seed+i*17)%19)/100)),score:Number((8.1+((seed+i
+  @21234: *13)%19)/10).toFixed(1)),duration:'Per da
+  @21728: erience',price:Math.round(r[2]*factor*(0.93+((seed+i*11)%17)/100)),score:Number((8.2+((seed+i
+  @21821: *7)%18)/10).toFixed(1)),duration:r[3],pe
+  @22097:  ? '+r[3],price:Math.round(r[2]*factor*(0.94+((seed+i*9)%15)/100)),score:Number((8.3+((seed+i
+  @22190: *5)%17)/10).toFixed(1)),duration:'One-wa
+  @23619: -1 text-[10px] font-extrabold text-amber-800">? {item.score}/10 illustrative</span></div>
+## Verify with
+  @25516: d-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white">Verify with {item.provider} ?</a></div>
+## query.from+
+  @27196: s(sampleKind, sampleKind === 'tours' ? query.to : query.from+' ? '+query.to) : []
+  @30201: om:query.type==='tours'?'Activities in '+query.to:query.from+' ? '+query.to
+## route+
+  @21081: e:r[0],category:r[1],subtitle:route+' ? '+r[1]+' ? Per-day estimate',price:M
+  @21676: e:r[0],category:r[1],subtitle:route+' ? '+r[3]+' experience',price:Math.roun
+  @22060: e:r[0],category:r[1],subtitle:route+' ? '+r[3],price:Math.round(r[2]*factor*
+## const route
+## item.score
+  @23608: 0 px-2.5 py-1 text-[10px] font-extrabold text-amber-800">? {item.score}/10 illustrative</span></div>

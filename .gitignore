@@ -17,3 +17,7 @@ backups/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+
+# Playwright test artifacts
+test-results/
+playwright-report/
