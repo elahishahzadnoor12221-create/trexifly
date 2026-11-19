@@ -1,0 +1,5 @@
+# Local Cloudflare Worker secrets (copy to .dev.vars; never commit the real file)
+# Ollama is optional when OpenRouter fallback is configured.
+OLLAMA_API_KEY=
+# OpenRouter Free Models Router fallback (openrouter/free).
+OPENROUTER_API_KEY=

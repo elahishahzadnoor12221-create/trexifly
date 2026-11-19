@@ -8,6 +8,7 @@ import { Results } from './pages/Results'
 import { Landing, type LandingConfig } from './pages/Landing'
 import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
 import { GuideIndexEnhancements, TravelGuideArticle } from './pages/TravelGuidePages'
+import { TravelAssistant } from './components/TravelAssistant'
 
 const seoPages: LandingConfig[] = [
   {
@@ -114,6 +115,6 @@ export function App() {
       {seoPages.map((page) => <Route key={page.path} path={page.path} element={<Landing config={page} />} />)}
       <Route path="*" element={<NotFound />} />
     </Routes></main>
-    <Footer /><MobileTabBar /><WhatsAppFloat />
+    <Footer /><MobileTabBar /><WhatsAppFloat /><TravelAssistant />
   </PrefsProvider></BrowserRouter>
 }
