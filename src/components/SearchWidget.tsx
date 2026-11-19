@@ -44,7 +44,7 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
     }
     const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/T�rkiye|Turkey/i}
     const source=countryCode?[...options.filter(item=>countryNames[countryCode]?.test(item)),...(curated[countryCode]??[])]:options
-    return source.filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,8)
+    return source.filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,15)
   }, [options, value, countryCode])
   const searchAddress = () => {
     const term = value.trim()
@@ -60,7 +60,7 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
       .catch(() => setRemote([]))
       .finally(() => setLoading(false))
   }
-  const suggestions = [...new Set([...local, ...remote])].slice(0, 10)
+  const suggestions = [...new Set([...local, ...remote])].slice(0, 15)
   return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} />{countryCode && <button type="button" disabled={loading || value.trim().length < 2} onClick={searchAddress} className="shrink-0 rounded-lg bg-orange-50 px-2 py-2 text-[10px] font-bold text-[#D94700] disabled:opacity-40">{loading ? 'Searching�' : 'Find address'}</button>}</div></label>
     {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
       {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}

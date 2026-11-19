@@ -113,7 +113,45 @@ export const PLACES: Place[] = [
   { city: 'Cairo', code: 'CAI', airport: 'Cairo International Airport', country: 'Egypt' },
   { city: 'Johannesburg', code: 'JNB', airport: 'O.R. Tambo International Airport', country: 'South Africa' },
   { city: 'Cape Town', code: 'CPT', airport: 'Cape Town International Airport', country: 'South Africa' },
-  { city: 'Casablanca', code: 'CMN', airport: 'Mohammed V International Airport', country: 'Morocco' }
+  { city: 'Casablanca', code: 'CMN', airport: 'Mohammed V International Airport', country: 'Morocco' },
+  // Additional worldwide scheduled-service hubs
+  { city: 'London City', code: 'LCY', airport: 'London City Airport', country: 'United Kingdom' },
+  { city: 'London Luton', code: 'LTN', airport: 'London Luton Airport', country: 'United Kingdom' },
+  { city: 'London Stansted', code: 'STN', airport: 'London Stansted Airport', country: 'United Kingdom' },
+  { city: 'Doha Hamad', code: 'DOH', airport: 'Hamad International Airport', country: 'Qatar' },
+  { city: 'Dubai Al Maktoum', code: 'DWC', airport: 'Al Maktoum International Airport', country: 'United Arab Emirates' },
+  { city: 'New York LaGuardia', code: 'LGA', airport: 'LaGuardia Airport', country: 'United States' },
+  { city: 'San Francisco', code: 'SFO', airport: 'San Francisco International Airport', country: 'United States' },
+  { city: 'Miami', code: 'MIA', airport: 'Miami International Airport', country: 'United States' },
+  { city: 'Dallas Fort Worth', code: 'DFW', airport: 'Dallas Fort Worth International Airport', country: 'United States' },
+  { city: 'Atlanta', code: 'ATL', airport: 'Hartsfield-Jackson Atlanta International Airport', country: 'United States' },
+  { city: 'Boston', code: 'BOS', airport: 'Boston Logan International Airport', country: 'United States' },
+  { city: 'Seattle', code: 'SEA', airport: 'Seattle-Tacoma International Airport', country: 'United States' },
+  { city: 'Orlando', code: 'MCO', airport: 'Orlando International Airport', country: 'United States' },
+  { city: 'Calgary', code: 'YYC', airport: 'Calgary International Airport', country: 'Canada' },
+  { city: 'Edmonton', code: 'YEG', airport: 'Edmonton International Airport', country: 'Canada' },
+  { city: 'Geneva', code: 'GVA', airport: 'Geneva Airport', country: 'Switzerland' },
+  { city: 'Brussels', code: 'BRU', airport: 'Brussels Airport', country: 'Belgium' },
+  { city: 'Copenhagen', code: 'CPH', airport: 'Copenhagen Airport', country: 'Denmark' },
+  { city: 'Stockholm', code: 'ARN', airport: 'Stockholm Arlanda Airport', country: 'Sweden' },
+  { city: 'Oslo', code: 'OSL', airport: 'Oslo Airport', country: 'Norway' },
+  { city: 'Lisbon', code: 'LIS', airport: 'Humberto Delgado Airport', country: 'Portugal' },
+  { city: 'Athens', code: 'ATH', airport: 'Athens International Airport', country: 'Greece' },
+  { city: 'Jeddah', code: 'JED', airport: 'King Abdulaziz International Airport', country: 'Saudi Arabia' },
+  { city: 'Abu Dhabi', code: 'AUH', airport: 'Zayed International Airport', country: 'United Arab Emirates' },
+  { city: 'Sharjah', code: 'SHJ', airport: 'Sharjah International Airport', country: 'United Arab Emirates' },
+  { city: 'Riyadh', code: 'RUH', airport: 'King Khalid International Airport', country: 'Saudi Arabia' },
+  { city: 'Dammam', code: 'DMM', airport: 'King Fahd International Airport', country: 'Saudi Arabia' },
+  { city: 'Osaka Kansai', code: 'KIX', airport: 'Kansai International Airport', country: 'Japan' },
+  { city: 'Taipei', code: 'TPE', airport: 'Taiwan Taoyuan International Airport', country: 'Taiwan' },
+  { city: 'Manila', code: 'MNL', airport: 'Ninoy Aquino International Airport', country: 'Philippines' },
+  { city: 'Jakarta', code: 'CGK', airport: 'Soekarno-Hatta International Airport', country: 'Indonesia' },
+  { city: 'Ho Chi Minh City', code: 'SGN', airport: 'Tan Son Nhat International Airport', country: 'Vietnam' },
+  { city: 'Delhi', code: 'DEL', airport: 'Indira Gandhi International Airport', country: 'India' },
+  { city: 'Mumbai', code: 'BOM', airport: 'Chhatrapati Shivaji Maharaj International Airport', country: 'India' },
+  { city: 'Addis Ababa', code: 'ADD', airport: 'Bole International Airport', country: 'Ethiopia' },
+  { city: 'Nairobi', code: 'NBO', airport: 'Jomo Kenyatta International Airport', country: 'Kenya' },
+  { city: 'Doha', code: 'DOH', airport: 'Hamad International Airport', country: 'Qatar' },
 ]
 
 export const AIRPORT_OPTIONS = PLACES.map((place) => ({
@@ -180,6 +218,11 @@ export type Deal = {
   perks: string[]
   badges: Badge[]
   affiliateUrl: string
+  airline?: string
+  airlineCode?: string
+  stopsCount?: number
+  cabinClass?: string
+  departureMinutes?: number
 }
 
 /* ------------------------------------------------------------------ dates */
@@ -280,7 +323,61 @@ function pick<T>(list: T[], rand: () => number): T {
   return list[Math.floor(rand() * list.length) % list.length]
 }
 
+type FlightCarrier = { name: string; code: string; domestic?: boolean; hubs: string[] }
+const FLIGHT_CARRIERS: FlightCarrier[] = [
+  {name:'Pakistan International Airlines',code:'PK',domestic:true,hubs:['ISB','LHE','KHI','PEW','UET','MUX','LYP','SKT','KDU','GIL','GWD','RYK','BHV']},
+  {name:'Airblue',code:'PA',domestic:true,hubs:['ISB','LHE','KHI','PEW','SKT']},
+  {name:'SereneAir',code:'ER',domestic:true,hubs:['ISB','LHE','KHI','PEW','UET','MUX']},
+  {name:'Fly Jinnah',code:'9P',domestic:true,hubs:['KHI','LHE','ISB','PEW','QUETTA']},
+  {name:'AirSial',code:'PF',domestic:true,hubs:['KHI','LHE','ISB','Sialkot']},
+  {name:'Emirates',code:'EK',hubs:['DXB']},{name:'Qatar Airways',code:'QR',hubs:['DOH']},{name:'Etihad Airways',code:'EY',hubs:['AUH']},
+  {name:'Saudia',code:'SV',hubs:['JED','RUH','MED']},{name:'Flynas',code:'XY',hubs:['RUH','JED','DMM']},{name:'Flyadeal',code:'F3',hubs:['RUH','JED','DMM']},
+  {name:'flydubai',code:'FZ',hubs:['DXB']},{name:'Air Arabia',code:'G9',hubs:['SHJ','AUH']},{name:'Turkish Airlines',code:'TK',hubs:['IST']},
+  {name:'Pegasus Airlines',code:'PC',hubs:['SAW']},{name:'British Airways',code:'BA',hubs:['LHR','LGW']},{name:'Virgin Atlantic',code:'VS',hubs:['LHR']},
+  {name:'Lufthansa',code:'LH',hubs:['FRA','MUC']},{name:'SWISS',code:'LX',hubs:['ZRH','GVA']},{name:'Air France',code:'AF',hubs:['CDG']},
+  {name:'KLM',code:'KL',hubs:['AMS']},{name:'Iberia',code:'IB',hubs:['MAD','BCN']},{name:'Air Canada',code:'AC',hubs:['YYZ','YVR','YUL']},
+  {name:'United Airlines',code:'UA',hubs:['EWR','IAD','ORD','LAX','SFO']},{name:'Delta Air Lines',code:'DL',hubs:['ATL','JFK','LAX']},
+  {name:'American Airlines',code:'AA',hubs:['DFW','JFK','ORD','LAX']},{name:'Singapore Airlines',code:'SQ',hubs:['SIN']},
+  {name:'Malaysia Airlines',code:'MH',hubs:['KUL']},{name:'Thai Airways',code:'TG',hubs:['BKK']},{name:'Cathay Pacific',code:'CX',hubs:['HKG']},
+  {name:'ANA',code:'NH',hubs:['HND','NRT']},{name:'Japan Airlines',code:'JL',hubs:['HND','NRT']},{name:'Gulf Air',code:'GF',hubs:['BAH']},
+  {name:'Oman Air',code:'WY',hubs:['MCT']},{name:'Kuwait Airways',code:'KU',hubs:['KWI']},{name:'Azerbaijan Airlines',code:'J2',hubs:['GYD']},
+  {name:'EgyptAir',code:'MS',hubs:['CAI']},{name:'Ethiopian Airlines',code:'ET',hubs:['ADD']},{name:'Qantas',code:'QF',hubs:['SYD','MEL']},
+]
+function airportCode(value: string): string { const explicit=value.match(/\(([A-Z]{3})\)/i)?.[1]?.toUpperCase(); if(explicit)return explicit; const normalized=value.toLowerCase(); return PLACES.find(place=>place.code && (normalized.includes(place.city.toLowerCase()) || normalized.includes(place.airport?.toLowerCase() ?? '___no_airport___')))?.code ?? '' }
+function generateFlightOptions(query: SearchQuery): Deal[] {
+  const from = airportCode(query.from), to = airportCode(query.to)
+  const domestic = !!from && !!to && ['LHE','ISB','KHI','PEW','UET','MUX','LYP','SKT','KDU','GIL','GWD','RYK','BHV'].includes(from) && ['LHE','ISB','KHI','PEW','UET','MUX','LYP','SKT','KDU','GIL','GWD','RYK','BHV'].includes(to)
+  const availableCarriers = domestic ? FLIGHT_CARRIERS.filter(c=>c.domestic) : FLIGHT_CARRIERS.filter(c=>!c.domestic)
+  // Prefer carriers whose operating hubs match either end of this route, then retain global alternatives.
+  const carriers = [...availableCarriers].sort((a,b)=>Number(b.hubs.includes(from)||b.hubs.includes(to))-Number(a.hubs.includes(from)||a.hubs.includes(to)))
+  const seed = hash([query.from,query.to,query.out,query.back,query.pax].join('|'))
+  const rand = seeded(seed)
+  const cabin = /first/i.test(query.pax)?'First':/business/i.test(query.pax)?'Business':'Economy'
+  const routeFactor = domestic ? 0.48 : 1 + ((from.charCodeAt(0)||70)+(to.charCodeAt(0)||84))%35/100
+  const options: Deal[] = []
+  const target = domestic ? 45 : 45
+  for(let i=0;i<target;i++) {
+    const carrier = carriers[i % carriers.length]
+    const variant = Math.floor(i/carriers.length)
+    const stopsCount = domestic ? (variant===0 && rand()>.55 ? 1 : 0) : (i%7===0?0:i%4===0?2:1)
+    const departureMinutes = (5*60 + Math.floor(rand()*17*60))
+    const durationMinutes = Math.round((domestic ? 65+rand()*160 : 250+rand()*650 + stopsCount*115)/5)*5
+    const cabinFactor = cabin==='First'?3.8:cabin==='Business'?2.25:1
+    const price = Math.max(35,Math.round((domestic?55+rand()*115:240+rand()*650)*routeFactor*cabinFactor*(1+variant*.045)/5)*5)
+    const title = `${carrier.name} | ${carrier.code} | ${cabin}`
+    const flightNo = `${carrier.code}${100+Math.floor(rand()*890)}`
+    const stopLabel = stopsCount===0?'Non-stop':stopsCount===1?'1 stop':'2 stops'
+    const timeLabel = `${String(Math.floor(departureMinutes/60)).padStart(2,'0')}:${String(departureMinutes%60).padStart(2,'0')}`
+    options.push({id:`flight-${carrier.code}-${i}`,providerId:'aviasales',price,wasPrice:Math.round(price*1.16),priceUnit:'per traveller',stars:0,score:Math.round((7.2+rand()*2.5)*10)/10,reviews:0,freeCancellation:false,direct:stopsCount===0,durationMinutes,title,subtitle:`${flightNo} · ${stopLabel} · ${durationLabel(durationMinutes)} · Departs ${timeLabel}`,perks:[cabin==='Economy'?'Cabin baggage subject to fare':'Premium cabin · subject to availability',domestic?'Pakistan domestic route':'Illustrative international route'],badges:[],affiliateUrl:buildAffiliateUrl('flights',0),airline:carrier.name,airlineCode:carrier.code,stopsCount,cabinClass:cabin,departureMinutes})
+  }
+  // Add limited alternate-cabin examples so every cabin filter is usable.
+  for(const cabinOption of [{name:'Business',factor:2.15},{name:'First',factor:3.8}]) for(let i=0;i<3;i++){const base=options[i];options.push({...base,id:`${base.id}-${cabinOption.name.toLowerCase()}`,title:`${base.airline} | ${base.airlineCode} | ${cabinOption.name}`,cabinClass:cabinOption.name,price:Math.round(base.price*cabinOption.factor),wasPrice:Math.round(base.price*cabinOption.factor*1.15),subtitle:`${cabinOption.name} · ${base.subtitle}`})}
+  const cheapest=options.reduce((a,b)=>b.price<a.price?b:a);cheapest.badges.push('Cheapest')
+  return options
+}
+
 export function dealsFor(query: SearchQuery): Deal[] {
+  if (query.type === 'flights') return generateFlightOptions(query)
   const seed = hash(
     [query.type, query.from, query.to, query.out, query.back, query.pax, query.vehicle, query.duration, query.pkg].join('|'),
   )
@@ -360,11 +457,6 @@ export function dealsFor(query: SearchQuery): Deal[] {
   const remaining = deals.filter((deal) => deal.id !== cheapest.id)
   const bestValue = remaining.reduce((a, b) => (b.score / b.price > a.score / a.price ? b : a))
   bestValue.badges.push('Best value')
-
-  if (query.type === 'flights') {
-    const fastest = deals.reduce((a, b) => (b.durationMinutes < a.durationMinutes ? b : a))
-    if (fastest.badges.length === 0) fastest.badges.push('Fastest')
-  }
 
   return deals
 }
