@@ -1,4 +1,4 @@
-﻿import { useMemo, useState, type ReactNode } from 'react'
+﻿import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Icon } from '../components/Icons'
 import { SearchWidget } from '../components/SearchWidget'
@@ -8,14 +8,14 @@ import { usePrefs } from '../lib/prefs'
 import { imgFallback } from '../lib/imageFallback'
 
 const HOTEL_PHOTOS = [
-  'photo-1566073771259-6a8506099945',
-  'photo-1582719508461-905c673771fd',
-  'photo-1542314831-068cd1dbfeeb',
-  'photo-1520250497591-112f2f40a3f4',
-  'photo-1551882547-ff40c63fe5fa',
-  'photo-1571896349842-33c89424de2d',
-  'photo-1564501049412-61c2a3083791',
-  'photo-1445019980597-93fa8acb246c',
+  'https://unsplash.com',
+  'https://unsplash.com',
+  'https://unsplash.com',
+  'https://unsplash.com',
+  'https://unsplash.com',
+  'https://unsplash.com',
+  'https://unsplash.com',
+  'https://unsplash.com',
 ]
 
 function HotelCard({ deal, index, city }: { deal: Deal; index: number; city: string }) {
@@ -111,8 +111,25 @@ function OfferCard({ deal }: { deal: Deal }) {
   </article>
 }
 export function Results() {
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const query = readQuery(params)
+  useEffect(() => {
+    const onTab = (e: Event) => {
+      const next = (e as CustomEvent<{ tab?: string }>).detail?.tab
+      if (!next) return
+      const nextParams = new URLSearchParams(params)
+      if (next === 'transfers') {
+        nextParams.set('type', 'cars')
+        nextParams.set('service', 'airport-transfer')
+      } else {
+        nextParams.delete('service')
+        nextParams.set('type', next)
+      }
+      setParams(nextParams, { replace: true })
+    }
+    window.addEventListener('trexifly:results-tab', onTab)
+    return () => window.removeEventListener('trexifly:results-tab', onTab)
+  }, [params, setParams])
   const transfer = params.get('service') === 'airport-transfer'
   const deals = transfer ? [] : dealsFor(query)
   const partnerLinks = getAffiliatePartners(transfer ? 'transfers' : query.type)
@@ -164,4 +181,5 @@ export function Results() {
     </div>
   </div>
 }
+
 
