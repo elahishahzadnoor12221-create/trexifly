@@ -3,3 +3,5 @@
 OLLAMA_API_KEY=
 # OpenRouter Free Models Router fallback (openrouter/free).
 OPENROUTER_API_KEY=
+# CarsXE Vehicle Images API (optional until an API key is issued).
+CARSXE_API_KEY=

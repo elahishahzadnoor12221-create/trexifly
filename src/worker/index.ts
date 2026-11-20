@@ -1,16 +1,121 @@
 import { Hono } from 'hono'
+import { CAR_ROWS, TRANSFER_ROWS, HOME_SHOWCASE_CARS } from '../data/vehicleInventory'
 
 type Env = {
   ASSETS: Fetcher
   OLLAMA_API_KEY?: string
   OPENROUTER_API_KEY?: string
+  CARSXE_API_KEY?: string
 }
 
 const app = new Hono<{ Bindings: Env }>()
 
 const SYSTEM_PROMPT = 'You are Trexifly AI, a careful travel-planning assistant. Help travelers compare routes, flights, hotels, car rentals, airport transfers, and trips in Northern Pakistan. Give practical planning guidance, ask for missing details when needed, and never invent live prices, schedules, availability, bookings, or visa guarantees. Tell users to confirm current details with the booking provider.'
 
+const VEHICLE_BRANDS = ['Mercedes-Benz', 'Land Rover', 'Volkswagen', 'Mitsubishi', 'Toyota', 'Honda', 'Hyundai', 'Nissan', 'Suzuki', 'Kia', 'BMW', 'Audi', 'Porsche', 'Lexus', 'Ford', 'MG']
+const VEHICLE_TITLES = [
+  ...CAR_ROWS.map((row) => row[0]),
+  ...TRANSFER_ROWS.map((row) => row[0]),
+  ...HOME_SHOWCASE_CARS.map((row) => row.name),
+]
+function parseVehicleTitle(title: string) {
+  const brand = VEHICLE_BRANDS.find((name) => title.toLowerCase().startsWith(name.toLowerCase()))
+  if (!brand) return null
+  const model = title.slice(brand.length).replace(/^\s+/, '').split(/\s*\/\s*/)[0].trim()
+  return model ? { make: brand.toLowerCase(), model: model.toLowerCase() } : null
+}
+
 app.get('/api/health', (c) => c.json({ ok: true, service: 'trexifly' }))
+
+// Public-domain-only vehicle imagery. CarsXE's license filter narrows candidates;
+// its contextLink still needs to be retained for provenance and manual verification.
+app.get('/api/vehicle-image', async (c) => {
+  const make = (c.req.query('make') ?? '').trim()
+  const model = (c.req.query('model') ?? '').trim()
+  const fallback = (c.req.query('fallback') ?? '').trim()
+  const safeFallback = /^\/vehicles\/[a-z0-9-]+\.jpg$/i.test(fallback)
+    ? fallback
+    : '/vehicles/economy-hatchback.jpg'
+
+  const isInventoryVehicle = VEHICLE_TITLES.some((title) => {
+    const parsed = parseVehicleTitle(title)
+    return parsed?.make === make.toLowerCase() && parsed.model === model.toLowerCase()
+  })
+  if (!isInventoryVehicle || !make || !model || make.length > 48 || model.length > 72 ||
+      !/^[a-z0-9 .&'-]+$/i.test(make) || !/^[a-z0-9 .&'()/-]+$/i.test(model)) {
+    return c.redirect(safeFallback, 302)
+  }
+
+  const cacheKey = new Request(new URL(
+    '/api/vehicle-image?make=' + encodeURIComponent(make.toLowerCase()) +
+    '&model=' + encodeURIComponent(model.toLowerCase()),
+    c.req.url,
+  ).toString(), { method: 'GET' })
+  const cache = (caches as unknown as { default: Cache }).default
+  const cached = await cache.match(cacheKey)
+  if (cached) return cached
+
+  const apiKey = c.env.CARSXE_API_KEY?.trim()
+  if (!apiKey) return c.redirect(safeFallback, 302)
+
+  try {
+    const endpoint = new URL('https://api.carsxe.com/images')
+    endpoint.searchParams.set('key', apiKey)
+    endpoint.searchParams.set('make', make)
+    endpoint.searchParams.set('model', model)
+    endpoint.searchParams.set('license', 'Public')
+    endpoint.searchParams.set('size', 'Large')
+    endpoint.searchParams.set('angle', 'front')
+    endpoint.searchParams.set('transparent', 'true')
+    endpoint.searchParams.set('validate', 'true')
+    const lookup = await fetch(endpoint, { signal: AbortSignal.timeout(12000) })
+    if (!lookup.ok) return c.redirect(safeFallback, 302)
+
+    const payload = await lookup.json() as {
+      success?: boolean
+      images?: Array<{
+        link?: string
+        contextLink?: string
+        mime?: string
+        width?: string | number
+        height?: string | number
+      }>
+    }
+    const candidate = payload.images?.find((image) =>
+      typeof image.link === 'string' &&
+      image.link.startsWith('https://') &&
+      typeof image.contextLink === 'string' &&
+      image.contextLink.startsWith('https://') &&
+      (image.mime === 'image/jpeg' || image.mime === 'image/png' || image.mime === 'image/webp') &&
+      Number(image.width) >= 700 &&
+      Number(image.height) >= 350,
+    )
+    if (!payload.success || !candidate?.link) return c.redirect(safeFallback, 302)
+
+    const photo = await fetch(candidate.link, { signal: AbortSignal.timeout(12000) })
+    const contentType = photo.headers.get('content-type')?.split(';')[0].trim().toLowerCase()
+    const length = Number(photo.headers.get('content-length') ?? '0')
+    if (!photo.ok || !contentType?.startsWith('image/') || (length > 0 && length > 8_000_000)) {
+      return c.redirect(safeFallback, 302)
+    }
+
+    const sourceLink = candidate.contextLink ?? candidate.link ?? ""
+    const response = new Response(photo.body, {
+      status: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=86400, s-maxage=604800',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Trexifly-Image-Provider': 'CarsXE',
+        'X-Trexifly-Image-Source': sourceLink,
+      },
+    })
+    await cache.put(cacheKey, response.clone())
+    return response
+  } catch {
+    return c.redirect(safeFallback, 302)
+  }
+})
 
 app.post('/api/ai-chat', async (c) => {
   const body = await c.req.json<{ message?: string }>().catch((): { message?: string } => ({}))
@@ -50,7 +155,6 @@ app.post('/api/ai-chat', async (c) => {
           provider: 'ollama',
         }, 502)
       }
-      // Only an explicit no-balance response triggers the free-provider fallback.
     } catch {
       return c.json({ error: 'Could not connect to Ollama Cloud. Please try again shortly.', provider: 'ollama' }, 502)
     }
@@ -75,7 +179,6 @@ app.post('/api/ai-chat', async (c) => {
         'HTTP-Referer': 'https://trexifly.com',
         'X-Title': 'Trexifly AI Travel Assistant',
       },
-      // openrouter/free only selects free models; no paid fallback is configured.
       body: JSON.stringify({
         model: 'openrouter/free',
         messages,

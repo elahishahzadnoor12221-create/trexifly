@@ -52,3 +52,10 @@ Images are Wikimedia Commons JPEGs. Each source page identifies the author, exac
 - transfer-18.jpg — Volkswagen Caravelle shuttle — [180px-VW_Caravelle_T5_Facelift_Taxi_fl_IAA_2010.JPG](https://commons.wikimedia.org/wiki/File:180px-VW_Caravelle_T5_Facelift_Taxi_fl_IAA_2010.JPG) — 960×720 px
 - transfer-19.jpg — Toyota Crown airport sedan — [240px-Toyota_Crown_Majesta_S150,_Bangladesh._(44166882461).jpg](https://commons.wikimedia.org/wiki/File:240px-Toyota_Crown_Majesta_S150%2C_Bangladesh._(44166882461).jpg) — 960×635 px
 - transfer-20.jpg — Mercedes-Benz Sprinter long wheelbase — [Mercedes-Benz Sprinter Kastenwagen 313 CDI (W 906, Facelift ...](https://commons.wikimedia.org/wiki/File:Mercedes-Benz_Sprinter_Kastenwagen_313_CDI_(W_906,_Facelift)_–_Frontansicht,_8._September_2013,_Bösensell.jpg) — 960×577 px
+
+## Corrected exact-model photographs (20 November 2026)
+
+- **car-26.jpg — Hyundai Staria (2024):** Photo by LuvsMG481, [source file](https://commons.wikimedia.org/wiki/File:2024_Hyundai_Staria_Plus_2.2_Turbo_Diesel_front.jpg), licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Used a 1280px Wikimedia thumbnail without cropping.
+- **transfer-15.jpg — Hyundai Staria (2021):** Photo by Benespit, [source file](https://commons.wikimedia.org/wiki/File:00_Hyundai_Staria_1.jpg), licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Used a 1280px Wikimedia thumbnail without cropping.
+
+Both files replace model-mismatched images; filenames and all 50 inventory slots remain unchanged.

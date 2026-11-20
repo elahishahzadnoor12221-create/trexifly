@@ -17,4 +17,28 @@ export const HOME_SHOWCASE_CARS = [
 {name:'Toyota Prado',category:'Full-Size SUV',price:72,supplier:'Sixt',rating:'8.7'}
 ] as const
 
-export function getInventoryVehicleVisual(title:string,category:string){return getVehicleVisual(title,category)}
+// Exact local assets for the existing inventory; new rows use a class fallback.
+export function getInventoryVehicleVisual(title:string,category:string){
+  const carIndex = CAR_ROWS.findIndex(row => row[0] === title);
+  if (carIndex >= 0) {
+    const visual = getVehicleVisual(title, category);
+    return { ...visual, src: `/vehicles/car-${String(carIndex + 1).padStart(2, '0')}.jpg` };
+  }
+  const transferIndex = TRANSFER_ROWS.findIndex(row => row[0] === title);
+  if (transferIndex >= 0) {
+    const visual = getVehicleVisual(title, category);
+    return { ...visual, src: `/vehicles/transfer-${String(transferIndex + 1).padStart(2, '0')}.jpg` };
+  }
+  const fallback = getVehicleVisual(title, category);
+  // The combined home-showcase label uses the exact Hyundai Tucson inventory photo.
+  if (title === 'MG ZS / Hyundai Tucson') {
+    return { ...fallback, src: '/vehicles/car-13.jpg' };
+  }
+  const brands = ['Mercedes-Benz', 'Land Rover', 'Volkswagen', 'Mitsubishi', 'Toyota', 'Honda', 'Hyundai', 'Nissan', 'Suzuki', 'Kia', 'BMW', 'Audi', 'Porsche', 'Lexus', 'Ford', 'MG'];
+  const brand = brands.find((name) => title.toLowerCase().startsWith(name.toLowerCase()));
+  if (!brand) return fallback;
+  const model = title.slice(brand.length).replace(/^\s+/, '').split(/\s*\/\s*/)[0].trim();
+  if (!model) return fallback;
+  const providerSrc = `/api/vehicle-image?make=${encodeURIComponent(brand)}&model=${encodeURIComponent(model)}&fallback=${encodeURIComponent(fallback.src)}`;
+  return { ...fallback, src: providerSrc };
+}
