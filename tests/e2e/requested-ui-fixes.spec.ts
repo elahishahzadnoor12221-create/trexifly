@@ -41,7 +41,7 @@ for (const dark of [false, true]) {
     })
     expect(hitTest, 'Done button must not be covered by the section below').toBe(true)
     const summary = await guestToggle.innerText()
-    expect(summary).toContain('2 Adults | 0 Children | 1 Room')
+    expect(summary).toContain('2 Adults, 0 Children \u2022 1 Room')
     await done.click()
 
     const wa = page.getByRole('link', { name: 'Chat with Trexifly on WhatsApp' }).last().last()

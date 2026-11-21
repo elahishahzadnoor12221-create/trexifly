@@ -1,0 +1,55 @@
+import { expect, test } from '@playwright/test'
+
+async function openFlightsGuests(page: import('@playwright/test').Page) {
+  await page.route('https://photon.komoot.io/**', route => route.abort())
+  await page.route('https://nominatim.openstreetmap.org/**', route => route.abort())
+  await page.goto('/results?type=flights', { waitUntil: 'domcontentloaded' })
+  await page.locator('.trexifly-guest-toggle').waitFor({ state: 'visible' })
+  await page.getByRole('button', { name: /Choose passengers/ }).click()
+  await expect(page.locator('.trexifly-guest-menu')).toBeVisible()
+}
+
+test('traveller steppers and cabin select have readable light and dark mode colors', async ({ page }) => {
+  await openFlightsGuests(page)
+  const removeAdult = page.getByRole('button', { name: 'Remove adult' })
+  const cabin = page.getByLabel('Cabin class', { exact: true })
+  const light = await removeAdult.evaluate(el => ({ color: getComputedStyle(el).color, background: getComputedStyle(el).backgroundColor }))
+  const lightCabin = await cabin.evaluate(el => ({ color: getComputedStyle(el).color, background: getComputedStyle(el).backgroundColor }))
+  expect(light.color).not.toBe(light.background)
+  expect(light.background).not.toBe(light.color)
+  expect(lightCabin.color).not.toBe(lightCabin.background)
+  expect(lightCabin.background).not.toBe(lightCabin.color)
+  await expect(removeAdult).toHaveClass(/text-gray-900/)
+  await expect(cabin).toHaveClass(/text-gray-900/)
+  await page.getByRole('button', { name: 'Done' }).click()
+  await page.getByRole('button', { name: 'Switch to dark mode' }).click()
+  await openFlightsGuests(page)
+  const dark = await removeAdult.evaluate(el => ({ color: getComputedStyle(el).color, background: getComputedStyle(el).backgroundColor }))
+  const darkCabin = await cabin.evaluate(el => ({ color: getComputedStyle(el).color, background: getComputedStyle(el).backgroundColor }))
+  expect(dark.color).not.toBe(dark.background)
+  expect(dark.color).not.toBe(light.color)
+  expect(dark.background).not.toBe(light.background)
+  expect(darkCabin.color).not.toBe(darkCabin.background)
+  expect(darkCabin.color).not.toBe(lightCabin.color)
+  expect(darkCabin.background).not.toBe(lightCabin.background)
+  await expect(removeAdult).toHaveClass(/dark:text-white/)
+  await expect(cabin).toHaveClass(/dark:text-white/)
+})
+
+test('traveller dropdown closes on Escape and outside pointer click', async ({ page }) => {
+  await openFlightsGuests(page)
+  await page.keyboard.press('Escape')
+  await expect(page.locator('.trexifly-guest-menu')).toBeHidden()
+  await page.getByRole('button', { name: /Choose passengers/ }).click()
+  await expect(page.locator('.trexifly-guest-menu')).toBeVisible()
+  await page.getByRole('heading').first().click()
+  await expect(page.locator('.trexifly-guest-menu')).toBeHidden()
+})
+
+test('traveller dropdown closes when switching search tabs', async ({ page }) => {
+  await page.goto('/results?type=flights', { waitUntil: 'domcontentloaded' })
+  await page.getByRole('button', { name: /Choose passengers/ }).click()
+  await expect(page.locator('.trexifly-guest-menu')).toBeVisible()
+  await page.getByRole('tab', { name: 'Stays' }).click()
+  await expect(page.locator('.trexifly-guest-menu')).toBeHidden()
+})

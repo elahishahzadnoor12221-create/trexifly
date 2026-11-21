@@ -739,3 +739,32 @@ html[data-theme="dark"] .trexifly-guest-menu select {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+/* Trexifly traveller dropdown contrast: the theme switch uses data-theme, not a .dark root class. */
+html[data-theme="dark"] .trexifly-guest-toggle {
+  background-color: #151e2d !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+html[data-theme="dark"] .trexifly-guest-toggle > span {
+  color: #f8fafc !important;
+}
+html[data-theme="dark"] .trexifly-guest-menu button[aria-label^="Remove "],
+html[data-theme="dark"] .trexifly-guest-menu button[aria-label^="Add "] {
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+html[data-theme="dark"] .trexifly-guest-menu span[class~="text-gray-900"] {
+  color: #ffffff !important;
+}
+html[data-theme="dark"] .trexifly-guest-menu select,
+html[data-theme="dark"] .trexifly-guest-menu select option {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  border-color: #4b5563 !important;
+}
+html[data-theme="dark"] .trexifly-guest-menu .text-slate-800,
+html[data-theme="dark"] .trexifly-guest-menu .text-slate-700 {
+  color: #f1f5f9 !important;
+}
