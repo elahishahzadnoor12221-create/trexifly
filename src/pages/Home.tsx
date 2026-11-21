@@ -17,7 +17,7 @@ export function Home() {
   const [carDestination,setCarDestination]=useState('Dubai')
   const openWorldwide=()=>{window.dispatchEvent(new CustomEvent('trexifly:open-worldwide'));document.getElementById('destinations')?.scrollIntoView({behavior:'smooth',block:'start'})}
   return <div className="home-page">
-    <section className="trexifly-home-hero relative isolate overflow-hidden pb-9 pt-7 sm:pb-12 sm:pt-10">
+    <section className="trexifly-home-hero relative isolate overflow-visible pb-6 pt-5 sm:pb-6 sm:pt-7">
       <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[32%] overflow-hidden bg-[#FF5500] lg:block">
         <div className="absolute -left-24 top-0 h-full w-48 rounded-full bg-white/90 blur-3xl" />
       </div>

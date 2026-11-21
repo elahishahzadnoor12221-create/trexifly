@@ -703,3 +703,39 @@ html[data-theme="dark"] .site-header button[aria-label^="Switch to"] {
   color: #f8fafc !important;
   border-color: #3b4a60 !important;
 }
+
+
+.trexifly-logo-dark { display: none; }
+html[data-theme="dark"] .trexifly-logo-light { display: none; }
+html[data-theme="dark"] .trexifly-logo-dark { display: block; }
+html[data-theme="dark"] .trexifly-guest-toggle,
+html[data-theme="dark"] .trexifly-guest-menu {
+  background-color: #151e2d !important;
+  border-color: #3b4a60 !important;
+  color: #f8fafc !important;
+}
+html[data-theme="dark"] .trexifly-guest-menu [class*="text-slate-"] {
+  color: #e5e7eb !important;
+}
+html[data-theme="dark"] .trexifly-guest-menu select {
+  background-color: #101827 !important;
+  border-color: #3b4a60 !important;
+  color: #f8fafc !important;
+}
+
+/* Requested dropdown layering, compact hero and floating support controls */
+.trexifly-home-hero { z-index: 20; overflow: visible !important; }
+.trexifly-home-hero #search-widget,
+.trexifly-home-hero #search-widget form,
+.trexifly-home-hero #search-widget form > div { overflow: visible; }
+.trexifly-guest-selector { position: relative; z-index: 60; }
+.trexifly-guest-menu { z-index: 100; }
+@media (max-width: 639px) {
+  .trexifly-home-hero { padding-top: 1.25rem; padding-bottom: 1.5rem; }
+}
+
+.trexifly-guest-menu {
+  max-height: min(72vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}

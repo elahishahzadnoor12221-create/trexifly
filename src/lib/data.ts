@@ -18,6 +18,10 @@ export type SearchQuery = {
   out: string
   back: string
   pax: string
+  adults?: number
+  children?: number
+  rooms?: number
+  childAges?: number[]
   vehicle: string
   duration: string
   pkg: string
@@ -315,8 +319,7 @@ function durationLabel(minutes: number): string {
 }
 
 function cabinFrom(pax: string): string {
-  const parts = pax.split('·')
-  return parts.length > 1 ? parts[1].trim() : 'Economy'
+  return pax.match(/(Premium Economy|Economy|Business|First)/i)?.[1] ?? 'Economy'
 }
 
 function pick<T>(list: T[], rand: () => number): T {
@@ -570,7 +573,11 @@ export function readQuery(params: URLSearchParams): SearchQuery {
     to: params.get('to') ?? fallbackCity,
     out: params.get('out') ?? isoIn(21),
     back: params.get('back') ?? isoIn(28),
-    pax: params.get('pax') ?? '2 adults · Economy',
+    pax: params.get('pax') ?? '2 adults Economy',
+    adults: Math.min(5, Math.max(1, Number(params.get('adults') ?? 2))),
+    children: Math.min(5, Math.max(0, Number(params.get('children') ?? 0))),
+    rooms: Math.min(6, Math.max(1, Number(params.get('rooms') ?? 1))),
+    childAges: (params.get('childAges') ?? '').split(',').filter(Boolean).map(age => Math.min(17, Math.max(0, Number(age)))).slice(0, 5),
     vehicle: params.get('vehicle') ?? VEHICLES[1],
     duration: params.get('duration') ?? DURATIONS[1],
     pkg: params.get('pkg') ?? PACKAGES[1],
@@ -591,8 +598,15 @@ export function queryTitle(query: SearchQuery): string {
 }
 
 export function querySubtitle(query: SearchQuery): string {
-  if (query.type === 'flights') return `${formatDate(query.out)} — ${formatDate(query.back)} · ${query.pax}`
-  if (query.type === 'tours') return `${query.duration} · ${query.pkg} package · ${query.pax}`
-  return `${formatDate(query.out)} — ${formatDate(query.back)} · ${query.pax}`
+  if (query.type === 'flights') return `${formatDate(query.out)} | ${formatDate(query.back)} | ${query.pax}`
+  if (query.type === 'tours') return `${query.duration} | ${query.pkg} package | ${query.pax}`
+  if (query.type === 'hotels' && query.adults !== undefined) {
+    const adults = `${query.adults} ${query.adults === 1 ? 'adult' : 'adults'}`
+    const children = `${query.children ?? 0} ${(query.children ?? 0) === 1 ? 'child' : 'children'}`
+    const rooms = `${query.rooms ?? 1} ${(query.rooms ?? 1) === 1 ? 'room' : 'rooms'}`
+    const ages = query.childAges?.length ? ` | Child ages: ${query.childAges.join(', ')}` : ''
+    return `${formatDate(query.out)} | ${formatDate(query.back)} | ${adults} / ${children} / ${rooms}${ages}`
+  }
+  return `${formatDate(query.out)} | ${formatDate(query.back)} | ${query.pax}`
 }
 

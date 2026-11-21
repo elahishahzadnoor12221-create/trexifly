@@ -29,7 +29,7 @@ function HotelCard({ hotel, city }: { hotel: HotelListing; city: string }) {
               <span className="text-xs font-bold text-amber-500">{hotel.stars}★</span>
               <span className="rounded bg-orange-50 px-2 py-0.5 text-[10px] font-bold uppercase text-[#C93400] dark:bg-orange-950/40 dark:text-orange-300">Sample listing</span>
             </div>
-            <p className="mt-1 text-xs font-semibold text-[#FF5500]">{city} · <span className="font-normal text-slate-500">{hotel.neighborhood}</span></p>
+            <p className="mt-1 text-xs font-semibold text-[#FF5500]">{city} � <span className="font-normal text-slate-500">{hotel.neighborhood}</span></p>
             <p className="mt-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">{hotel.address}</p>
             <div className="mt-2 space-y-1 text-xs">
               <p className="font-semibold text-slate-600 dark:text-slate-300">{hotel.subtitle}</p>
@@ -87,7 +87,7 @@ function OfferCard({ deal }: { deal: Deal }) {
         <div className="min-w-0"><p className="font-bold text-slate-900">{airlineName(deal)}</p><p className="mt-1 text-xs text-slate-600">{deal.subtitle}</p><div className="mt-2 flex flex-wrap gap-2">{deal.perks.map(perk=><span key={perk} className="rounded-full bg-[#FFF7F2] px-2.5 py-1 text-[10px] font-medium text-slate-600">{perk}</span>)}</div></div>
       </div>
       <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:min-w-[190px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-        <div className="sm:text-right"><p className="text-[11px] text-slate-500">{deal.priceUnit}</p><p className="text-2xl font-bold tracking-tight text-slate-900">{money(deal.price)}</p><p className="text-[10px] text-slate-500">Indicative estimate</p>{deal.title.includes(" � ") && <p className="mt-1 text-[10px] text-slate-500">Flight number shown on partner site</p>}</div>
+        <div className="sm:text-right"><p className="text-[11px] text-slate-500">{deal.priceUnit}</p><p className="text-2xl font-bold tracking-tight text-slate-900">{money(deal.price)}</p><p className="text-[10px] text-slate-500">Indicative estimate</p>{deal.title.includes(" · ") && <p className="mt-1 text-[10px] text-slate-500">Flight number shown on partner site</p>}</div>
         <a href={deal.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#E64A00]">View Deal <Icon name="arrowUpRight" className="size-4"/></a>
       </div>
     </div>
@@ -177,11 +177,11 @@ export function Results() {
   const filteredSamples=useMemo(()=>[...sampleRows].filter(v=>!sampleCategory.length||sampleCategory.includes(v.category)).filter(v=>!sampleTransmission.length||sampleTransmission.includes(v.transmission??'')).filter(v=>!sampleDuration.length||sampleDuration.includes(v.duration)).sort((a,b)=>sampleSort==='Price'?a.price-b.price:b.score-a.score),[sampleRows,sampleCategory,sampleTransmission,sampleDuration,sampleSort])
   const filteredHotels=useMemo(()=>{const rows=hotelInventory.filter(h=>!hotelStars.length||hotelStars.includes(h.stars));return [...rows].sort((a,b)=>hotelSort==='Lowest Price'?a.price-b.price:hotelSort==='Highest Price'?b.price-a.price:hotelSort==='Top Rated'?b.score-a.score:b.stars-a.stars)},[hotelInventory,hotelStars,hotelSort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
-  const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' ? '+query.to
+  const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' to '+query.to
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
     <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
-      <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">? Back to search</Link>
-      <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only � Final prices and availability must be confirmed with the booking provider.</p></div>
+      <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
+      <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only. Final prices and availability must be confirmed with the booking provider.</p></div>
       <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
       <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Continue to a Travelpayouts-tracked partner site. Search details may need to be entered again on the partner website.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>
       <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">

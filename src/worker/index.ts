@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { CAR_ROWS, TRANSFER_ROWS, HOME_SHOWCASE_CARS } from '../data/vehicleInventory'
 
 type Env = {
@@ -10,6 +10,17 @@ type Env = {
 
 const app = new Hono<{ Bindings: Env }>()
 
+const AI_CONNECTION_FALLBACK = "Sorry, I'm having trouble connecting right now. Please try again or click WhatsApp for instant booking help."
+
+async function readJsonResponse<T>(response: Response): Promise<T | null> {
+  const text = await response.text()
+  if (!text.trim()) return null
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    return null
+  }
+}
 const SYSTEM_PROMPT = 'You are Trexifly AI, a careful travel-planning assistant. Help travelers compare routes, flights, hotels, car rentals, airport transfers, and trips in Northern Pakistan. Give practical planning guidance, ask for missing details when needed, and never invent live prices, schedules, availability, bookings, or visa guarantees. Tell users to confirm current details with the booking provider.'
 
 const VEHICLE_BRANDS = ['Mercedes-Benz', 'Land Rover', 'Volkswagen', 'Mitsubishi', 'Toyota', 'Honda', 'Hyundai', 'Nissan', 'Suzuki', 'Kia', 'BMW', 'Audi', 'Porsche', 'Lexus', 'Ford', 'MG']
@@ -142,10 +153,10 @@ app.post('/api/ai-chat', async (c) => {
       })
 
       if (ollamaResponse.ok) {
-        const data = await ollamaResponse.json() as { message?: { content?: string } }
-        const reply = data.message?.content?.trim()
+        const data = await readJsonResponse<{ message?: { content?: string } }>(ollamaResponse)
+        const reply = data?.message?.content?.trim()
         if (reply) return c.json({ reply, provider: 'ollama', model: 'glm-5.3-flash' })
-        return c.json({ error: 'Ollama Cloud returned an empty response. Please try again.' }, 502)
+        return c.json({ reply: AI_CONNECTION_FALLBACK, provider: 'ollama' })
       }
 
       if (ollamaResponse.status !== 402) {
@@ -156,7 +167,7 @@ app.post('/api/ai-chat', async (c) => {
         }, 502)
       }
     } catch {
-      return c.json({ error: 'Could not connect to Ollama Cloud. Please try again shortly.', provider: 'ollama' }, 502)
+      return c.json({ reply: AI_CONNECTION_FALLBACK, provider: 'ollama' })
     }
   }
 
@@ -198,27 +209,21 @@ app.post('/api/ai-chat', async (c) => {
       return c.json({ error: message, upstreamStatus: status, provider: 'openrouter-free' }, status === 429 ? 429 : 502)
     }
 
-    const data = await fallbackResponse.json() as {
+    const data = await readJsonResponse<{
       model?: string
       choices?: Array<{ message?: { content?: string | Array<{ type?: string; text?: string }> } }>
-    }
-    const content = data.choices?.[0]?.message?.content
+    }>(fallbackResponse)
+    const content = data?.choices?.[0]?.message?.content
     const reply = typeof content === 'string'
       ? content.trim()
       : Array.isArray(content)
         ? content.map((part) => part.text ?? '').join('').trim()
         : ''
-    if (!reply) return c.json({ error: 'OpenRouter free model returned an empty response. Please try again.' }, 502)
+    if (!reply) return c.json({ reply: AI_CONNECTION_FALLBACK, provider: 'openrouter-free' })
 
-    return c.json({ reply, provider: 'openrouter-free', model: data.model ?? 'openrouter/free' })
-  } catch (error) {
-    const timedOut = error instanceof Error && error.name === 'TimeoutError'
-    return c.json({
-      error: timedOut
-        ? 'The free AI fallback took too long to respond. Please try again.'
-        : 'Could not connect to the free AI fallback. Please try again shortly.',
-      provider: 'openrouter-free',
-    }, 502)
+    return c.json({ reply, provider: 'openrouter-free', model: data?.model ?? 'openrouter/free' })
+  } catch {
+    return c.json({ reply: AI_CONNECTION_FALLBACK, provider: 'openrouter-free' })
   }
 })
 

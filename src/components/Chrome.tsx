@@ -20,7 +20,15 @@ export function Logo({ className }: { className?: string }) {
     <img
       src="/trexifly-logo.png"
       alt="Trexifly — Worldwide travel discovery"
-      className="h-10 w-auto object-contain sm:h-12 md:h-14"
+      className="trexifly-logo-light h-10 w-auto object-contain sm:h-12 md:h-14"
+      width={500}
+      height={140}
+    />
+    <img
+      src="/trexifly-logo-dark.png"
+      alt=""
+      aria-hidden="true"
+      className="trexifly-logo-dark h-10 w-auto object-contain sm:h-12 md:h-14"
       width={500}
       height={140}
     />
@@ -311,9 +319,9 @@ export function Footer() {
             href="https://wa.me/923244921494?text=Hello%20Trexifly%2C%20I%20would%20like%20travel%20planning%20assistance."
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center rounded-lg bg-[#FF5500] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#D94700] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF5500]"
+            aria-label="Chat with Trexifly on WhatsApp" title="Chat on WhatsApp" className="inline-flex size-11 items-center justify-center rounded-full bg-[#25D366] text-white transition hover:bg-[#1DA851] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
           >
-            WhatsApp: +92 324 4921494
+            <Icon name="whatsapp" className="size-5" />
           </a>
           <p className="mt-3 text-xs leading-relaxed text-gray-500">Message us to discuss custom itinerary assistance, group travel or general enquiries.</p>
         </div>

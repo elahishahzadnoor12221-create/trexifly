@@ -12,12 +12,12 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: 'tours', label: 'Activities', icon: 'compass' },
   { id: 'transfers', label: 'Airport Transfers', icon: 'car' },
 ]
-const AIRPORTS = PLACES.filter((p) => p.code).map((p) => `${p.city} (${p.code}) � ${p.airport ? p.airport + ', ' : ''}${p.country}`)
+const AIRPORTS = PLACES.filter((p) => p.code).map((p) => `${p.city} (${p.code}) - ${p.airport ? p.airport + ', ' : ''}${p.country}`)
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
-const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, T�rkiye","Antalya, T�rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","S�o Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
+const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, T�rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const WORLD_LANDMARKS = [
   'Burj Khalifa, Downtown Dubai, United Arab Emirates','Atlantis The Palm, Palm Jumeirah, Dubai, United Arab Emirates','Burj Al Arab, Jumeirah, Dubai, United Arab Emirates','Dubai Mall, Downtown Dubai, United Arab Emirates','Downtown Dubai, United Arab Emirates','Dubai Marina, United Arab Emirates','Palm Jumeirah, Dubai, United Arab Emirates','Deira, Dubai, United Arab Emirates',
-  'Makkah Clock Royal Tower, Makkah, Saudi Arabia','Makkah Clock Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Haram Hotels, Makkah, Saudi Arabia','Anwar Al Madinah M?venpick, Madinah, Saudi Arabia','Madinah Haram Area, Madinah, Saudi Arabia','Jeddah Corniche, Jeddah, Saudi Arabia','King Abdulaziz International Airport, Jeddah, Saudi Arabia','Riyadh, Saudi Arabia',
+  'Makkah Clock Royal Tower, Makkah, Saudi Arabia','Makkah Clock Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Haram Hotels, Makkah, Saudi Arabia','Anwar Al Madinah Movenpick, Madinah, Saudi Arabia','Madinah Haram Area, Madinah, Saudi Arabia','Jeddah Corniche, Jeddah, Saudi Arabia','King Abdulaziz International Airport, Jeddah, Saudi Arabia','Riyadh, Saudi Arabia',
   'Pearl Continental Lahore, Lahore, Pakistan','Serena Hotel Islamabad, Islamabad, Pakistan','Marriott Karachi, Karachi, Pakistan','Gulberg, Lahore, Pakistan','F-7, Islamabad, Pakistan','Clifton, Karachi, Pakistan',
   'Taksim Square, Istanbul, Turkey','Central London, United Kingdom','Heathrow Airport, London, United Kingdom','Hunza Valley, Pakistan','Skardu, Pakistan','Swat Valley, Pakistan','Kalam, Swat, Pakistan','Cappadocia, Turkey'
 ]
@@ -43,11 +43,11 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
     const curated:Record<string,string[]> = {
       ae:['Dubai, United Arab Emirates','Abu Dhabi, United Arab Emirates','Sharjah, United Arab Emirates','Dubai Mall, Downtown Dubai, United Arab Emirates','Burj Khalifa, Downtown Dubai, United Arab Emirates','Atlantis The Palm, Palm Jumeirah, Dubai, United Arab Emirates'],
       pk:['Lahore, Pakistan','Islamabad, Pakistan','Karachi, Pakistan','Peshawar, Pakistan','Quetta, Pakistan','Multan, Pakistan','Skardu, Pakistan','Pearl Continental Lahore, Lahore, Pakistan','Serena Hotel Islamabad, Islamabad, Pakistan','Marriott Karachi, Karachi, Pakistan'],
-      sa:['Jeddah, Saudi Arabia','Madinah, Saudi Arabia','Makkah, Saudi Arabia','Riyadh, Saudi Arabia','Makkah Clock Royal Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Anwar Al Madinah M?venpick, Madinah, Saudi Arabia'],
+      sa:['Jeddah, Saudi Arabia','Madinah, Saudi Arabia','Makkah, Saudi Arabia','Riyadh, Saudi Arabia','Makkah Clock Royal Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Anwar Al Madinah Mövenpick, Madinah, Saudi Arabia'],
       gb:['London, United Kingdom','Manchester, United Kingdom','Heathrow Airport, London, United Kingdom','Central London, United Kingdom'],
-      tr:['Istanbul, T?rkiye','Antalya, T?rkiye','Ankara, T?rkiye','Sabiha G?k?en Airport, Istanbul, T?rkiye','Taksim Square, Istanbul, T?rkiye']
+      tr:['Istanbul, Türkiye','Antalya, T?rkiye','Ankara, T?rkiye','Sabiha Gökçen Airport, Istanbul, T?rkiye','Taksim Square, Istanbul, T?rkiye']
     }
-    const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/T?rkiye|Turkey/i}
+    const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/Türkiye|Turkey/i}
     const source=countryCode?[...options.filter(item=>countryNames[countryCode]?.test(item)),...(curated[countryCode]??[])]:options
     return [...new Set(source)].filter(item=>item.toLowerCase().includes(value.trim().toLowerCase())).slice(0,18)
   }, [options, value, countryCode])
@@ -90,9 +90,9 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
   return <div ref={rootRef} className={cell + ' relative min-w-0'}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></div></label>
     {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
       {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}
-      {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide locations?</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No geocoding match yet. You can still use the entered location.</p>}
+      {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide locations…</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No geocoding match yet. You can still use the entered location.</p>}
     </div>}
-    <p className="mt-1 text-[9px] text-slate-500">Worldwide address suggestions ? OpenStreetMap contributors ? <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer" className="underline">Usage policy</a></p>
+    <p className="mt-1 text-[9px] text-slate-500">Worldwide address suggestions · OpenStreetMap contributors · <a href="https://operations.osmfoundation.org/policies/nominatim/" target="_blank" rel="noreferrer" className="underline">Usage policy</a></p>
   </div>
 }
 function Check({ children }: { children: ReactNode }) { return <label className="inline-flex items-center gap-2 text-xs text-slate-700">{children}</label> }
@@ -103,7 +103,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [searching, setSearching] = useState(false)
   const fromUrl = params.get('tab')
   const validTab = TABS.some(t => t.id === fromUrl) ? fromUrl as Tab : undefined
-  const [tab, setTab] = useState<Tab>(params.get('type') === 'transfers' || params.get('service') === 'airport-transfer' ? 'transfers' : initial?.type === 'hotels' ? 'hotels' : initial?.type === 'cars' ? 'cars' : initial?.type === 'tours' ? 'tours' : validTab ?? 'hotels')
+  const [tab, setTab] = useState<Tab>(params.get('type') === 'transfers' || params.get('service') === 'airport-transfer' ? 'transfers' : initial?.type === 'hotels' ? 'hotels' : initial?.type === 'flights' ? 'flights' : initial?.type === 'cars' ? 'cars' : initial?.type === 'tours' ? 'tours' : validTab ?? 'hotels')
   useEffect(() => { if (validTab) setTab(validTab) }, [validTab])
   const [destination, setDestination] = useState(initial?.to ?? 'Dubai')
   const [from, setFrom] = useState(initial?.from ?? 'Lahore (LHE)')
@@ -134,8 +134,12 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [depart, setDepart] = useState(initial?.out ?? isoIn(21))
   const [back, setBack] = useState(initial?.back ?? isoIn(28))
   const [trip, setTrip] = useState('Round-trip')
-  const [pax, setPax] = useState(initial?.pax ?? '1 adult, Economy')
-  const [rooms, setRooms] = useState('2 adults � 0 children � 1 room')
+  const [adults, setAdults] = useState(initial?.adults ?? 2)
+  const [children, setChildren] = useState(initial?.children ?? 0)
+  const [roomCount, setRoomCount] = useState(initial?.rooms ?? 1)
+  const [childAges, setChildAges] = useState<number[]>(() => Array.from({ length: initial?.children ?? 0 }, (_, index) => Math.min(12, Math.max(2, initial?.childAges?.[index] ?? 2))))
+  const [guestOpen, setGuestOpen] = useState(false)
+  const [cabinClass, setCabinClass] = useState(initial?.pax?.match(/(Economy|Business|First Class)/i)?.[1] ?? 'Economy')
   const [pickup, setPickup] = useState('Dubai International Airport')
   const [dropoff, setDropoff] = useState('Dubai International Airport')
   const [pickupTime, setPickupTime] = useState('10:00')
@@ -156,6 +160,30 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
     transfers: ['Book your airport transfer', 'Easy transportation between the airport and your accommodations'],
   } as Record<Tab, string[]>)[tab], [tab])
 
+  const guestSelector = (showRooms: boolean, showCabin: boolean) => (
+    <div className={cell + ' trexifly-guest-selector relative z-[60] min-w-0'}>
+      <span className={label}>Travellers{showRooms ? ' & rooms' : ''}</span>
+      <button type="button" aria-expanded={guestOpen} aria-label="Choose passengers, child ages, rooms and cabin class" onClick={() => setGuestOpen(open => !open)} className="trexifly-guest-toggle w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-left text-sm font-semibold text-slate-800 hover:border-[#FF5500]">
+        {adults} {adults === 1 ? 'Adult' : 'Adults'} | {children} {children === 1 ? 'Child' : 'Children'}{showRooms ? ' | ' + roomCount + (roomCount === 1 ? ' Room' : ' Rooms') : ''}{showCabin ? ' | ' + cabinClass : ''}
+        <Icon name="chevronDown" className="float-right mt-0.5 size-4 text-slate-500" />
+      </button>
+      {guestOpen && <div className="trexifly-guest-menu absolute left-0 top-full z-[100] mt-2 w-[min(90vw,360px)] rounded-2xl border border-orange-100 bg-white p-4 shadow-[0_18px_45px_rgba(15,23,42,.2)]">
+        <div className="flex items-center justify-between border-b border-slate-100 py-3">
+          <div><p className="text-sm font-bold text-slate-800">Adults</p><p className="text-xs text-slate-500">Ages 18 or above</p></div>
+          <div className="flex items-center gap-3"><button type="button" aria-label="Remove adult" disabled={adults <= 1} onClick={() => setAdults(value => Math.max(1, value - 1))} className="grid size-8 place-items-center rounded-full border disabled:opacity-40"><Icon name="minus" className="size-4" /></button><span className="w-4 text-center text-sm font-semibold">{adults}</span><button type="button" aria-label="Add adult" disabled={adults >= 5} onClick={() => setAdults(value => Math.min(5, value + 1))} className="grid size-8 place-items-center rounded-full border disabled:opacity-40">+</button></div>
+        </div>
+        <div className="flex items-center justify-between border-b border-slate-100 py-3">
+          <div><p className="text-sm font-bold text-slate-800">Children</p><p className="text-xs text-slate-500">Ages 2 to 12</p></div>
+          <div className="flex items-center gap-3"><button type="button" aria-label="Remove child" disabled={children <= 0} onClick={() => { const count=Math.max(0,children-1); setChildren(count); setChildAges(ages=>ages.slice(0,count)) }} className="grid size-8 place-items-center rounded-full border disabled:opacity-40"><Icon name="minus" className="size-4" /></button><span className="w-4 text-center text-sm font-semibold">{children}</span><button type="button" aria-label="Add child" disabled={children >= 5} onClick={() => { setChildren(count=>Math.min(5,count+1)); setChildAges(ages=>ages.length<5?[...ages,2]:ages) }} className="grid size-8 place-items-center rounded-full border disabled:opacity-40">+</button></div>
+        </div>
+        {children > 0 && <div className="space-y-2 border-b border-slate-100 py-3">{Array.from({length:children},(_,index)=><label key={index} className="flex items-center justify-between gap-3 text-sm"><span className="font-medium text-slate-700">Child {index+1} age</span><select aria-label={'Child '+(index+1)+' age'} value={String(childAges[index]??2)} onChange={event=>setChildAges(ages=>Array.from({length:children},(_,i)=>i===index?Number(event.target.value):(ages[i]??2)))} className="rounded-lg border border-slate-200 bg-white px-3 py-2">{Array.from({length:11},(_,i)=>i+2).map(age=><option key={age} value={age}>{age} years</option>)}</select></label>)}</div>}
+        {showRooms && <div className="flex items-center justify-between border-b border-slate-100 py-3"><p className="text-sm font-bold text-slate-800">Rooms</p><div className="flex items-center gap-3"><button type="button" aria-label="Remove room" disabled={roomCount<=1} onClick={()=>setRoomCount(value=>Math.max(1,value-1))} className="grid size-8 place-items-center rounded-full border disabled:opacity-40"><Icon name="minus" className="size-4" /></button><span className="w-4 text-center text-sm font-semibold">{roomCount}</span><button type="button" aria-label="Add room" disabled={roomCount>=6} onClick={()=>setRoomCount(value=>Math.min(6,value+1))} className="grid size-8 place-items-center rounded-full border disabled:opacity-40">+</button></div></div>}
+        {showCabin && <label className="block py-3"><span className="mb-1 block text-sm font-bold text-slate-800">Cabin class</span><select aria-label="Cabin class" value={cabinClass} onChange={event=>setCabinClass(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"><option>Economy</option><option>Business</option><option>First Class</option></select></label>}
+        <button type="button" onClick={()=>setGuestOpen(false)} className="mt-2 w-full rounded-lg bg-[#FF5500] px-4 py-2.5 text-sm font-bold text-white">Done</button>
+      </div>}
+    </div>
+  )
+
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSearching(true)
@@ -163,9 +191,9 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
       const type = tab === 'hotels' ? 'hotels' : tab === 'flights' ? 'flights' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
       const query = new URLSearchParams({ type })
       if (tab === 'flights') {
-        query.set('from', from); query.set('to', to); query.set('out', depart); query.set('back', trip === 'One-way' ? depart : back); query.set('pax', pax)
+        query.set('from', from); query.set('to', to); query.set('out', depart); query.set('back', trip === 'One-way' ? depart : back); query.set('adults', String(adults)); query.set('children', String(children)); query.set('childAges', childAges.slice(0, children).join(',')); query.set('pax', adults + (adults === 1 ? ' adult' : ' adults') + ' / ' + children + (children === 1 ? ' child' : ' children') + ' / ' + cabinClass); query.set('cabin', cabinClass)
       } else if (tab === 'hotels') {
-        query.set('to', destination); query.set('out', depart); query.set('back', back); query.set('pax', rooms)
+        query.set('to', destination); query.set('out', depart); query.set('back', back); query.set('adults', String(adults)); query.set('children', String(children)); query.set('rooms', String(roomCount)); query.set('childAges', childAges.slice(0, children).join(',')); query.set('pax', adults + (adults === 1 ? ' adult' : ' adults') + ' / ' + children + (children === 1 ? ' child' : ' children') + ' / ' + roomCount + (roomCount === 1 ? ' room' : ' rooms'))
       } else if (tab === 'cars') {
         query.set('from', pickup); query.set('to', carDifferent ? dropoff : pickup); query.set('out', depart); query.set('back', back); query.set('vehicle', 'Standard')
       } else if (tab === 'tours') {
@@ -197,7 +225,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={LOCATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
         <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" />
-        <SelectField wide title="Guests and rooms" value={rooms} onChange={setRooms} options={["2 adults � 0 children � 1 room","1 adult � 0 children � 1 room","2 adults � 1 child � 1 room","2 adults � 0 children � 2 rooms"]} />
+        {guestSelector(true, false)}
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'hotels' && <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><Check><input type="checkbox" checked={entireHome} onChange={e => setEntireHome(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm looking for an entire home or apartment</Check><Check><input type="checkbox" checked={workTrip} onChange={e => setWorkTrip(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm traveling for work</Check></div>}
@@ -207,7 +235,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <LocationField fieldId="flight-to" title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={FLIGHT_LOCATIONS.filter(a => a !== from)} />
         <TextField title="Departure" value={depart} onChange={setDepart} placeholder="Departure" type="date" />
         {trip === 'Round-trip' && <TextField title="Return" value={back} onChange={setBack} placeholder="Return" type="date" />}
-        <SelectField title="Travellers � class" value={pax} onChange={setPax} options={['1 adult, Economy','2 adults, Economy','1 adult, Business','2 adults, Business','3 adults, Economy']} />
+        {guestSelector(false, true)}
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'cars' && <><div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
@@ -217,7 +245,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" />
         <TextField title="Time" value={dropTime} onChange={setDropTime} placeholder="10:00 AM" type="time" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
-      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30�65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
+      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30-65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
       {tab === 'tours' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={LOCATIONS} />
         <TextField title="Dates" value={activityDate} onChange={setActivityDate} placeholder="Select dates" type="date" />
