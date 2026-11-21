@@ -1,4 +1,4 @@
-import { runAiChat } from '../src/lib/aiChat'
+import { runAiChat } from '../src/lib/aiChat.js'
 type ApiEnv = { OLLAMA_API_KEY?: string; OPENROUTER_API_KEY?: string }
 type VercelRequest = { method?: string; body?: unknown; env?: ApiEnv }
 type VercelResponse = {
