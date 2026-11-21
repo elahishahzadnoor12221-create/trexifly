@@ -9,6 +9,7 @@ import { Landing, type LandingConfig } from './pages/Landing'
 import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
 import { GuideIndexEnhancements, TravelGuideArticle } from './pages/TravelGuidePages'
 import { TravelAssistant } from './components/TravelAssistant'
+import { AdminAlertsPage } from './pages/AdminAlertsPage'
 
 const seoPages: LandingConfig[] = [
   {
@@ -101,6 +102,7 @@ export function App() {
     <Header />
     <main id="main"><Routes>
       <Route index element={<Home />} />
+      <Route path="admin/alerts" element={<AdminAlertsPage />} />
       <Route path="results" element={<Results />} />
       <Route path="about" element={<LegalPage page="about" />} />
       <Route path="contact" element={<LegalPage page="contact" />} />

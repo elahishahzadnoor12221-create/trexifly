@@ -4,6 +4,10 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const dist = fileURLToPath(new URL('../dist/client', import.meta.url))
+// Local Cloudflare secrets are injected into the worker build directory by the dev plugin.
+// They are never deployment assets and must not remain in generated build output.
+const workerDevVars = fileURLToPath(new URL('../dist/trexifly/.dev.vars', import.meta.url))
+rmSync(workerDevVars, { force: true })
 function clean(dir) {
   for (const name of readdirSync(dir)) {
     const path = join(dir, name)

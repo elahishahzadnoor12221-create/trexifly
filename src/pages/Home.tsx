@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { SearchWidget } from '../components/SearchWidget'
 import { Destinations } from '../components/Destinations'
 import { PromoDeals } from '../components/PromoDeals'
+import { AlertSubscriptionCard } from '../components/AlertSubscriptionCard'
 import { WorldGlobe } from '../components/WorldGlobe'
 import { Icon } from '../components/Icons'
 import { buildAffiliateUrl } from '../lib/affiliates'
@@ -46,6 +47,7 @@ export function Home() {
       </div>
     </section>
     <PromoDeals />
+    <AlertSubscriptionCard />
     <section className="bg-white py-10">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
         <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Travel partners</p>

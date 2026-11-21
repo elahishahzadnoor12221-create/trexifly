@@ -5,3 +5,14 @@ OLLAMA_API_KEY=
 OPENROUTER_API_KEY=
 # CarsXE Vehicle Images API (optional until an API key is issued).
 CARSXE_API_KEY=
+# Trexifly Phase 1 Alerts (server-side only; configure in Vercel local env for Vercel API testing)
+SUPABASE_URL=
+SUPABASE_SECRET_KEY=
+# Legacy compatibility only; prefer SUPABASE_SECRET_KEY.
+SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
+RESEND_API_KEY=
+ADMIN_ALERT_PASSWORD=
+ADMIN_ALERT_SESSION_SECRET=
+ADMIN_ALERT_EMAIL=
+APP_BASE_URL=http://localhost:3000

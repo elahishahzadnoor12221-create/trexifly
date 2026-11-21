@@ -23,3 +23,6 @@ test-results/
 playwright-report/
 .vercel
 .env*
+
+# Local admin credentials; never commit
+ADMIN_LOGIN_INFO.txt
