@@ -15,13 +15,25 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 const AIRPORTS = PLACES.filter((p) => p.code).map((p) => `${p.city} (${p.code}) - ${p.airport ? p.airport + ', ' : ''}${p.country}`)
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, T�rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
+const GLOBAL_STAYS_DESTINATIONS = [
+  'Dublin, Ireland','Cork, Ireland','Galway, Ireland','Belfast, Northern Ireland',
+  'Edinburgh, Scotland','Glasgow, Scotland','Lisbon, Portugal','Porto, Portugal',
+  'Copenhagen, Denmark','Stockholm, Sweden','Oslo, Norway','Helsinki, Finland',
+  'Brussels, Belgium','Budapest, Hungary','Warsaw, Poland','Reykjavik, Iceland',
+  'Perth, Australia','Brisbane, Australia','Adelaide, Australia','Canberra, Australia',
+  'Christchurch, New Zealand','Wellington, New Zealand','Queenstown, New Zealand',
+  'Nadi, Fiji','Papeete, French Polynesia','Apia, Samoa','Port Vila, Vanuatu','Suva, Fiji',
+  'Honolulu, United States','Boston, United States','Chicago, United States','Seattle, United States',
+  'Washington, United States','Calgary, Canada','Ottawa, Canada','Quebec City, Canada',
+  'Peshawar, Pakistan','Quetta, Pakistan','Multan, Pakistan','Faisalabad, Pakistan','Gilgit, Pakistan','Chitral, Pakistan'
+]
 const WORLD_LANDMARKS = [
   'Burj Khalifa, Downtown Dubai, United Arab Emirates','Atlantis The Palm, Palm Jumeirah, Dubai, United Arab Emirates','Burj Al Arab, Jumeirah, Dubai, United Arab Emirates','Dubai Mall, Downtown Dubai, United Arab Emirates','Downtown Dubai, United Arab Emirates','Dubai Marina, United Arab Emirates','Palm Jumeirah, Dubai, United Arab Emirates','Deira, Dubai, United Arab Emirates',
   'Makkah Clock Royal Tower, Makkah, Saudi Arabia','Makkah Clock Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Haram Hotels, Makkah, Saudi Arabia','Anwar Al Madinah Movenpick, Madinah, Saudi Arabia','Madinah Haram Area, Madinah, Saudi Arabia','Jeddah Corniche, Jeddah, Saudi Arabia','King Abdulaziz International Airport, Jeddah, Saudi Arabia','Riyadh, Saudi Arabia',
   'Pearl Continental Lahore, Lahore, Pakistan','Serena Hotel Islamabad, Islamabad, Pakistan','Marriott Karachi, Karachi, Pakistan','Gulberg, Lahore, Pakistan','F-7, Islamabad, Pakistan','Clifton, Karachi, Pakistan',
   'Taksim Square, Istanbul, Turkey','Central London, United Kingdom','Heathrow Airport, London, United Kingdom','Hunza Valley, Pakistan','Skardu, Pakistan','Swat Valley, Pakistan','Kalam, Swat, Pakistan','Cappadocia, Turkey'
 ]
-const LOCATIONS = [...new Set([...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport')), ...WORLD_DESTINATIONS, ...WORLD_LANDMARKS])]
+const LOCATIONS = [...new Set([...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, ' Airport')), ...WORLD_DESTINATIONS, ...GLOBAL_STAYS_DESTINATIONS, ...WORLD_LANDMARKS])]
 const field = 'min-w-0 w-full border-0 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-500'
 const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'

@@ -1,5 +1,4 @@
 import type { SearchQuery } from './data'
-import { getAffiliatePartners } from './affiliates'
 
 /**
  * Hotellook was discontinued by Travelpayouts on 20 Oct 2025.
@@ -19,7 +18,6 @@ export type HotelListing = {
   priceUnit: string
   subtitle: string
   perks: string[]
-  affiliateUrl: string
 }
 
 const PHOTO_IDS = [
@@ -68,12 +66,12 @@ function adultCount(pax: string): number {
 }
 
 export function generateHotelInventory(query: SearchQuery): HotelListing[] {
-  const city = query.to.trim().replace(/\s*\([^)]*\)\s*$/, '') || 'Dubai'
-  const profile = CITY_DATA[city] ?? { country: 'International', areas: ['City Centre', 'Historic District', 'Business District', 'Riverside', 'Central Market', 'Airport District'], factor: 1 }
+  const city = query.to.trim().split(',')[0].replace(/\s*\([^)]*\)\s*$/, '') || 'Dubai'
+  const destinationCountry = query.to.split(',').slice(1).join(',').trim() || 'International destination'
+  const profile = CITY_DATA[city] ?? { country: destinationCountry, areas: ['City Centre', 'Historic District', 'Business District', 'Riverside', 'Shopping District', 'Airport District'], factor: 1 }
   const random = rng(hash([city, query.out, query.back, query.pax].join('|')))
   const nights = nightsBetween(query.out, query.back)
   const adults = adultCount(query.pax)
-  const affiliateUrl = getAffiliatePartners('hotels')[0]?.url ?? 'https://www.klook.com/hotels/'
   const tiers: Array<1 | 2 | 3 | 4 | 5 | 7> = city.toLowerCase() === 'dubai' ? [1, 2, 3, 4, 5, 7] : [1, 2, 3, 4, 5]
   const hotels: HotelListing[] = []
 
@@ -102,7 +100,6 @@ export function generateHotelInventory(query: SearchQuery): HotelListing[] {
         priceUnit: `estimated total for ${nights} night${nights === 1 ? '' : 's'} · ${adults} adult${adults === 1 ? '' : 's'}`,
         subtitle: `${stars === 7 ? 'Iconic ultra-luxury (editorial tier)' : `${stars}-star sample property`} · ${area}`,
         perks: stars >= 4 ? ['Sample listing', 'Verify amenities with provider'] : ['Sample listing', 'Provider details may differ'],
-        affiliateUrl,
       })
     }
   }

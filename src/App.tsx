@@ -10,6 +10,7 @@ import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
 import { GuideIndexEnhancements, TravelGuideArticle } from './pages/TravelGuidePages'
 import { TravelAssistant } from './components/TravelAssistant'
 import { AdminAlertsPage } from './pages/AdminAlertsPage'
+import { StaysGuideArticle, StaysGuideIndex } from './pages/StaysGuides'
 
 const seoPages: LandingConfig[] = [
   {
@@ -109,7 +110,12 @@ export function App() {
       <Route path="privacy" element={<LegalPage page="privacy" />} />
       <Route path="terms" element={<LegalPage page="terms" />} />
       <Route path="affiliate-disclosure" element={<LegalPage page="affiliate-disclosure" />} />
-      <Route path="guides" element={<><GuideIndexEnhancements /><GuidesPage /></>} />
+      <Route path="guides" element={<><GuideIndexEnhancements /><StaysGuideIndex /><GuidesPage /></>} />
+      <Route path="guides/stays-dubai-makkah" element={<StaysGuideArticle guide="dubai-makkah" />} />
+      <Route path="guides/stays-london-europe" element={<StaysGuideArticle guide="london-europe" />} />
+      <Route path="guides/stays-new-york-toronto" element={<StaysGuideArticle guide="new-york-toronto" />} />
+      <Route path="guides/stays-sydney-auckland" element={<StaysGuideArticle guide="sydney-auckland" />} />
+      <Route path="guides/stays-northern-pakistan" element={<StaysGuideArticle guide="northern-pakistan" />} />
       <Route path="guides/international-airport-transfers" element={<TravelGuideArticle guide="transfers" />} />
       <Route path="guides/hunza-skardu-best-time" element={<TravelGuideArticle guide="northern" />} />
       <Route path="guides/smart-flight-comparison-tips" element={<TravelGuideArticle guide="flights" />} />

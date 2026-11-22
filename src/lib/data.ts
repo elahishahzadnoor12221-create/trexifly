@@ -314,8 +314,7 @@ function seeded(seed: number): () => number {
 
 function basePrice(query: SearchQuery, rand: () => number): number {
   switch (query.type) {
-    case 'flights':
-      return Math.round((255 + rand() * 390) / 5) * 5
+    case 'flights': return 0
     case 'hotels': {
       const factor = CITY_FACTOR[query.to] ?? 1
       return Math.round(((88 + rand() * 155) * factor) / 5) * 5
@@ -339,61 +338,8 @@ function pick<T>(list: T[], rand: () => number): T {
   return list[Math.floor(rand() * list.length) % list.length]
 }
 
-type FlightCarrier = { name: string; code: string; domestic?: boolean; hubs: string[] }
-const FLIGHT_CARRIERS: FlightCarrier[] = [
-  {name:'Pakistan International Airlines',code:'PK',domestic:true,hubs:['ISB','LHE','KHI','PEW','UET','MUX','LYP','SKT','KDU','GIL','GWD','RYK','BHV']},
-  {name:'Airblue',code:'PA',domestic:true,hubs:['ISB','LHE','KHI','PEW','SKT']},
-  {name:'SereneAir',code:'ER',domestic:true,hubs:['ISB','LHE','KHI','PEW','UET','MUX']},
-  {name:'Fly Jinnah',code:'9P',domestic:true,hubs:['KHI','LHE','ISB','PEW','QUETTA']},
-  {name:'AirSial',code:'PF',domestic:true,hubs:['KHI','LHE','ISB','Sialkot']},
-  {name:'Emirates',code:'EK',hubs:['DXB']},{name:'Qatar Airways',code:'QR',hubs:['DOH']},{name:'Etihad Airways',code:'EY',hubs:['AUH']},
-  {name:'Saudia',code:'SV',hubs:['JED','RUH','MED']},{name:'Flynas',code:'XY',hubs:['RUH','JED','DMM']},{name:'Flyadeal',code:'F3',hubs:['RUH','JED','DMM']},
-  {name:'flydubai',code:'FZ',hubs:['DXB']},{name:'Air Arabia',code:'G9',hubs:['SHJ','AUH']},{name:'Turkish Airlines',code:'TK',hubs:['IST']},
-  {name:'Pegasus Airlines',code:'PC',hubs:['SAW']},{name:'British Airways',code:'BA',hubs:['LHR','LGW']},{name:'Virgin Atlantic',code:'VS',hubs:['LHR']},
-  {name:'Lufthansa',code:'LH',hubs:['FRA','MUC']},{name:'SWISS',code:'LX',hubs:['ZRH','GVA']},{name:'Air France',code:'AF',hubs:['CDG']},
-  {name:'KLM',code:'KL',hubs:['AMS']},{name:'Iberia',code:'IB',hubs:['MAD','BCN']},{name:'Air Canada',code:'AC',hubs:['YYZ','YVR','YUL']},
-  {name:'United Airlines',code:'UA',hubs:['EWR','IAD','ORD','LAX','SFO']},{name:'Delta Air Lines',code:'DL',hubs:['ATL','JFK','LAX']},
-  {name:'American Airlines',code:'AA',hubs:['DFW','JFK','ORD','LAX']},{name:'Singapore Airlines',code:'SQ',hubs:['SIN']},
-  {name:'Malaysia Airlines',code:'MH',hubs:['KUL']},{name:'Thai Airways',code:'TG',hubs:['BKK']},{name:'Cathay Pacific',code:'CX',hubs:['HKG']},
-  {name:'ANA',code:'NH',hubs:['HND','NRT']},{name:'Japan Airlines',code:'JL',hubs:['HND','NRT']},{name:'Gulf Air',code:'GF',hubs:['BAH']},
-  {name:'Oman Air',code:'WY',hubs:['MCT']},{name:'Kuwait Airways',code:'KU',hubs:['KWI']},{name:'Azerbaijan Airlines',code:'J2',hubs:['GYD']},
-  {name:'EgyptAir',code:'MS',hubs:['CAI']},{name:'Ethiopian Airlines',code:'ET',hubs:['ADD']},{name:'Qantas',code:'QF',hubs:['SYD','MEL']},
-]
-function airportCode(value: string): string { const explicit=value.match(/\(([A-Z]{3})\)/i)?.[1]?.toUpperCase(); if(explicit)return explicit; const normalized=value.toLowerCase(); return PLACES.find(place=>place.code && (normalized.includes(place.city.toLowerCase()) || normalized.includes(place.airport?.toLowerCase() ?? '___no_airport___')))?.code ?? '' }
-function generateFlightOptions(query: SearchQuery): Deal[] {
-  const from = airportCode(query.from), to = airportCode(query.to)
-  const domestic = !!from && !!to && ['LHE','ISB','KHI','PEW','UET','MUX','LYP','SKT','KDU','GIL','GWD','RYK','BHV'].includes(from) && ['LHE','ISB','KHI','PEW','UET','MUX','LYP','SKT','KDU','GIL','GWD','RYK','BHV'].includes(to)
-  const availableCarriers = domestic ? FLIGHT_CARRIERS.filter(c=>c.domestic) : FLIGHT_CARRIERS.filter(c=>!c.domestic)
-  // Prefer carriers whose operating hubs match either end of this route, then retain global alternatives.
-  const carriers = [...availableCarriers].sort((a,b)=>Number(b.hubs.includes(from)||b.hubs.includes(to))-Number(a.hubs.includes(from)||a.hubs.includes(to)))
-  const seed = hash([query.from,query.to,query.out,query.back,query.pax].join('|'))
-  const rand = seeded(seed)
-  const cabin = /first/i.test(query.pax)?'First':/business/i.test(query.pax)?'Business':'Economy'
-  const routeFactor = domestic ? 0.48 : 1 + ((from.charCodeAt(0)||70)+(to.charCodeAt(0)||84))%35/100
-  const options: Deal[] = []
-  const target = domestic ? 45 : 45
-  for(let i=0;i<target;i++) {
-    const carrier = carriers[i % carriers.length]
-    const variant = Math.floor(i/carriers.length)
-    const stopsCount = domestic ? (variant===0 && rand()>.55 ? 1 : 0) : (i%7===0?0:i%4===0?2:1)
-    const departureMinutes = (5*60 + Math.floor(rand()*17*60))
-    const durationMinutes = Math.round((domestic ? 65+rand()*160 : 250+rand()*650 + stopsCount*115)/5)*5
-    const cabinFactor = cabin==='First'?3.8:cabin==='Business'?2.25:1
-    const price = Math.max(35,Math.round((domestic?55+rand()*115:240+rand()*650)*routeFactor*cabinFactor*(1+variant*.045)/5)*5)
-    const title = `${carrier.name} | ${carrier.code} | ${cabin}`
-    const flightNo = `${carrier.code}${100+Math.floor(rand()*890)}`
-    const stopLabel = stopsCount===0?'Non-stop':stopsCount===1?'1 stop':'2 stops'
-    const timeLabel = `${String(Math.floor(departureMinutes/60)).padStart(2,'0')}:${String(departureMinutes%60).padStart(2,'0')}`
-    options.push({id:`flight-${carrier.code}-${i}`,providerId:'aviasales',price,wasPrice:Math.round(price*1.16),priceUnit:'per traveller',stars:0,score:Math.round((7.2+rand()*2.5)*10)/10,reviews:0,freeCancellation:false,direct:stopsCount===0,durationMinutes,title,subtitle:`${flightNo} · ${stopLabel} · ${durationLabel(durationMinutes)} · Departs ${timeLabel}`,perks:[cabin==='Economy'?'Cabin baggage subject to fare':'Premium cabin · subject to availability',domestic?'Pakistan domestic route':'Illustrative international route'],badges:[],affiliateUrl:buildAffiliateUrl('flights',0),airline:carrier.name,airlineCode:carrier.code,stopsCount,cabinClass:cabin,departureMinutes})
-  }
-  // Add limited alternate-cabin examples so every cabin filter is usable.
-  for(const cabinOption of [{name:'Business',factor:2.15},{name:'First',factor:3.8}]) for(let i=0;i<3;i++){const base=options[i];options.push({...base,id:`${base.id}-${cabinOption.name.toLowerCase()}`,title:`${base.airline} | ${base.airlineCode} | ${cabinOption.name}`,cabinClass:cabinOption.name,price:Math.round(base.price*cabinOption.factor),wasPrice:Math.round(base.price*cabinOption.factor*1.15),subtitle:`${cabinOption.name} · ${base.subtitle}`})}
-  const cheapest=options.reduce((a,b)=>b.price<a.price?b:a);cheapest.badges.push('Cheapest')
-  return options
-}
-
 export function dealsFor(query: SearchQuery): Deal[] {
-  if (query.type === 'flights') return generateFlightOptions(query)
+  if (query.type === 'flights') return []
   const seed = hash(
     [query.type, query.from, query.to, query.out, query.back, query.pax, query.vehicle, query.duration, query.pkg].join('|'),
   )
