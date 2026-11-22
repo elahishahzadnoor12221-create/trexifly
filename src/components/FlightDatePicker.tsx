@@ -11,23 +11,27 @@ const monthLabel = (date: Date) => date.toLocaleDateString('en-US', { month: 'lo
 const money = (amount: number, currency: string) => new Intl.NumberFormat('en-US', { style: 'currency', currency: /^[A-Z]{3}$/.test(currency) ? currency : 'USD', maximumFractionDigits: 0 }).format(amount)
 
 export function FlightDatePicker({ value, onChange, origin, destination, tripType, returnDate }: Props) {
-  const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(value ? new Date(value + 'T00:00:00') : new Date()))
+  const firstAllowed = startOfMonth(new Date())
+  const lastAllowed = addMonths(firstAllowed, 11)
+  const maxStartMonth = addMonths(firstAllowed, 10)
+  const initialMonth = startOfMonth(value ? new Date(value + 'T00:00:00') : new Date())
+  const [visibleMonth, setVisibleMonth] = useState(() => initialMonth > maxStartMonth ? maxStartMonth : initialMonth)
   const [prices, setPrices] = useState<Record<string, PriceDay>>({})
   const [loading, setLoading] = useState(false)
   const [calendarNotice, setCalendarNotice] = useState('')
   const [open, setOpen] = useState(false)
   const firstCode = airportCode(origin), secondCode = airportCode(destination)
   const today = todayKey()
-  const firstAllowed = startOfMonth(new Date())
-  const lastAllowed = addMonths(firstAllowed, 11)
   const months = useMemo(() => Array.from({ length: 12 }, (_, index) => addMonths(firstAllowed, index)), [firstAllowed.getFullYear(), firstAllowed.getMonth()])
   const secondMonth = addMonths(visibleMonth, 1)
   const monthList = [visibleMonth, secondMonth].filter(month => month <= lastAllowed)
+
   useEffect(() => { setPrices({}) }, [firstCode, secondCode, tripType, returnDate])
   useEffect(() => {
     if (!open || !firstCode || !secondCode) return
     const controller = new AbortController()
-    setLoading(true); setCalendarNotice('')
+    setLoading(true)
+    setCalendarNotice('')
     Promise.all(monthList.map(async month => {
       const params = new URLSearchParams({ origin: firstCode, destination: secondCode, month: monthKey(month), one_way: String(tripType === 'One-way'), currency: 'USD', departure_at: value })
       if (tripType !== 'One-way' && returnDate) params.set('return_at', returnDate)
@@ -41,24 +45,32 @@ export function FlightDatePicker({ value, onChange, origin, destination, tripTyp
       payloads.forEach(payload => (payload.prices ?? []).forEach(item => { next[item.date] = item }))
       setPrices(current => ({ ...current, ...next }))
       if (!Object.keys(next).length) setCalendarNotice(payloads.map(item => item.message).filter(Boolean).join(' '))
-    }).catch(error => { if (!controller.signal.aborted) setCalendarNotice(error instanceof Error ? error.message : 'Calendar prices unavailable.') })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    }).catch(error => {
+      if (!controller.signal.aborted) setCalendarNotice(error instanceof Error ? error.message : 'Calendar prices unavailable.')
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [open, firstCode, secondCode, visibleMonth.getFullYear(), visibleMonth.getMonth(), tripType, returnDate, value])
-  const availablePrices = Object.values(prices).filter(item => item.date >= today)
+
+  const visibleMonthKeys = monthList.map(monthKey)
+  const availablePrices = Object.values(prices).filter(item => item.date >= today && visibleMonthKeys.includes(item.date.slice(0, 7)))
   const cheapest = availablePrices.length ? Math.min(...availablePrices.map(item => item.price)) : null
   const selectedFare = prices[value]?.price
-  const selectedCurrency = prices[value]?.currency ?? 'USD'
+  const displayFare = selectedFare ?? cheapest
+  const displayCurrency = prices[value]?.currency ?? availablePrices.find(item => item.price === cheapest)?.currency ?? 'USD'
   const canPrevious = visibleMonth > firstAllowed
-  const canNext = addMonths(visibleMonth, 1) <= lastAllowed
+  const canNext = visibleMonth < maxStartMonth
+
   const renderMonth = (month: Date) => {
     const firstDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay()
     const count = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
-    const cells = [...Array(firstDay).fill(null), ...Array.from({ length: count }, (_, index) => index + 1)]
+    const cells: Array<number | null> = [...Array(firstDay).fill(null), ...Array.from({ length: count }, (_, index) => index + 1)]
     while (cells.length % 7) cells.push(null)
     return <section key={monthKey(month)} className="min-w-0">
       <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{monthLabel(month)}</h3><span className="text-[10px] text-slate-400">Lowest daily fares</span></div>
-      <div className="grid grid-cols-7 gap-1 text-center">{['Su','Mo','Tu','We','Th','Fr','Sa'].map(day => <span key={day} className="py-1 text-[10px] font-bold text-slate-400">{day}</span>)}
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <span key={day} className="py-1 text-[10px] font-bold text-slate-400">{day}</span>)}
         {cells.map((day, index) => {
           if (!day) return <span key={`blank-${index}`} />
           const date = `${monthKey(month)}-${String(day).padStart(2, '0')}`
@@ -67,21 +79,38 @@ export function FlightDatePicker({ value, onChange, origin, destination, tripTyp
           const isSelected = date === value
           const isCheapest = !!fare && cheapest !== null && fare.price === cheapest
           return <button key={date} type="button" disabled={disabled} onClick={() => onChange(date)} aria-label={`${date}${fare ? ', ' + money(fare.price, fare.currency) : ', price unavailable'}`} aria-pressed={isSelected} className={'flex min-h-[54px] flex-col items-center justify-center rounded-lg border px-0.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-25 ' + (isSelected ? 'border-[#FF5500] bg-orange-50 ring-2 ring-orange-200 dark:bg-orange-950/50' : isCheapest ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800')}>
-            <span className="text-xs font-bold">{day}</span><span className={'mt-0.5 text-[9px] font-semibold leading-3 ' + (isCheapest ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400')}>{fare ? money(fare.price, fare.currency) : '—'}</span>
+            <span className="text-xs font-bold">{day}</span>
+            <span className={'mt-0.5 text-[9px] font-semibold leading-3 ' + (isCheapest ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400')}>{fare ? money(fare.price, fare.currency) : '—'}</span>
           </button>
         })}
       </div>
     </section>
   }
+
   return <div className="relative min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r dark:border-slate-700">
     <span className="mb-1 block text-[11px] font-semibold text-slate-500">Departure</span>
-    <button type="button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)} className="w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800">{value || 'Choose departure date'} <span className="float-right text-slate-400">▦</span></button>
+    <button type="button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)} className="w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800">{value || 'Choose departure date'} <span className="float-right text-slate-400">‹</span></button>
     {open && <div role="dialog" aria-label="Flight price calendar" className="absolute left-0 top-full z-[100] mt-2 w-[min(94vw,760px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:left-auto sm:right-0">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-base font-extrabold text-slate-900 dark:text-white">Flexible flight dates</h2><p className="text-[11px] text-slate-500">Daily cached lowest fares · up to 12 months ahead</p></div><div className="flex items-center gap-2"><button type="button" aria-label="Previous month" disabled={!canPrevious} onClick={() => setVisibleMonth(month => addMonths(month, -1))} className="grid size-9 place-items-center rounded-lg border border-slate-200 text-lg disabled:opacity-30 dark:border-slate-700">‹</button><select aria-label="Calendar month" value={String(visibleMonth.getMonth())} onChange={event => { const selected = months.find(month => month.getMonth() === Number(event.target.value) && month.getFullYear() === visibleMonth.getFullYear()); if (selected) setVisibleMonth(selected) }} className="max-w-[105px] rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">{months.filter(month => month.getFullYear() === visibleMonth.getFullYear()).map(month => <option key={monthKey(month)} value={month.getMonth()}>{month.toLocaleDateString('en-US',{month:'long'})}</option>)}</select><select aria-label="Calendar year" value={String(visibleMonth.getFullYear())} onChange={event => { const selected = months.find(month => month.getFullYear() === Number(event.target.value) && month.getMonth() === visibleMonth.getMonth()) ?? months.find(month => month.getFullYear() === Number(event.target.value)); if (selected) setVisibleMonth(selected) }} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">{[...new Set(months.map(month => month.getFullYear()))].map(year => <option key={year} value={year}>{year}</option>)}</select><button type="button" aria-label="Next month" disabled={!canNext} onClick={() => setVisibleMonth(month => addMonths(month, 1))} className="grid size-9 place-items-center rounded-lg border border-slate-200 text-lg disabled:opacity-30 dark:border-slate-700">›</button></div></div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div><h2 className="text-base font-extrabold text-slate-900 dark:text-white">Flexible flight dates</h2><p className="text-[11px] text-slate-500">Daily cached lowest fares · rolling 12-month window</p></div>
+        <div className="flex items-center gap-2">
+          <button type="button" aria-label="Previous month" disabled={!canPrevious} onClick={() => setVisibleMonth(month => addMonths(month, -1))} className="grid size-9 place-items-center rounded-lg border border-slate-200 text-lg disabled:opacity-30 dark:border-slate-700">‹</button>
+          <select aria-label="Calendar month" value={String(visibleMonth.getMonth())} onChange={event => { const selected = months.find(month => month.getMonth() === Number(event.target.value) && month.getFullYear() === visibleMonth.getFullYear()); if (selected) setVisibleMonth(selected > maxStartMonth ? maxStartMonth : selected) }} className="max-w-[105px] rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+            {months.filter(month => month.getFullYear() === visibleMonth.getFullYear()).map(month => <option key={monthKey(month)} value={month.getMonth()}>{month.toLocaleDateString('en-US', { month: 'long' })}</option>)}
+          </select>
+          <select aria-label="Calendar year" value={String(visibleMonth.getFullYear())} onChange={event => { const selected = months.find(month => month.getFullYear() === Number(event.target.value) && month.getMonth() === visibleMonth.getMonth()) ?? months.find(month => month.getFullYear() === Number(event.target.value)); if (selected) setVisibleMonth(selected > maxStartMonth ? maxStartMonth : selected) }} className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs font-semibold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white">
+            {[...new Set(months.map(month => month.getFullYear()))].map(year => <option key={year} value={year}>{year}</option>)}
+          </select>
+          <button type="button" aria-label="Next month" disabled={!canNext} onClick={() => setVisibleMonth(month => addMonths(month, 1))} className="grid size-9 place-items-center rounded-lg border border-slate-200 text-lg disabled:opacity-30 dark:border-slate-700">›</button>
+        </div>
+      </div>
       <div className="grid gap-5 md:grid-cols-2">{monthList.map(renderMonth)}</div>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-700"><p className="text-[10px] text-slate-500">Green = cheapest date with cached fare. Prices are indicative and may change.</p>{loading && <span role="status" className="text-[10px] text-slate-500">Loading fares…</span>}</div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-700">
+        <p className="text-[10px] text-slate-500">Green = cheapest date with cached fare. Prices are indicative and may change.</p>
+        {loading && <span role="status" className="text-[10px] text-slate-500">Loading fares…</span>}
+      </div>
       {calendarNotice && <p role="status" className="mt-2 text-xs text-amber-700 dark:text-amber-300">{calendarNotice}</p>}
-      <button type="button" disabled={!value || value < today} onClick={() => setOpen(false)} className="mt-3 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-extrabold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Select for {tripType === 'One-way' ? 'one-way trip' : 'round-trip'}{selectedFare ? ' — from ' + money(selectedFare, selectedCurrency) : ''}</button>
+      <button type="button" disabled={!value || value < today} onClick={() => setOpen(false)} className="mt-3 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-extrabold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Select for {tripType === 'One-way' ? 'one-way trip' : 'round-trip'}{displayFare ? ' — from ' + money(displayFare, displayCurrency) : ''}</button>
     </div>}
   </div>
 }

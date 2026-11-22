@@ -52,15 +52,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const attempts: Array<{ url: URL; source: string }> = []
   const legacy = new URL('https://api.travelpayouts.com/v1/prices/calendar')
   legacy.searchParams.set('origin', origin); legacy.searchParams.set('destination', destination)
-  legacy.searchParams.set('depart_date', month); legacy.searchParams.set('departure_date', month)
+  legacy.searchParams.set('depart_date', month)
   legacy.searchParams.set('calendar_type', 'departure_date'); legacy.searchParams.set('currency', currency)
   if (trip === 'round-trip' && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) legacy.searchParams.set('return_date', returnDate)
   attempts.push({ url: legacy, source: 'v1/prices/calendar' })
   const matrix = new URL('https://api.travelpayouts.com/v2/prices/month-matrix')
   matrix.searchParams.set('origin', origin); matrix.searchParams.set('destination', destination)
   matrix.searchParams.set('month', month + '-01'); matrix.searchParams.set('currency', currency)
-  const monthParts = month.split('-').map(Number)
-  matrix.searchParams.set('limit', String(new Date(Date.UTC(monthParts[0], monthParts[1], 0)).getUTCDate()))
+  matrix.searchParams.set('limit', '30'); matrix.searchParams.set('page', '1')
+  matrix.searchParams.set('sorting', 'price'); matrix.searchParams.set('trip_class', '0')
   matrix.searchParams.set('show_to_affiliates', 'true'); matrix.searchParams.set('one_way', String(trip === 'one-way'))
   if (trip === 'round-trip') {
     const departureTime = /^\d{4}-\d{2}-\d{2}$/.test(selectedDeparture) ? Date.parse(selectedDeparture + 'T00:00:00Z') : target.getTime()
