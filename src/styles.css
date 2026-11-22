@@ -825,3 +825,97 @@ html[data-theme="dark"] #search-widget button[aria-haspopup="dialog"] { color: #
 /* Ensure the native Trip Type select renders white text in dark mode. */
 html[data-theme="dark"] #search-widget select,
 html[data-theme="dark"] #search-widget select option { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; color-scheme: dark; }
+
+
+/* 2026-11-23: responsive field sizing and explicit alert-section contrast. */
+#search-widget form [data-search-field="Pick-up location"],
+#search-widget form [data-search-field="Destination"] {
+  flex: 1 1 240px;
+  min-width: min(100%, 220px);
+}
+#search-widget form [data-search-field="Pick-up time"] {
+  flex: 1 1 160px;
+  min-width: min(100%, 160px);
+}
+#search-widget form [data-search-field="Passengers"],
+#search-widget form [data-search-field="Luggage"] {
+  flex: 1 1 150px;
+  min-width: min(100%, 150px);
+}
+#search-widget form [data-search-field="Pick-up location"] input,
+#search-widget form [data-search-field="Destination"] input,
+#search-widget form [data-search-field="Pick-up time"] input,
+#search-widget form [data-search-field="Passengers"] select,
+#search-widget form [data-search-field="Luggage"] select {
+  min-width: 0;
+  width: 100%;
+}
+#search-widget form [data-search-field="Pick-up time"] input { padding-right: .25rem; }
+#search-widget form [data-search-field="Passengers"] select,
+#search-widget form [data-search-field="Luggage"] select { padding-right: 1.8rem; }
+.trexifly-car-fields [data-search-field="Pick-up location"] { flex: 1.8 1 290px; min-width: min(100%, 250px); }
+.trexifly-car-options { margin-top: .25rem; align-items: end; }
+.trexifly-car-options > label { min-height: 46px; }
+.trexifly-car-options > div { min-width: 176px; }
+.trexifly-car-dropoff { width: min(100%, 640px); margin-left: 0; }
+.trexifly-car-dropoff [data-search-field="Drop-off location"] { width: 100%; min-width: 0; }
+.trexifly-transfer-fields { align-items: stretch; }
+@media (max-width: 639px) {
+  #search-widget form [data-search-field="Pick-up location"],
+  #search-widget form [data-search-field="Destination"],
+  #search-widget form [data-search-field="Pick-up time"],
+  #search-widget form [data-search-field="Passengers"],
+  #search-widget form [data-search-field="Luggage"] { flex-basis: 100%; min-width: 0; }
+  .trexifly-car-options { align-items: stretch; }
+  .trexifly-car-options > div { width: 100%; }
+  .trexifly-car-dropoff { width: 100%; padding-inline: .5rem; }
+}
+#smart-travel-alerts { color: #0F172A; }
+#smart-travel-alerts > div { background-color: #FFF7ED; }
+#smart-travel-alerts h2,
+#smart-travel-alerts label,
+#smart-travel-alerts legend { color: #0F172A !important; }
+#smart-travel-alerts p:not(.text-\\[\\#FF5500\\]) { color: #334155; }
+#smart-travel-alerts span.rounded-full { color: #334155 !important; border-color: #FDBA74; background: #FFFFFF; }
+#smart-travel-alerts input:not([type="checkbox"]),
+#smart-travel-alerts select {
+  color: #0F172A !important; background: #FFFFFF !important; border-color: #94A3B8 !important;
+}
+#smart-travel-alerts input::placeholder { color: #64748B !important; opacity: 1; }
+#smart-travel-alerts input[type="checkbox"] { accent-color: #F97316; outline-offset: 2px; }
+#smart-travel-alerts button[aria-pressed="false"] { color: #334155 !important; }
+html[data-theme="dark"] #smart-travel-alerts > div {
+  background: linear-gradient(135deg,#111827,#172033) !important;
+  border-color: #475569 !important;
+}
+html[data-theme="dark"] #smart-travel-alerts h2,
+html[data-theme="dark"] #smart-travel-alerts label,
+html[data-theme="dark"] #smart-travel-alerts legend,
+html[data-theme="dark"] #smart-travel-alerts p,
+html[data-theme="dark"] #smart-travel-alerts span.rounded-full,
+html[data-theme="dark"] #smart-travel-alerts button[aria-pressed="false"] { color: #F1F5F9 !important; }
+html[data-theme="dark"] #smart-travel-alerts span.rounded-full { background: #1E293B !important; border-color: #475569 !important; }
+html[data-theme="dark"] #smart-travel-alerts input:not([type="checkbox"]),
+html[data-theme="dark"] #smart-travel-alerts select {
+  color: #F8FAFC !important; background: #0F172A !important; border-color: #64748B !important;
+}
+html[data-theme="dark"] #smart-travel-alerts input::placeholder { color: #CBD5E1 !important; }
+html[data-theme="dark"] #smart-travel-alerts input[type="checkbox"] { accent-color: #FB923C; }
+
+/* High contrast override for the peach subscription panel in both themes. */
+#smart-travel-alerts h2,
+#smart-travel-alerts form label,
+#smart-travel-alerts legend,
+#smart-travel-alerts .rounded-full { color: #0F172A !important; }
+#smart-travel-alerts > div > div > div:first-child > p:not(:first-child) { color: #334155 !important; }
+#smart-travel-alerts input::placeholder { color: #64748B !important; opacity: 1; }
+html[data-theme="dark"] #smart-travel-alerts h2,
+html[data-theme="dark"] #smart-travel-alerts form label,
+html[data-theme="dark"] #smart-travel-alerts legend,
+html[data-theme="dark"] #smart-travel-alerts .rounded-full,
+html[data-theme="dark"] #smart-travel-alerts > div > div > div:first-child > p:not(:first-child) { color: #F1F5F9 !important; }
+html[data-theme="dark"] #smart-travel-alerts > div > div > div:first-child > p:first-child { color: #FB923C !important; }
+#smart-travel-alerts input:not([type="checkbox"]),
+#smart-travel-alerts select { border-width: 1px; }
+html[data-theme="dark"] #smart-travel-alerts input:not([type="checkbox"]),
+html[data-theme="dark"] #smart-travel-alerts select { border-color: #64748B !important; }

@@ -138,7 +138,6 @@ function flightAirportCode(value: string): string {
 }
 
 // Page-type White Labels are bound to their configured domain; wl_id is used for widget scripts, not Page deeplinks.
-const TRAVELPAYOUTS_WL_ID = '24943'
 const TRAVELPAYOUTS_WL_URL = 'https://flights.trexifly.com/'
 const TRAVELPAYOUTS_MARKER = '806576'
 function buildTravelpayoutsWhiteLabelUrl(query: SearchQuery, params: URLSearchParams): string | null {
@@ -174,11 +173,11 @@ function FlightTime({ value }: { value: string | null }) {
   const date = new Date(value)
   return <span>{Number.isNaN(date.getTime()) ? 'Not supplied' : date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</span>
 }
-function aviasalesSearchUrl(query: SearchQuery, origin: string, destination: string, oneWay: boolean) {
+function aviasalesSearchUrl(query: SearchQuery, origin: string, destination: string, oneWay: boolean, cabinClass = query.pax) {
   const dateCode = (value: string) => { const parsed = new Date(value + 'T00:00:00'); return String(parsed.getDate()).padStart(2, '0') + String(parsed.getMonth() + 1).padStart(2, '0') }
   const adults = Math.min(9, Math.max(1, query.adults ?? 2))
   const children = Math.min(9 - adults, Math.max(0, query.children ?? 0))
-  const cabin = /business/i.test(query.pax) ? 'c' : /first/i.test(query.pax) ? 'f' : /premium economy|comfort/i.test(query.pax) ? 'w' : ''
+  const cabin = /business/i.test(cabinClass) ? 'c' : /first/i.test(cabinClass) ? 'f' : /premium economy|comfort/i.test(cabinClass) ? 'w' : ''
   const route = origin + dateCode(query.out) + destination + (oneWay ? '' : dateCode(query.back)) + cabin + String(adults) + (children ? String(children) : '')
   return 'https://www.aviasales.com/search/' + route + '?marker=806576'
 }
@@ -366,9 +365,7 @@ export function Results() {
   const query = readQuery(params)
   const shouldRedirectToWhiteLabel = query.type === 'flights' && params.get('tpwl') === '1'
   const whiteLabelFlightUrl = shouldRedirectToWhiteLabel ? buildTravelpayoutsWhiteLabelUrl(query, params) : null
-  useEffect(() => {
-    if (whiteLabelFlightUrl) window.location.replace(whiteLabelFlightUrl)
-  }, [whiteLabelFlightUrl])
+  const aviasalesFallbackUrl = shouldRedirectToWhiteLabel ? aviasalesSearchUrl(query, flightAirportCode(query.from), flightAirportCode(query.to), params.get('tripType') === 'one-way' || query.back === query.out, params.get('cabin') ?? query.pax) : null
   useEffect(() => {
     const onTab = (e: Event) => {
       const next = (e as CustomEvent<{ tab?: string }>).detail?.tab
@@ -414,12 +411,16 @@ export function Results() {
   const filteredHotels=useMemo(()=>{const rows=hotelInventory.filter(h=>!hotelStars.length||hotelStars.includes(h.stars));return [...rows].sort((a,b)=>hotelSort==='Lowest Price'?a.price-b.price:hotelSort==='Highest Price'?b.price-a.price:hotelSort==='Top Rated'?b.score-a.score:b.stars-a.stars)},[hotelInventory,hotelStars,hotelSort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
   const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' to '+query.to
-  if (shouldRedirectToWhiteLabel) return <main data-travelpayouts-wl-id={TRAVELPAYOUTS_WL_ID} className="grid min-h-screen place-items-center bg-[#FFF7F2] px-5 text-center dark:bg-slate-950"><div className="max-w-lg rounded-2xl border border-orange-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900"><h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Opening live flight search</h1>{whiteLabelFlightUrl ? <><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Continuing to Trexifly Flights powered by Travelpayouts White Label.</p><a href={whiteLabelFlightUrl} className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-5 py-3 text-sm font-bold text-white">Continue to live flights</a></> : <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">Please choose valid airport IATA codes, dates, and passenger counts (1–9 adults, 0–9 children and infants) before searching.</p>}</div></main>
-  if (usesLiveFlightSearch(query) && !transfer) return <LiveFlightsResults query={query} />
+  if (usesLiveFlightSearch(query) && !transfer && params.get('tpwl') !== '1') return <LiveFlightsResults query={query} />
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
     <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
       <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only. Final prices and availability must be confirmed with the booking provider.</p></div>
+      {query.type === 'flights' && params.get('tpwl') === '1' && <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-orange-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        {aviasalesFallbackUrl && <a href={aviasalesFallbackUrl} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-marker="806576" className="inline-flex items-center justify-center rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white hover:bg-[#E64A00]">Search Live Flights on Aviasales <Icon name="arrowUpRight" className="ml-2 size-4"/></a>}
+        {whiteLabelFlightUrl && <a href={whiteLabelFlightUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-[#C93400] underline underline-offset-2 dark:text-orange-300">Also try flights.trexifly.com</a>}
+        <p className="w-full text-xs text-slate-600 dark:text-slate-300">Live flight search options are provided through external booking partners. Compare current availability before booking.</p>
+      </div>}
       <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
       {partnerLinks.length > 0 && <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Continue to a Travelpayouts-tracked partner site. Search details may need to be entered again on the partner website.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>}
       <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">

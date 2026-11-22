@@ -15,6 +15,15 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 ]
 const AIRPORTS = PLACES.filter((p) => p.code).map((p) => `${p.city} (${p.code}) - ${p.airport ? p.airport + ', ' : ''}${p.country}`)
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
+function isValidFlightAirport(value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return false
+  return PLACES.some(place => Boolean(place.code) && (
+    normalized === place.code!.toLowerCase() ||
+    normalized.includes(`(${place.code!.toLowerCase()})`) ||
+    normalized === place.city.toLowerCase()
+  ))
+}
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, Türkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const GLOBAL_STAYS_DESTINATIONS = [
   'Dublin, Ireland','Cork, Ireland','Galway, Ireland','Belfast, Northern Ireland',
@@ -40,10 +49,10 @@ const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'
 
 function SelectField({ title, value, onChange, options, wide = false }: { title: string; value: string; onChange: (value: string) => void; options: string[]; wide?: boolean }) {
-  return <label className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[1.1]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
+  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[1.1]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
 }
 function TextField({ title, value, onChange, placeholder, type = 'text' }: { title: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
-  return <label className={cell + (type === 'date' ? ' sm:min-w-[150px]' : '')}><span className={label}>{title}</span><input className={field} type={type} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>
+  return <label data-search-field={title} className={cell + (type === 'date' ? ' sm:min-w-[150px]' : '')}><span className={label}>{title}</span><input className={field} type={type} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>
 }
 
 function LocationField({ fieldId, title, value, onChange, placeholder, options = [], countryCode }: { fieldId: string; title: string; value: string; onChange: (value: string) => void; placeholder: string; options?: string[]; countryCode?: string }) {
@@ -100,7 +109,7 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
     return ()=>{window.clearTimeout(timer);controller.abort()}
   },[value])
   const suggestions = [...new Set([...local, ...remote])].slice(0,20)
-  return <div ref={rootRef} className={cell + ' relative min-w-0' + (fieldId === 'flight-from' || fieldId === 'flight-to' ? ' sm:min-w-[175px] sm:flex-[1.25]' : '')}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></div></label>
+  return <div data-search-field={title} ref={rootRef} className={cell + ' relative min-w-0' + (fieldId === 'flight-from' || fieldId === 'flight-to' ? ' sm:min-w-[175px] sm:flex-[1.25]' : '')}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></div></label>
     {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
       {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}
       {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide locations…</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No geocoding match yet. You can still use the entered location.</p>}
@@ -114,6 +123,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [searching, setSearching] = useState(false)
+  const [flightValidationError, setFlightValidationError] = useState('')
   const fromUrl = params.get('tab')
   const validTab = TABS.some(t => t.id === fromUrl) ? fromUrl as Tab : undefined
   const [tab, setTab] = useState<Tab>(params.get('type') === 'transfers' || params.get('service') === 'airport-transfer' ? 'transfers' : initial?.type === 'hotels' ? 'hotels' : initial?.type === 'flights' ? 'flights' : initial?.type === 'cars' ? 'cars' : initial?.type === 'tours' ? 'tours' : validTab ?? 'hotels')
@@ -214,6 +224,11 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (tab === 'flights' && (!isValidFlightAirport(from) || !isValidFlightAirport(to))) {
+      setFlightValidationError('Please enter or select recognised airport locations with valid IATA codes for both From and To.')
+      return
+    }
+    setFlightValidationError('') 
     setSearching(true)
     try {
       const type = tab === 'hotels' ? 'hotels' : tab === 'flights' ? 'flights' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
@@ -230,8 +245,6 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         query.set('from', pickup); query.set('to', dropoff); query.set('out', depart); query.set('back', transferType === 'Return' ? back : depart); query.set('pax', passengers); query.set('passengers', passengers.replace(/\D/g, '') || '2'); query.set('luggage', luggage.replace(/\D/g, '') || '2'); query.set('service', 'airport-transfer'); query.set('pickupTime', pickupTime); query.set('dropTime', dropTime)
       }
 
-      // Keep the progress overlay brief, then navigate; finally always releases it.
-      await new Promise<void>(resolve => window.setTimeout(resolve, 500))
       await navigate(`/results?${query.toString()}`)
     } catch (error) {
       console.error('Trexifly search navigation failed:', error)
@@ -249,6 +262,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
 
     {compact && <div className="mb-3">{tabNav}</div>}
     <form onSubmit={submit} className={'rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50' + (highlight ? ' search-flash' : '')}>
+      {flightValidationError && tab === 'flights' && <p role="alert" className="m-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{flightValidationError}</p>}
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={LOCATIONS} />
         <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
@@ -272,7 +286,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" />
         <TextField title="Time" value={dropTime} onChange={setDropTime} placeholder="10:00 AM" type="time" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
-      </div><div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><div className="w-36"><SelectField title="Driver age" value={driverAgeValue} onChange={setDriverAgeValue} options={['18','21','25','30','35','40','50','60','65','70']} /></div></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
+      </div><div className="trexifly-car-options flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><div className="w-44"><SelectField title="Driver age" value={driverAgeValue} onChange={setDriverAgeValue} options={['18','21','25','30','35','40','50','60','65','70']} /></div></div>{carDifferent && <div className="trexifly-car-dropoff mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
       {tab === 'tours' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={LOCATIONS} />
         <TextField title="Dates" value={activityDate} onChange={setActivityDate} placeholder="Select dates" type="date" />
