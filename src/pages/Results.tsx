@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Icon } from '../components/Icons'
 import { SearchWidget } from '../components/SearchWidget'
-import { readQuery, dealsFor, type Deal } from '../lib/data'
+import { readQuery, dealsFor, PLACES, type Deal, type SearchQuery } from '../lib/data'
 import { generateHotelInventory, type HotelListing } from '../lib/hotels'
 import { getAffiliatePartners, buildAffiliateUrl } from '../lib/affiliates'
 import { usePrefs } from '../lib/prefs'
@@ -94,6 +94,69 @@ function OfferCard({ deal }: { deal: Deal }) {
   </article>
 }
 
+type FlightApiOffer = {
+  id: string; price: number; currency: string; airlineCode: string; flightNumber: string
+  departureAt: string; arrivalAt: string | null; stops: number | null; durationMinutes: number | null
+  bookingUrl: string; markerId: string
+}
+function flightAirportCode(value: string): string {
+  const explicit = value.match(/\(([A-Z]{3})\)/i)?.[1]
+  if (explicit) return explicit.toUpperCase()
+  const normalized = value.toLowerCase()
+  return PLACES.find(place => place.code && (normalized.includes(place.city.toLowerCase()) || (!!place.airport && normalized.includes(place.airport.toLowerCase()))))?.code ?? ''
+}
+const FLIGHT_AIRLINE_NAMES: Record<string,string> = { PK:'Pakistan International Airlines',PA:'Airblue',ER:'SereneAir','9P':'Fly Jinnah',PF:'AirSial',EK:'Emirates',QR:'Qatar Airways',EY:'Etihad Airways',SV:'Saudia',XY:'Flynas',FZ:'flydubai',TK:'Turkish Airlines',BA:'British Airways',LH:'Lufthansa',AF:'Air France',KL:'KLM',AC:'Air Canada',UA:'United Airlines',DL:'Delta Air Lines',AA:'American Airlines',QF:'Qantas',NZ:'Air New Zealand',GF:'Gulf Air',WY:'Oman Air',KU:'Kuwait Airways' }
+function FlightTime({ value }: { value: string | null }) {
+  if (!value) return <span className="text-slate-400">Not supplied</span>
+  const date = new Date(value)
+  return <span>{Number.isNaN(date.getTime()) ? 'Not supplied' : date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</span>
+}
+function LiveFlightsResults({ query }: { query: SearchQuery }) {
+  const [offers,setOffers] = useState<FlightApiOffer[]>([])
+  const [status,setStatus] = useState<'loading'|'ready'|'empty'|'error'>('loading')
+  const [notice,setNotice] = useState('')
+  const [sort,setSort] = useState<'price'|'departure'|'duration'>('price')
+  const origin = flightAirportCode(query.from), destination = flightAirportCode(query.to)
+  const oneWay = query.back === query.out
+  useEffect(() => {
+    const controller = new AbortController()
+    async function load() {
+      setStatus('loading'); setNotice(''); setOffers([])
+      if (!origin || !destination) { setStatus('error'); setNotice('Select a recognised airport from the suggestions so we can search its IATA code.'); return }
+      const params = new URLSearchParams({ origin,destination,departure_at:query.out,one_way:String(oneWay),currency:'USD' })
+      if (!oneWay) params.set('return_at',query.back)
+      try {
+        const response = await fetch('/api/flights/search?'+params.toString(),{signal:controller.signal,headers:{Accept:'application/json'}})
+        const payload = await response.json() as { error?:string; offers?:FlightApiOffer[]; cacheWindow?:string }
+        if (!response.ok) throw new Error(payload.error || 'Flight fare search is temporarily unavailable.')
+        const rows = Array.isArray(payload.offers) ? payload.offers : []
+        setOffers(rows); setStatus(rows.length?'ready':'empty')
+        setNotice(payload.cacheWindow || 'Recent cached fares; not real-time inventory.')
+      } catch(error) {
+        if(controller.signal.aborted)return
+        setStatus('error'); setNotice(error instanceof Error?error.message:'Flight fare search is temporarily unavailable.')
+      }
+    }
+    void load()
+    return ()=>controller.abort()
+  },[origin,destination,query.out,query.back,oneWay])
+  const sorted = [...offers].sort((a,b)=>sort==='price'?a.price-b.price:sort==='departure'?Date.parse(a.departureAt)-Date.parse(b.departureAt):(a.durationMinutes??Number.MAX_SAFE_INTEGER)-(b.durationMinutes??Number.MAX_SAFE_INTEGER))
+  const currency = (amount:number,code:string)=>new Intl.NumberFormat('en-US',{style:'currency',currency:/^[A-Z]{3}$/.test(code)?code:'USD',maximumFractionDigits:0}).format(amount)
+  return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950"><div className="mx-auto max-w-[1280px] px-4 sm:px-6">
+    <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
+    <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Aviasales recent-search fares. Cached estimates are not real-time availability or guaranteed ticket prices.</p></div>
+    <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
+    <section className="mb-5 rounded-xl border border-orange-100 bg-white p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">Recent flight fares</h2><p className="mt-1 text-xs text-slate-500">{origin||'—'} → {destination||'—'} · {query.out}{oneWay?' · One-way':' · Return '+query.back}</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold text-amber-800">Cached data · Marker 806576</span></div>
+      {status==='ready'&&<div className="mt-4 flex flex-wrap gap-2">{([['price','Cheapest'],['departure','Earliest departure'],['duration','Shortest journey']] as const).map(([value,label])=><button key={value} type="button" onClick={()=>setSort(value)} aria-pressed={sort===value} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===value?'bg-[#FF5500] text-white':'bg-orange-50 text-slate-700')}>{label}</button>)}</div>}
+    </section>
+    {status==='loading'&&<div role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">Checking recent Aviasales fare data…</div>}
+    {status==='error'&&<div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><p className="font-bold">Flight fare data unavailable</p><p className="mt-2">{notice}</p></div>}
+    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-8 text-center"><h2 className="font-bold text-slate-900">No recent cached fares for this route</h2><p className="mt-2 text-sm text-slate-600">Try another date or continue to Aviasales to check current airline and agency availability. We will not invent prices for routes without cached data.</p><a href="https://aviasales.tpx.lv/ZOqzJHaf" target="_blank" rel="noopener noreferrer sponsored" className="mt-4 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Search on Aviasales <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
+    {status==='ready'&&<div className="space-y-3">{sorted.map(offer=><article key={offer.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center"><div className="flex min-w-0 flex-1 items-center gap-3"><AirlineLogo name={FLIGHT_AIRLINE_NAMES[offer.airlineCode]||offer.airlineCode||'Airline'} size="size-12"/><div className="min-w-0"><h3 className="font-bold text-slate-900">{FLIGHT_AIRLINE_NAMES[offer.airlineCode]||offer.airlineCode||'Airline not supplied'}</h3><p className="mt-1 text-xs text-slate-500">{offer.flightNumber?'Flight '+offer.flightNumber+' · ':''}{offer.airlineCode||'Airline code unavailable'}</p><div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-700"><span><strong>Depart:</strong> <FlightTime value={offer.departureAt}/></span><span><strong>Arrive:</strong> <FlightTime value={offer.arrivalAt}/></span><span>{offer.stops===null?'Stops not supplied':offer.stops===0?'Non-stop':offer.stops+' stop(s)'}</span>{offer.durationMinutes?<span>{durationText(offer.durationMinutes)}</span>:null}</div></div></div><div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:min-w-[210px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0"><div className="sm:text-right"><p className="text-[10px] text-slate-500">Cached fare estimate</p><p className="text-2xl font-black text-slate-900">{currency(offer.price,offer.currency)}</p><p className="text-[10px] text-slate-500">Route/date may need re-entry</p></div><a href={offer.bookingUrl} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-marker="806576" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Continue <Icon name="arrowUpRight" className="size-4"/></a></div></div></article>)}</div>}
+    <p className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700">{notice||'Prices are based on Aviasales cached search data. The provider may no longer have the fare; verify schedule, baggage, taxes and availability before booking. The affiliate link carries Trexifly marker 806576.'}</p>
+  </div></div>
+}
+
 type SampleKind = 'cars' | 'tours' | 'transfers'
 type SampleListing = {id:string;kind:SampleKind;title:string;category:string;subtitle:string;price:number;score:number;duration:string;perks:string[];affiliateUrl:string;transmission?:string;fuel?:string;capacity?:string;provider:string;imageUrl:string;seats?:string;bags?:string}
 const TOUR_PHOTOS=['https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=85','https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=85','https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85','https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85']
@@ -130,6 +193,8 @@ function SampleCard({item}:{item:SampleListing}){
    </div>
  </article>
 }
+function usesLiveFlightSearch(query: SearchQuery): boolean { return query.type === 'flights' }
+
 export function Results() {
   const [params, setParams] = useSearchParams()
   const query = readQuery(params)
@@ -151,7 +216,7 @@ export function Results() {
     return () => window.removeEventListener('trexifly:results-tab', onTab)
   }, [params, setParams])
   const transfer = params.get('type') === 'transfers' || params.get('service') === 'airport-transfer'
-  const deals = transfer || query.type === 'cars' || query.type === 'tours' ? [] : dealsFor(query)
+  const deals = transfer || query.type === 'cars' || query.type === 'tours' || query.type === 'flights' ? [] : dealsFor(query)
   const hotelInventory = query.type === 'hotels' && !transfer ? generateHotelInventory(query) : []
   const partnerLinks = transfer ? getAffiliatePartners('transfers') : query.type === 'tours' ? [...getAffiliatePartners('tours'), ...getAffiliatePartners('hotels').filter(p => p.id === 'klook-hotels' || p.id === 'kkday')] : getAffiliatePartners(query.type)
   const { money } = usePrefs()
@@ -178,6 +243,7 @@ export function Results() {
   const filteredHotels=useMemo(()=>{const rows=hotelInventory.filter(h=>!hotelStars.length||hotelStars.includes(h.stars));return [...rows].sort((a,b)=>hotelSort==='Lowest Price'?a.price-b.price:hotelSort==='Highest Price'?b.price-a.price:hotelSort==='Top Rated'?b.score-a.score:b.stars-a.stars)},[hotelInventory,hotelStars,hotelSort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
   const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' to '+query.to
+  if (usesLiveFlightSearch(query)) return <LiveFlightsResults query={query} />
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
     <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
