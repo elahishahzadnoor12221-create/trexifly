@@ -1,13 +1,15 @@
-type ApiEnv = { TRAVELPAYOUTS_API_TOKEN?: string }
-type VercelRequest = { method?: string; query?: Record<string, string | string[] | undefined> }
-type VercelResponse = { setHeader(name: string, value: string): void; status(code: number): VercelResponse; json(body: unknown): VercelResponse }
-declare const process: { env: ApiEnv }
+export const config = { runtime: 'edge' }
+
+type Query = Record<string, string | string[] | undefined>
 type Fare = { price?: number | string; currency?: string; departure_at?: string; depart_date?: string; value?: number | string; origin?: string; destination?: string; airline?: string; transfers?: number; number_of_changes?: number; flight_number?: string | number; expires_at?: string; actual?: boolean }
 const MARKER_ID = '806576'
 const CURRENCIES = new Set(['USD','EUR','GBP','PKR','AED','SAR','CAD','AUD'])
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value ?? '').trim()
 const validMonth = (value: string) => /^\d{4}-(0[1-9]|1[0-2])$/.test(value)
 const numericPrice = (value: unknown) => { const price = Number(value); return Number.isFinite(price) && price > 0 ? price : null }
+function jsonResponse(status: number, body: unknown, cacheControl = 'no-store') {
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': cacheControl } })
+}
 function normalizeFare(value: Record<string, unknown>, dateKey = ''): Fare | null {
   const departure = typeof value.departure_at === 'string' ? value.departure_at : typeof value.depart_date === 'string' ? value.depart_date : dateKey
   const price = numericPrice(value.price ?? value.value)
@@ -31,23 +33,22 @@ function extractRows(payload: unknown): Fare[] {
   visit(data)
   return rows
 }
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Content-Type', 'application/json; charset=utf-8')
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
-  const q = req.query ?? {}
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method !== 'GET') return jsonResponse(405, { error: 'Method not allowed' })
+  const q = Object.fromEntries(new URL(req.url).searchParams.entries()) as Query
   const origin = first(q.origin).toUpperCase(), destination = first(q.destination).toUpperCase()
   const month = first(q.month), trip = first(q.one_way) === 'true' ? 'one-way' : 'round-trip'
   const currencyInput = first(q.currency).toUpperCase() || 'USD'
   const currency = (CURRENCIES.has(currencyInput) ? currencyInput : 'USD').toLowerCase()
   const returnDate = first(q.return_at)
   const selectedDeparture = first(q.departure_at)
-  if (!/^[A-Z]{3}$/.test(origin) || !/^[A-Z]{3}$/.test(destination) || origin === destination || !validMonth(month)) return res.status(400).json({ error: 'Valid origin, destination and YYYY-MM month are required.' })
+  if (!/^[A-Z]{3}$/.test(origin) || !/^[A-Z]{3}$/.test(destination) || origin === destination || !validMonth(month)) return jsonResponse(400, { error: 'Valid origin, destination and YYYY-MM month are required.' })
   const now = new Date(); const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
   const target = new Date(month + '-01T00:00:00Z')
   const lastAllowed = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 11, 1))
-  if (target < new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)) || target > lastAllowed) return res.status(400).json({ error: 'Calendar supports the current month through 11 months ahead.' })
+  if (target < new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)) || target > lastAllowed) return jsonResponse(400, { error: 'Calendar supports the current month through 11 months ahead.' })
   const token = process.env.TRAVELPAYOUTS_API_TOKEN?.trim()
-  if (!token) return res.status(503).json({ error: 'Flight calendar is not configured.' })
+  if (!token) return jsonResponse(503, { error: 'Flight calendar is not configured.' })
   const headers = { 'X-Access-Token': token, Accept: 'application/json' }
   const attempts: Array<{ url: URL; source: string }> = []
   const legacy = new URL('https://api.travelpayouts.com/v1/prices/calendar')
@@ -87,6 +88,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (current === undefined || price < current) byDate.set(date, price)
   }
   const prices = [...byDate.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, price]) => ({ date, price, currency: currency.toUpperCase() }))
-  res.setHeader('Cache-Control', 'public, max-age=900, stale-while-revalidate=1800')
-  return res.status(200).json({ ok: true, origin, destination, month, currency: currency.toUpperCase(), tripType: trip, markerId: MARKER_ID, source: source || 'no-cached-data', cached: true, prices, message: prices.length ? undefined : 'No cached partner fares are currently available for this month. Check live availability with the booking partner.' })
+  return jsonResponse(200, { ok: true, origin, destination, month, currency: currency.toUpperCase(), tripType: trip, markerId: MARKER_ID, source: source || 'no-cached-data', cached: true, prices, message: prices.length ? undefined : 'No cached partner fares are currently available for this month. Check live availability with the booking partner.' }, 'public, max-age=900, stale-while-revalidate=1800')
 }
