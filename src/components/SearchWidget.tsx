@@ -15,7 +15,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
 ]
 const AIRPORTS = PLACES.filter((p) => p.code).map((p) => `${p.city} (${p.code}) - ${p.airport ? p.airport + ', ' : ''}${p.country}`)
 const FLIGHT_LOCATIONS = [...AIRPORTS, 'Hunza, Pakistan', 'Swat, Pakistan']
-const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, T�rkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
+const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, Türkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const GLOBAL_STAYS_DESTINATIONS = [
   'Dublin, Ireland','Cork, Ireland','Galway, Ireland','Belfast, Northern Ireland',
   'Edinburgh, Scotland','Glasgow, Scotland','Lisbon, Portugal','Porto, Portugal',
@@ -58,7 +58,7 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
       pk:['Lahore, Pakistan','Islamabad, Pakistan','Karachi, Pakistan','Peshawar, Pakistan','Quetta, Pakistan','Multan, Pakistan','Skardu, Pakistan','Pearl Continental Lahore, Lahore, Pakistan','Serena Hotel Islamabad, Islamabad, Pakistan','Marriott Karachi, Karachi, Pakistan'],
       sa:['Jeddah, Saudi Arabia','Madinah, Saudi Arabia','Makkah, Saudi Arabia','Riyadh, Saudi Arabia','Makkah Clock Royal Tower, Makkah, Saudi Arabia','Pullman Zamzam Makkah, Makkah, Saudi Arabia','Anwar Al Madinah Mövenpick, Madinah, Saudi Arabia'],
       gb:['London, United Kingdom','Manchester, United Kingdom','Heathrow Airport, London, United Kingdom','Central London, United Kingdom'],
-      tr:['Istanbul, Türkiye','Antalya, T?rkiye','Ankara, T?rkiye','Sabiha Gökçen Airport, Istanbul, T?rkiye','Taksim Square, Istanbul, T?rkiye']
+      tr:['Istanbul, Türkiye','Antalya, Türkiye','Ankara, Türkiye','Sabiha Gökçen Airport, Istanbul, Türkiye','Taksim Square, Istanbul, Türkiye']
     }
     const countryNames:Record<string,RegExp>={ae:/United Arab Emirates/i,pk:/Pakistan/i,sa:/Saudi Arabia/i,gb:/United Kingdom/i,tr:/Türkiye|Turkey/i}
     const source=countryCode?[...options.filter(item=>countryNames[countryCode]?.test(item)),...(curated[countryCode]??[])]:options
@@ -175,7 +175,8 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   const [carDifferent, setCarDifferent] = useState(false)
   const [workTrip, setWorkTrip] = useState(false)
   const [entireHome, setEntireHome] = useState(false)
-  const [driverAge, setDriverAge] = useState(true)
+  const [driverAgeValue, setDriverAgeValue] = useState('35')
+  const [luggage, setLuggage] = useState('2 bags')
 
   const copy = useMemo(() => ({
     hotels: ['Find your next stay', 'Search deals on hotels, homes, and much more...'],
@@ -220,11 +221,11 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
       } else if (tab === 'hotels') {
         query.set('to', destination); query.set('out', depart); query.set('back', back); query.set('adults', String(adults)); query.set('children', String(children)); query.set('rooms', String(roomCount)); query.set('childAges', childAges.slice(0, children).join(',')); query.set('pax', adults + (adults === 1 ? ' adult' : ' adults') + ' / ' + children + (children === 1 ? ' child' : ' children') + ' / ' + roomCount + (roomCount === 1 ? ' room' : ' rooms'))
       } else if (tab === 'cars') {
-        query.set('from', pickup); query.set('to', carDifferent ? dropoff : pickup); query.set('out', depart); query.set('back', back); query.set('vehicle', 'Standard')
+        query.set('from', pickup); query.set('to', carDifferent ? dropoff : pickup); query.set('out', depart); query.set('back', back); query.set('vehicle', 'Standard'); query.set('pickupTime', pickupTime); query.set('dropTime', dropTime); query.set('driverAge', driverAgeValue)
       } else if (tab === 'tours') {
         query.set('to', destination); query.set('out', activityDate || depart); query.set('back', activityDate || back); query.set('duration', '5-7 days'); query.set('pkg', 'Private')
       } else {
-        query.set('from', pickup); query.set('to', dropoff); query.set('out', depart); query.set('back', transferType === 'Return' ? back : depart); query.set('pax', passengers); query.set('service', 'airport-transfer'); query.set('pickupTime', pickupTime)
+        query.set('from', pickup); query.set('to', dropoff); query.set('out', depart); query.set('back', transferType === 'Return' ? back : depart); query.set('pax', passengers); query.set('passengers', passengers.replace(/\D/g, '') || '2'); query.set('luggage', luggage.replace(/\D/g, '') || '2'); query.set('service', 'airport-transfer'); query.set('pickupTime', pickupTime); query.set('dropTime', dropTime)
       }
 
       // Keep the progress overlay brief, then navigate; finally always releases it.
@@ -258,8 +259,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <SelectField title="Trip type" value={trip} onChange={setTrip} options={['Round-trip','One-way']} />
         <LocationField fieldId="flight-from" title="From" value={from} onChange={setFrom} placeholder="City or airport worldwide" options={FLIGHT_LOCATIONS} />
         <LocationField fieldId="flight-to" title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={FLIGHT_LOCATIONS.filter(a => a !== from)} />
-        <FlightDatePicker value={depart} onChange={setDepart} origin={from} destination={to} tripType={trip} returnDate={back} />
-        {trip === 'Round-trip' && <TextField title="Return" value={back} onChange={setBack} placeholder="Return" type="date" />}
+        <FlightDatePicker value={depart} onChange={setDepart} returnValue={back} onReturnChange={setBack} origin={from} destination={to} tripType={trip} onTripTypeChange={setTrip} />
         {guestSelector(false, true)}
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
@@ -270,7 +270,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" />
         <TextField title="Time" value={dropTime} onChange={setDropTime} placeholder="10:00 AM" type="time" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
-      </div><div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={driverAge} onChange={e => setDriverAge(e.target.checked)} className="size-4 accent-[#FF5500]" />Driver aged 30-65?</label></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
+      </div><div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><div className="w-36"><SelectField title="Driver age" value={driverAgeValue} onChange={setDriverAgeValue} options={['18','21','25','30','35','40','50','60','65','70']} /></div></div>{carDifferent && <div className="mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
       {tab === 'tours' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="tour-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search any city worldwide" options={LOCATIONS} />
         <TextField title="Dates" value={activityDate} onChange={setActivityDate} placeholder="Select dates" type="date" />
@@ -282,6 +282,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <TextField title="Pick-up date" value={depart} onChange={setDepart} placeholder="Date" type="date" />
         <TextField title="Pick-up time" value={pickupTime} onChange={setPickupTime} placeholder="Time" type="time" />
         <SelectField title="Passengers" value={passengers} onChange={setPassengers} options={['1 passenger','2 passengers','3 passengers','4 passengers','5 passengers','6 passengers']} />
+        <SelectField title="Luggage" value={luggage} onChange={setLuggage} options={['0 bags','1 bag','2 bags','3 bags','4 bags','5 bags','6 bags','7 bags','8 bags']} />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div></>}
     </form>
