@@ -64,7 +64,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const payload = await response.json() as FareResponse<AviasalesFare[]>
     let rows = Array.isArray(payload.data) ? payload.data : []
+    let flexibleRows: AviasalesFare[] = []
     let source: 'prices_for_dates' | 'prices/cheap' = 'prices_for_dates'
+    if (!rows.some(item => item.departure_at?.slice(0, 10) === departureAt.slice(0, 10) && (oneWay || item.return_at?.slice(0, 10) === returnAt.slice(0, 10)))) {
+      const monthly = new URL('https://api.travelpayouts.com/aviasales/v3/prices_for_dates')
+      monthly.searchParams.set('origin', origin); monthly.searchParams.set('destination', destination)
+      monthly.searchParams.set('departure_at', departureAt.slice(0, 7)); monthly.searchParams.set('one_way', String(oneWay))
+      monthly.searchParams.set('direct', 'false'); monthly.searchParams.set('sorting', 'price'); monthly.searchParams.set('limit', '50'); monthly.searchParams.set('page', '1')
+      monthly.searchParams.set('currency', currency); monthly.searchParams.set('cy', currency)
+      if (market) monthly.searchParams.set('market', market)
+      if (!oneWay) monthly.searchParams.set('return_at', returnAt.slice(0, 7))
+      const monthResponse = await fetch(monthly, { headers: { 'X-Access-Token': token, Accept: 'application/json' }, signal: AbortSignal.timeout(10000) })
+      if (monthResponse.ok) {
+        const monthPayload = await monthResponse.json() as FareResponse<AviasalesFare[]>
+        flexibleRows = Array.isArray(monthPayload.data) ? monthPayload.data : []
+      }
+    }
     if (!payload.success || rows.length === 0) {
       const legacy = new URL('https://api.travelpayouts.com/v1/prices/cheap')
       legacy.searchParams.set('origin', origin)
@@ -99,8 +114,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         durationMinutes: asNumber(item.duration_to ?? item.duration), foundAt: item.found_at ?? null,
         bookingUrl: VERIFIED_AVIASALES_AFFILIATE, markerId: MARKER_ID, source, cached: true,
       }))
+    const flexibleOffers = flexibleRows
+      .filter(item => asNumber(item.price) !== null && typeof item.departure_at === 'string' && item.departure_at.slice(0, 7) === departureAt.slice(0, 7))
+      .filter(item => oneWay || (typeof item.return_at === 'string' && item.return_at.slice(0, 7) === returnAt.slice(0, 7)))
+      .sort((a, b) => (asNumber(a.price) ?? Infinity) - (asNumber(b.price) ?? Infinity))
+      .slice(0, 5)
+      .map((item, index) => ({
+        id: [origin, destination, item.airline ?? 'XX', item.flight_number ?? index, item.departure_at].join('-'),
+        origin, destination, originAirport: item.origin_airport ?? origin, destinationAirport: item.destination_airport ?? destination,
+        price: asNumber(item.price), currency: (item.currency ?? currency).toUpperCase(),
+        airlineCode: (item.airline ?? '').toUpperCase(), flightNumber: String(item.flight_number ?? ''),
+        departureAt: item.departure_at!, arrivalAt: item.duration_to ? new Date(new Date(item.departure_at!).getTime() + item.duration_to * 60000).toISOString() : null,
+        returnAt: item.return_at ?? null, stops: Number.isInteger(item.transfers) ? item.transfers : null,
+        durationMinutes: asNumber(item.duration_to ?? item.duration), foundAt: item.found_at ?? null,
+        bookingUrl: VERIFIED_AVIASALES_AFFILIATE, markerId: MARKER_ID, source: 'prices_for_dates_month', cached: true,
+      }))
     res.setHeader('Cache-Control', 'public, max-age=180, stale-while-revalidate=600')
-    return res.status(200).json({ ok: true, origin, destination, currency: currency.toUpperCase(), markerId: MARKER_ID, source, cached: true, cacheWindow: 'Recent Aviasales search cache; not real-time inventory', offers })
+    return res.status(200).json({ ok: true, origin, destination, currency: currency.toUpperCase(), markerId: MARKER_ID, source, cached: true, cacheWindow: 'Recent Aviasales search cache; not real-time inventory', offers, flexibleOffers })
   } catch {
     res.setHeader('Cache-Control', 'no-store')
     return res.status(502).json({ error: 'Could not retrieve recent flight fare data. Please try again shortly.' })

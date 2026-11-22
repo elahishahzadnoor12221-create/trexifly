@@ -148,7 +148,7 @@ function aviasalesSearchUrl(query: SearchQuery, origin: string, destination: str
   const children = Math.min(9 - adults, Math.max(0, query.children ?? 0))
   const cabin = /business/i.test(query.pax) ? 'c' : /first/i.test(query.pax) ? 'f' : /premium economy|comfort/i.test(query.pax) ? 'w' : ''
   const route = origin + dateCode(query.out) + destination + (oneWay ? '' : dateCode(query.back)) + cabin + String(adults) + (children ? String(children) : '')
-  return 'https://www.aviasales.com/search/' + route
+  return 'https://www.aviasales.com/search/' + route + '?marker=806576'
 }
 function airportDisplay(code: string) {
   const place = PLACES.find(item => item.code === code)
@@ -156,6 +156,7 @@ function airportDisplay(code: string) {
 }
 function LiveFlightsResults({ query }: { query: SearchQuery }) {
   const [offers,setOffers] = useState<FlightApiOffer[]>([])
+  const [flexibleOffers,setFlexibleOffers] = useState<FlightApiOffer[]>([])
   const [status,setStatus] = useState<'loading'|'ready'|'empty'|'error'>('loading')
   const [notice,setNotice] = useState('')
   const [sort,setSort] = useState<'price'|'departure'|'duration'>('price')
@@ -164,7 +165,7 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
   useEffect(() => {
     const controller = new AbortController()
     async function load() {
-      setStatus('loading'); setNotice(''); setOffers([])
+      setStatus('loading'); setNotice(''); setOffers([]); setFlexibleOffers([])
       if (!origin || !destination) { setStatus('error'); setNotice('Select a recognised airport from the suggestions so we can search its IATA code.'); return }
       const params = new URLSearchParams({
         origin, destination, departure_at: query.out, one_way: String(oneWay), currency: 'USD',
@@ -174,10 +175,11 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
       if (!oneWay) params.set('return_at', query.back)
       try {
         const response = await fetch('/api/flights/search?'+params.toString(),{signal:controller.signal,headers:{Accept:'application/json'}})
-        const payload = await response.json() as { error?:string; offers?:FlightApiOffer[]; cacheWindow?:string }
+        const payload = await response.json() as { error?:string; offers?:FlightApiOffer[]; flexibleOffers?:FlightApiOffer[]; cacheWindow?:string }
         if (!response.ok) throw new Error(payload.error || 'Flight fare search is temporarily unavailable.')
         const rows = Array.isArray(payload.offers) ? payload.offers : []
-        setOffers(rows); setStatus(rows.length?'ready':'empty')
+        const flexible = Array.isArray(payload.flexibleOffers) ? payload.flexibleOffers : []
+        setOffers(rows); setFlexibleOffers(flexible); setStatus(rows.length?'ready':'empty')
         setNotice(payload.cacheWindow || 'Recent cached fares; not real-time inventory.')
       } catch(error) {
         if(controller.signal.aborted)return
@@ -194,12 +196,12 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
     <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
     <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Aviasales recent-search fares. Cached estimates are not real-time availability or guaranteed ticket prices.</p></div>
     <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
-    <section className="mb-5 rounded-xl border border-orange-100 bg-white p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">Recent flight fares</h2><p className="mt-1 text-xs text-slate-500">{origin||'â€”'} â†’ {destination||'â€”'} Â· {query.out}{oneWay?' Â· One-way':' Â· Return '+query.back}</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold text-amber-800">Cached data Â· Marker 806576</span></div>
+    <section className="mb-5 rounded-xl border border-orange-100 bg-white p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">Recent flight fares</h2><p className="mt-1 text-xs text-slate-500">{origin || '—'} &rarr; {destination || '—'} &middot; {query.out}{oneWay ? '\u00B7 One-way' : '\u00B7 Return ' + query.back}</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold text-amber-800">Cached data Â· Marker 806576</span></div>
       {status==='ready'&&<div className="mt-4 flex flex-wrap gap-2">{([['price','Cheapest'],['departure','Earliest departure'],['duration','Shortest journey']] as const).map(([value,label])=><button key={value} type="button" onClick={()=>setSort(value)} aria-pressed={sort===value} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===value?'bg-[#FF5500] text-white':'bg-orange-50 text-slate-700')}>{label}</button>)}</div>}
     </section>
     {status==='loading'&&<div role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">Checking recent Aviasales fare dataâ€¦</div>}
     {status==='error'&&<div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><p className="font-bold">Flight fare data unavailable</p><p className="mt-2">{notice}</p></div>}
-    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No recent cached fares for this route</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for this exact route and date. Check the live partner search for current availability and pricing.</p><a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="mt-4 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Check Live Fare <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
+    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No exact-date cached fare</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for {query.out}. Check live availability or compare other dates in the same month.</p>{flexibleOffers.length>0&&<section className="mt-5"><h3 className="font-bold text-slate-900 dark:text-white">Flexible dates in {new Date(query.out+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})} · From {currency(flexibleOffers[0].price,flexibleOffers[0].currency)}</h3><div className="mt-3 grid gap-2 sm:grid-cols-2">{flexibleOffers.map(offer=>{const date=offer.departureAt.slice(0,10);const flexibleUrl=aviasalesSearchUrl({...query,out:date,back:oneWay?date:query.back},origin,destination,oneWay);return <a key={offer.id} href={flexibleUrl} target="_blank" rel="noopener noreferrer sponsored" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-400 dark:border-slate-700"><span><strong className="block text-sm text-slate-900 dark:text-white">{new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</strong><span className="text-[10px] text-slate-500">{offer.airlineCode || 'Partner cached fare'} · Marker 806576</span></span><strong className="text-sm text-emerald-700 dark:text-emerald-300">{currency(offer.price,offer.currency)} →</strong></a>})}</div></section>}<a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Check Exact Date Live Fare → <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
     {status==='ready'&&<div className="space-y-3">{sorted.map(offer=>{
       const carrier = FLIGHT_AIRLINE_NAMES[offer.airlineCode] || offer.airlineCode || 'Airline not supplied'
       const fromCode = offer.originAirport || origin

@@ -27,7 +27,7 @@ test('flight results show exact fare labels, route link and expandable fare deta
   await expect(page.getByText('Flight 204 · Non-stop')).toBeVisible()
   await expect(page.getByText('From $100')).toBeVisible()
   const booking = page.getByRole('link', { name: 'View flight' })
-  await expect(booking).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB2')
+  await expect(booking).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB2?marker=806576')
   const details = page.getByText('Fare conditions & flight details')
   await expect(details).toBeVisible()
   await details.click()
@@ -35,16 +35,19 @@ test('flight results show exact fare labels, route link and expandable fare deta
   await expect(page.getByText(/Passenger summary: 2 adult\(s\)/)).toBeVisible()
 })
 
-test('flight results show a clear no-cache state instead of invented fares', async ({ page }) => {
+test('flight results show the same-month flexible cached fares and exact-date fallback', async ({ page }) => {
   await page.route(flightSearchUrl, route => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify({ ok: true, markerId: '806576', cached: true, offers: [] }),
+    body: JSON.stringify({ ok: true, markerId: '806576', cached: true, offers: [], flexibleOffers: [{ ...sampleOffer, id: 'LHE-DXB-EK-206', departureAt: '2026-12-06T10:00:00Z', price: 88 }] }),
   }))
   await page.goto('/results?type=flights&from=Lahore%20(LHE)&to=Dubai%20(DXB)&out=2026-12-01&back=2026-12-01')
-  await expect(page.getByRole('heading', { name: 'No recent cached fares for this route' })).toBeVisible()
-  const liveFare = page.getByRole('link', { name: /Check Live Fare/ })
-  await expect(liveFare).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB2')
+  await expect(page.getByRole('heading', { name: 'No exact-date cached fare' })).toBeVisible()
+  await expect(page.getByText('Flexible dates in December 2026 · From $88')).toBeVisible()
+  const flexibleFare = page.getByRole('link', { name: /Sun, Dec 6/ })
+  await expect(flexibleFare).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0612DXB2?marker=806576')
+  const liveFare = page.getByRole('link', { name: /Check Exact Date Live Fare/ })
+  await expect(liveFare).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB2?marker=806576')
 })
 
 test('round-trip flight request and Aviasales link preserve dates, passengers and cabin', async ({ page }) => {
@@ -54,7 +57,7 @@ test('round-trip flight request and Aviasales link preserve dates, passengers an
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, offers: [] }) })
   })
   await page.goto('/results?type=flights&from=Lahore%20(LHE)&to=Dubai%20(DXB)&out=2026-12-01&back=2026-12-05&adults=2&children=1&pax=2%20adults%20%2F%201%20child%20%2F%20Business')
-  await expect(page.getByRole('heading', { name: 'No recent cached fares for this route' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'No exact-date cached fare' })).toBeVisible()
   const request = new URL(requestUrl)
   expect(request.searchParams.get('origin')).toBe('LHE')
   expect(request.searchParams.get('destination')).toBe('DXB')
@@ -64,5 +67,5 @@ test('round-trip flight request and Aviasales link preserve dates, passengers an
   expect(request.searchParams.get('adults')).toBe('2')
   expect(request.searchParams.get('children')).toBe('1')
   expect(request.searchParams.get('trip_class')).toBe('C')
-  await expect(page.getByRole('link', { name: /Check Live Fare/ })).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB0512c21')
+  await expect(page.getByRole('link', { name: /Check Exact Date Live Fare/ })).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB0512c21?marker=806576')
 })

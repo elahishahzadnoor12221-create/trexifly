@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Icon, type IconName } from './Icons'
 import {  isoIn, type SearchQuery , PLACES } from '../lib/data'
 import { imgFallback } from '../lib/imageFallback'
+import { FlightDatePicker } from './FlightDatePicker'
 
 type Tab = 'hotels' | 'flights' | 'cars' | 'tours' | 'transfers'
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
@@ -257,7 +258,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <SelectField title="Trip type" value={trip} onChange={setTrip} options={['Round-trip','One-way']} />
         <LocationField fieldId="flight-from" title="From" value={from} onChange={setFrom} placeholder="City or airport worldwide" options={FLIGHT_LOCATIONS} />
         <LocationField fieldId="flight-to" title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={FLIGHT_LOCATIONS.filter(a => a !== from)} />
-        <TextField title="Departure" value={depart} onChange={setDepart} placeholder="Departure" type="date" />
+        <FlightDatePicker value={depart} onChange={setDepart} origin={from} destination={to} tripType={trip} returnDate={back} />
         {trip === 'Round-trip' && <TextField title="Return" value={back} onChange={setBack} placeholder="Return" type="date" />}
         {guestSelector(false, true)}
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
