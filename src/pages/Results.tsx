@@ -136,6 +136,38 @@ function flightAirportCode(value: string): string {
   const normalized = value.toLowerCase()
   return PLACES.find(place => place.code && (normalized.includes(place.city.toLowerCase()) || (!!place.airport && normalized.includes(place.airport.toLowerCase()))))?.code ?? ''
 }
+
+// Page-type White Labels are bound to their configured domain; wl_id is used for widget scripts, not Page deeplinks.
+const TRAVELPAYOUTS_WL_ID = '24943'
+const TRAVELPAYOUTS_WL_URL = 'https://flights.trexifly.com/'
+const TRAVELPAYOUTS_MARKER = '806576'
+function buildTravelpayoutsWhiteLabelUrl(query: SearchQuery, params: URLSearchParams): string | null {
+  const origin = flightAirportCode(query.from)
+  const destination = flightAirportCode(query.to)
+  const dateCode = (value: string) => {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!match) return null
+    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3])
+    const date = new Date(Date.UTC(year, month - 1, day))
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return null
+    return String(day).padStart(2, '0') + String(month).padStart(2, '0')
+  }
+  const departure = dateCode(query.out)
+  const oneWay = params.get('tripType') === 'one-way' || (!params.has('tripType') && query.back === query.out)
+  const returning = oneWay ? '' : dateCode(query.back)
+  const adults = Number(params.get('adults') ?? query.adults ?? 2)
+  const children = Number(params.get('children') ?? query.children ?? 0)
+  const infants = Number(params.get('infants') ?? 0)
+  if (!origin || !destination || !departure || (!oneWay && !returning) || !Number.isInteger(adults) || adults < 1 || adults > 9 || !Number.isInteger(children) || children < 0 || children > 9 || !Number.isInteger(infants) || infants < 0 || infants > 9) return null
+  const cabinName = params.get('cabin') ?? query.pax
+  const cabin = /business/i.test(cabinName) ? 'c' : /first/i.test(cabinName) ? 'f' : /premium economy|comfort/i.test(cabinName) ? 'w' : ''
+  const passengerDigits = `${adults}${children}${infants}`.replace(/0+$/, '')
+  const flightSearch = `${origin}${departure}${destination}${returning}${cabin}${passengerDigits}`
+  const url = new URL(TRAVELPAYOUTS_WL_URL)
+  url.searchParams.set('flightSearch', flightSearch)
+  url.searchParams.set('marker', TRAVELPAYOUTS_MARKER)
+  return url.toString()
+}
 const FLIGHT_AIRLINE_NAMES: Record<string,string> = { PK:'Pakistan International Airlines',PA:'Airblue',ER:'SereneAir','9P':'Fly Jinnah',PF:'AirSial',EK:'Emirates',QR:'Qatar Airways',EY:'Etihad Airways',SV:'Saudia',XY:'Flynas',FZ:'flydubai',TK:'Turkish Airlines',BA:'British Airways',LH:'Lufthansa',AF:'Air France',KL:'KLM',AC:'Air Canada',UA:'United Airlines',DL:'Delta Air Lines',AA:'American Airlines',QF:'Qantas',NZ:'Air New Zealand',GF:'Gulf Air',WY:'Oman Air',KU:'Kuwait Airways' }
 function FlightTime({ value }: { value: string | null }) {
   if (!value) return <span className="text-slate-400">Not supplied</span>
@@ -332,6 +364,11 @@ function usesLiveFlightSearch(query: SearchQuery): boolean { return query.type =
 export function Results() {
   const [params, setParams] = useSearchParams()
   const query = readQuery(params)
+  const shouldRedirectToWhiteLabel = query.type === 'flights' && params.get('tpwl') === '1'
+  const whiteLabelFlightUrl = shouldRedirectToWhiteLabel ? buildTravelpayoutsWhiteLabelUrl(query, params) : null
+  useEffect(() => {
+    if (whiteLabelFlightUrl) window.location.replace(whiteLabelFlightUrl)
+  }, [whiteLabelFlightUrl])
   useEffect(() => {
     const onTab = (e: Event) => {
       const next = (e as CustomEvent<{ tab?: string }>).detail?.tab
@@ -377,6 +414,7 @@ export function Results() {
   const filteredHotels=useMemo(()=>{const rows=hotelInventory.filter(h=>!hotelStars.length||hotelStars.includes(h.stars));return [...rows].sort((a,b)=>hotelSort==='Lowest Price'?a.price-b.price:hotelSort==='Highest Price'?b.price-a.price:hotelSort==='Top Rated'?b.score-a.score:b.stars-a.stars)},[hotelInventory,hotelStars,hotelSort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
   const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' to '+query.to
+  if (shouldRedirectToWhiteLabel) return <main data-travelpayouts-wl-id={TRAVELPAYOUTS_WL_ID} className="grid min-h-screen place-items-center bg-[#FFF7F2] px-5 text-center dark:bg-slate-950"><div className="max-w-lg rounded-2xl border border-orange-100 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900"><h1 className="text-xl font-extrabold text-slate-900 dark:text-white">Opening live flight search</h1>{whiteLabelFlightUrl ? <><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Continuing to Trexifly Flights powered by Travelpayouts White Label.</p><a href={whiteLabelFlightUrl} className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-5 py-3 text-sm font-bold text-white">Continue to live flights</a></> : <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">Please choose valid airport IATA codes, dates, and passenger counts (1–9 adults, 0–9 children and infants) before searching.</p>}</div></main>
   if (usesLiveFlightSearch(query) && !transfer) return <LiveFlightsResults query={query} />
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
     <div className="mx-auto max-w-[1280px] px-4 sm:px-6">

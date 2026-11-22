@@ -25,21 +25,24 @@ test('Stays guest selectors support 5 adults, 5 children, 6 rooms and individual
   expect(url.searchParams.get('childAges')).toBe('4,5,6,7,8')
 })
 
-test('Flights guest selectors support up to 5 adults and 5 children with cabin class in the same menu', async ({ page }) => {
+test('Flights guest selectors support up to 9 adults, 9 children, infants and cabin class in the same menu', async ({ page }) => {
   await blockExternalScripts(page)
   await page.goto('/?tab=flights', { waitUntil: 'domcontentloaded' })
   await page.getByRole('button', { name: /Choose passengers/ }).click()
-  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Add adult' }).click()
-  for (let i = 0; i < 5; i++) await page.getByRole('button', { name: 'Add child' }).click()
+  for (let i = 0; i < 7; i++) await page.getByRole('button', { name: 'Add adult' }).click()
+  for (let i = 0; i < 9; i++) await page.getByRole('button', { name: 'Add child' }).click()
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Add infant' }).click()
+  await expect(page.getByRole('button', { name: 'Add adult' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Add child' })).toBeDisabled()
+  await expect(page.getByText('3 Infants')).toBeVisible()
   await page.locator('select[aria-label="Cabin class"]').selectOption('Business')
   await page.locator('select[aria-label="Cabin class"]').selectOption('First Class')
   await page.getByRole('button', { name: 'Done' }).click()
   await page.getByRole('button', { name: 'Search' }).first().click()
-  await expect(page).toHaveURL(/\/results\?/, { timeout: 15000 })
+  await expect(page).toHaveURL(/^https:\/\/flights\.trexifly\.com\//, { timeout: 20000 })
   const url = new URL(page.url())
-  expect(url.searchParams.get('adults')).toBe('5')
-  expect(url.searchParams.get('children')).toBe('5')
-  expect(url.searchParams.get('cabin')).toBe('First Class')
+  expect(url.searchParams.get('flightSearch')).toMatch(/^LHE\d{4}DXB\d{4}f993$/)
+  expect(url.searchParams.get('marker')).toBe('806576')
 })
 
 test('Stays guest selectors remain usable on a mobile viewport', async ({ page }) => {
