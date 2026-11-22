@@ -883,6 +883,8 @@ html[data-theme="dark"] #search-widget select option { color: #FFFFFF !important
 }
 #smart-travel-alerts input::placeholder { color: #64748B !important; opacity: 1; }
 #smart-travel-alerts input[type="checkbox"] { accent-color: #F97316; outline-offset: 2px; }
+#smart-travel-alerts form > div.grid.gap-2.rounded-xl.border { background: #F8FAFC !important; border-color: #CBD5E1 !important; }
+#smart-travel-alerts form > div.grid.gap-2.rounded-xl.border label { color: #0F172A !important; }
 #smart-travel-alerts button[aria-pressed="false"] { color: #334155 !important; }
 html[data-theme="dark"] #smart-travel-alerts > div {
   background: linear-gradient(135deg,#111827,#172033) !important;
@@ -901,6 +903,8 @@ html[data-theme="dark"] #smart-travel-alerts select {
 }
 html[data-theme="dark"] #smart-travel-alerts input::placeholder { color: #CBD5E1 !important; }
 html[data-theme="dark"] #smart-travel-alerts input[type="checkbox"] { accent-color: #FB923C; }
+html[data-theme="dark"] #smart-travel-alerts form > div.grid.gap-2.rounded-xl.border { background: #1E293B !important; border-color: #334155 !important; }
+html[data-theme="dark"] #smart-travel-alerts form > div.grid.gap-2.rounded-xl.border label { color: #F8FAFC !important; }
 
 /* High contrast override for the peach subscription panel in both themes. */
 #smart-travel-alerts h2,
