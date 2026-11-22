@@ -673,10 +673,10 @@ html[data-theme="dark"] footer {
 html[data-theme="dark"] footer [class~="text-gray-900"],
 html[data-theme="dark"] footer [class~="text-gray-700"],
 html[data-theme="dark"] footer [class~="text-gray-600"] { color: #cbd5e1 !important; }
-html[data-theme="dark"] .trexifly-home-hero #search-widget form { background: #f8fafc !important; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form { background: #0F172A !important; border-color: #334155 !important; }
 html[data-theme="dark"] .trexifly-home-hero #search-widget form input,
-html[data-theme="dark"] .trexifly-home-hero #search-widget form select { color: #172033 !important; }
-html[data-theme="dark"] .trexifly-home-hero #search-widget form label { color: #475569 !important; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form select { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; color-scheme: dark; }
+html[data-theme="dark"] .trexifly-home-hero #search-widget form label { color: #E2E8F0 !important; }
 html[data-theme="dark"] .trexifly-home-hero #search-widget form [role="tab"] { color: #334155 !important; }
 @media (prefers-reduced-motion: reduce) {
   .home-page > section:not(.trexifly-home-hero), .results-page, .landing-page { transition: none; }
@@ -768,3 +768,60 @@ html[data-theme="dark"] .trexifly-guest-menu .text-slate-800,
 html[data-theme="dark"] .trexifly-guest-menu .text-slate-700 {
   color: #f1f5f9 !important;
 }
+
+
+/* Step 2: consistent search-field and site-wide dark-mode contrast. */
+#search-widget form input:not([type="checkbox"]):not([type="radio"]),
+#search-widget form select { color: #0F172A !important; }
+#search-widget form input::placeholder { color: #64748B !important; opacity: 1; }
+#search-widget form input[type="date"] { min-width: 0; color: #0F172A !important; color-scheme: light; }
+#search-widget form select { min-width: 0; }
+.hotel-provider-link,
+.hotel-provider-link:visited { color: #FFFFFF !important; background-color: #172033 !important; }
+.hotel-provider-link:hover { color: #FFFFFF !important; background-color: #26364F !important; }
+html[data-theme="dark"] #search-widget form input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] #search-widget form select,
+html[data-theme="dark"] .results-page input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] .results-page select,
+html[data-theme="dark"] #main input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] #main select {
+  color: #FFFFFF !important;
+  color-scheme: dark;
+}
+html[data-theme="dark"] #search-widget form input::placeholder { color: #CBD5E1 !important; }
+html[data-theme="dark"] #search-widget form input[type="date"] { color: #FFFFFF !important; }
+html[data-theme="dark"] #main [class~="text-slate-800"],
+html[data-theme="dark"] #main [class~="text-slate-700"],
+html[data-theme="dark"] #main [class~="text-slate-600"],
+html[data-theme="dark"] #main [class~="text-slate-500"],
+html[data-theme="dark"] #main [class~="text-slate-400"],
+html[data-theme="dark"] #main [class~="text-gray-800"],
+html[data-theme="dark"] #main [class~="text-gray-700"],
+html[data-theme="dark"] #main [class~="text-gray-600"],
+html[data-theme="dark"] #main [class~="text-gray-500"],
+html[data-theme="dark"] #main [class~="text-muted"],
+html[data-theme="dark"] #main [class~="text-faint"] { color: #E2E8F0 !important; }
+html[data-theme="dark"] .site-header [class~="text-slate-800"],
+html[data-theme="dark"] .site-header [class~="text-slate-700"],
+html[data-theme="dark"] .site-header [class~="text-slate-600"],
+html[data-theme="dark"] .site-header [class~="text-slate-500"],
+html[data-theme="dark"] .site-header [class~="text-slate-400"],
+html[data-theme="dark"] footer [class~="text-slate-800"],
+html[data-theme="dark"] footer [class~="text-slate-700"],
+html[data-theme="dark"] footer [class~="text-slate-600"],
+html[data-theme="dark"] footer [class~="text-slate-500"],
+html[data-theme="dark"] footer [class~="text-slate-400"] { color: #E2E8F0 !important; }
+html[data-theme="dark"] #main p,
+html[data-theme="dark"] #main small,
+html[data-theme="dark"] #main label,
+html[data-theme="dark"] #main li { text-decoration-color: currentColor; }
+html[data-theme="dark"] .hotel-provider-link,
+html[data-theme="dark"] .hotel-provider-link:visited { color: #FFFFFF !important; }
+
+/* Step 2 verification correction: custom departure button and trip selector use the active theme. */
+html[data-theme="dark"] #search-widget form label select { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; color-scheme: dark; }
+html[data-theme="dark"] #search-widget button[aria-haspopup="dialog"] { color: #FFFFFF !important; }
+
+/* Ensure the native Trip Type select renders white text in dark mode. */
+html[data-theme="dark"] #search-widget select,
+html[data-theme="dark"] #search-widget select option { color: #FFFFFF !important; -webkit-text-fill-color: #FFFFFF !important; color-scheme: dark; }

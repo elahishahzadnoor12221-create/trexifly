@@ -87,9 +87,9 @@ export function FlightDatePicker({ value, onChange, origin, destination, tripTyp
     </section>
   }
 
-  return <div className="relative min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r dark:border-slate-700">
+  return <div className="relative min-w-0 flex-[1.15] border-b border-slate-200 px-2 py-1 sm:min-w-[170px] sm:border-b-0 sm:border-r dark:border-slate-700">
     <span className="mb-1 block text-[11px] font-semibold text-slate-500">Departure</span>
-    <button type="button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)} className="w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800">{value || 'Choose departure date'} <span className="float-right text-slate-400">‹</span></button>
+    <button type="button" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)} className="w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-[#0F172A] hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800">{value || 'Choose departure date'} <span className="float-right text-slate-400">‹</span></button>
     {open && <div role="dialog" aria-label="Flight price calendar" className="absolute left-0 top-full z-[100] mt-2 w-[min(94vw,760px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:left-auto sm:right-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><h2 className="text-base font-extrabold text-slate-900 dark:text-white">Flexible flight dates</h2><p className="text-[11px] text-slate-500">Daily cached lowest fares · rolling 12-month window</p></div>
