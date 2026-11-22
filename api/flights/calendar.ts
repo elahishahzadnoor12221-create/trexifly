@@ -1,6 +1,6 @@
 type ApiEnv = { TRAVELPAYOUTS_API_TOKEN?: string }
-type Request = { method?: string; query?: Record<string, string | string[] | undefined> }
-type Response = { setHeader(name: string, value: string): void; status(code: number): Response; json(body: unknown): Response }
+type VercelRequest = { method?: string; query?: Record<string, string | string[] | undefined> }
+type VercelResponse = { setHeader(name: string, value: string): void; status(code: number): VercelResponse; json(body: unknown): VercelResponse }
 declare const process: { env: ApiEnv }
 type Fare = { price?: number | string; currency?: string; departure_at?: string; depart_date?: string; value?: number | string; origin?: string; destination?: string; airline?: string; transfers?: number; number_of_changes?: number; flight_number?: string | number; expires_at?: string; actual?: boolean }
 const MARKER_ID = '806576'
@@ -31,7 +31,7 @@ function extractRows(payload: unknown): Fare[] {
   visit(data)
   return rows
 }
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
   const q = req.query ?? {}
