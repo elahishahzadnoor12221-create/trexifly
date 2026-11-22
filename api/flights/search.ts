@@ -25,7 +25,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const destination = first(query.destination).toUpperCase()
   const departureAt = first(query.departure_at)
   const returnAt = first(query.return_at)
-  const oneWay = first(query.one_way) !== 'false'
+  const oneWayInput = first(query.one_way)
+  if (oneWayInput !== 'true' && oneWayInput !== 'false') return res.status(400).json({ error: 'one_way must be explicitly true or false.' })
+  const oneWay = oneWayInput === 'true'
   const currencyInput = first(query.currency).toUpperCase() || 'USD'
   const currency = (ALLOWED_CURRENCIES.has(currencyInput) ? currencyInput : 'USD').toLowerCase()
   const marketInput = first(query.market).toLowerCase()
@@ -83,7 +85,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const offers = rows.filter((item) => asNumber(item.price) !== null && typeof item.departure_at === 'string')
-      .filter((item) => item.departure_at!.slice(0, 10) >= departureAt.slice(0, 10)).slice(0, 50)
+      .filter((item) => item.departure_at!.slice(0, 10) === departureAt.slice(0, 10))
+      .filter((item) => oneWay || (typeof item.return_at === 'string' && item.return_at.slice(0, 10) === returnAt.slice(0, 10)))
+      .slice(0, 50)
       .map((item, index) => ({
         id: [origin, destination, item.airline ?? 'XX', item.flight_number ?? index, item.departure_at].join('-'),
         origin, destination, originAirport: item.origin_airport ?? origin, destinationAirport: item.destination_airport ?? destination,
