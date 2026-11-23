@@ -34,7 +34,7 @@ export default async function handler(req: Request, res: Response) {
   const links = safeLinks(req.body?.links)
   if (!links.length) return res.status(400).json({ error: 'Provide valid supported hotel provider URLs.' })
 
-  const fallback = links.map((item) => ({ id: item.id, url: item.url, status: 'unverified' as const, message: 'Direct search URL; Travelpayouts attribution has not been verified.' }))
+  const fallback = links.map((item) => ({ id: item.id, url: item.url, status: 'unverified' as const, message: 'Direct search URL; Partner attribution has not been verified.' }))
   const token = process.env.TRAVELPAYOUTS_API_TOKEN?.trim()
   const trs = (process.env.TRAVELPAYOUTS_TRS ?? process.env.TRAVELPAYOUTS_TRS_ID ?? '').trim()
   if (!token || !trs || !/^\d+$/.test(trs)) return res.status(200).json({ links: fallback, configured: false })
@@ -52,7 +52,7 @@ export default async function handler(req: Request, res: Response) {
     const result = links.map((item) => {
       const match = converted.get(item.url)
       if (match?.code === 'success' && typeof match.partner_url === 'string' && match.partner_url.startsWith('https://')) {
-        return { id: item.id, url: match.partner_url, status: 'verified' as const, message: 'Travelpayouts partner link generated.' }
+        return { id: item.id, url: match.partner_url, status: 'verified' as const, message: 'Partner booking link generated.' }
       }
       return { id: item.id, url: item.url, status: 'unverified' as const, message: match?.message ?? 'Brand programme approval or link conversion is pending.' }
     })

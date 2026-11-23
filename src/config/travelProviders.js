@@ -5,11 +5,7 @@
  * on the server before advertising real-time availability or guaranteed prices.
  */
 export const TRAVEL_PROVIDERS = Object.freeze({
-  travelpayouts: {
-    markerId: import.meta.env?.VITE_TRAVELPAYOUTS_MARKER_ID || '806576',
-    driveScript: 'https://tpembars.com',
-  },
-  flights: {
+flights: {
     provider: 'Aviasales',
     enabled: true,
     searchUrl: 'https://www.aviasales.com/',

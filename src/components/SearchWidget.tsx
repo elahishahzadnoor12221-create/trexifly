@@ -49,7 +49,7 @@ const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'
 
 function SelectField({ title, value, onChange, options, wide = false }: { title: string; value: string; onChange: (value: string) => void; options: string[]; wide?: boolean }) {
-  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[145px] sm:flex-[0.9]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
+  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[0.9]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
 }
 function TextField({ title, value, onChange, placeholder, type = 'text' }: { title: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
   return <label data-search-field={title} className={cell + (type === 'date' ? ' sm:min-w-[150px]' : '')}><span className={label}>{title}</span><input className={field} type={type} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>

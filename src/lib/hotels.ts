@@ -1,7 +1,7 @@
 import type { SearchQuery } from './data'
 
 /**
- * Hotellook was discontinued by Travelpayouts on 20 Oct 2025.
+ * Hotellook integration has been discontinued.
  * This catalogue is deterministic DEMO content, not live hotel inventory,
  * verified property data, current rates, or confirmed availability.
  */

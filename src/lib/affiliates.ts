@@ -9,15 +9,15 @@ export type AffiliatePartner = {
   url: string
 }
 
-/** Verified Travelpayouts Partner ID supplied by the account owner. */
-export const TRAVELPAYOUTS_MARKER_ID = '806576'
-export const AFFILIATE_IDS = { aviasales: TRAVELPAYOUTS_MARKER_ID } as const
+/** Affiliate tracking marker supplied by the account owner. */
+export const AFFILIATE_MARKER_ID = '806576'
+export const AFFILIATE_IDS = { aviasales: AFFILIATE_MARKER_ID } as const
 
 /**
- * Exact generated Travelpayouts links. These are short partner URLs and must
+ * Exact generated affiliate links. These are short partner URLs and must
  * remain intact: do not append unrelated marker/query parameters to them.
  */
-export const TRAVELPAYOUTS_PARTNERS: Record<AffiliateCategory, AffiliatePartner[]> = {
+export const AFFILIATE_PARTNERS: Record<AffiliateCategory, AffiliatePartner[]> = {
   flights: [
     { id: 'aviasales', name: 'Aviasales', category: 'flights', url: 'https://aviasales.tpx.lv/ZOqzJHaf' },
   ],
@@ -40,7 +40,7 @@ export const TRAVELPAYOUTS_PARTNERS: Record<AffiliateCategory, AffiliatePartner[
 }
 
 export function getAffiliatePartners(category: AffiliateCategory): AffiliatePartner[] {
-  return TRAVELPAYOUTS_PARTNERS[category]
+  return AFFILIATE_PARTNERS[category]
 }
 
 /** Return the official generated short link for a category/provider slot. */

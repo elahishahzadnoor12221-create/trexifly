@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { Icon } from '../components/Icons'
 
 const WA = 'https://wa.me/923244921494'
-const partners = ['Aviasales', 'Klook', 'KKday', 'AutoEurope', 'QEEQ', 'Tiqets', 'Kiwitaxi', 'GetTransfer', 'Intui.travel']
+const partners = ['Airline partners', 'Klook', 'KKday', 'AutoEurope', 'QEEQ', 'Tiqets', 'Kiwitaxi', 'GetTransfer', 'Intui.travel']
 
 function PageShell({ eyebrow, title, intro, children }: { eyebrow: string; title: string; intro: string; children: React.ReactNode }) {
   return <div className="min-h-[65vh] bg-white"><section className="bg-[#FF5500] px-4 py-12 text-white sm:py-16"><div className="mx-auto max-w-4xl"><p className="text-xs font-bold uppercase tracking-[.18em] text-white/80">{eyebrow}</p><h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-5xl">{title}</h1><p className="mt-4 max-w-3xl text-sm leading-7 text-white/90 sm:text-base">{intro}</p></div></section><article className="prose prose-slate mx-auto max-w-4xl px-4 py-10 sm:px-6">{children}</article></div>

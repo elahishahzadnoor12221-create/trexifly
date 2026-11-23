@@ -22,7 +22,7 @@ test('Stays results show four destination-prefilled brand comparisons with marke
     expect(url.searchParams.get('marker')).toBe('806576')
     for (const [key, value] of Object.entries(provider.keys)) expect(url.searchParams.get(key)).toBe(value)
   }
-  await expect(page.getByText('Illustrative guide price only').first()).toBeVisible()
+  await expect(page.getByText('Partner rate guide').first()).toBeVisible()
 })
 
 test('Stays search form submits a global destination and selected dates', async ({ page }) => {

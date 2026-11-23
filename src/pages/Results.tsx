@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Icon } from '../components/Icons'
 import { SearchWidget } from '../components/SearchWidget'
-import { readQuery, dealsFor, type Deal, type SearchQuery } from '../lib/data'
+import { readQuery, dealsFor, PLACES, type Deal, type SearchQuery } from '../lib/data'
 import { generateHotelInventory, type HotelListing } from '../lib/hotels'
 import { getAffiliatePartners } from '../lib/affiliates'
 import { buildHotelProviderLinks } from '../lib/hotelLinks'
@@ -10,43 +10,6 @@ import { usePrefs } from '../lib/prefs'
 import { imgFallback } from '../lib/imageFallback'
 import { CAR_ROWS, TRANSFER_ROWS, getInventoryVehicleVisual } from '../data/vehicleInventory'
 
-
-function TravelpayoutsLiveFlights() {
-  useEffect(() => {
-    const tpWindow = window as Window & { TPWL_CONFIGURATION?: Record<string, unknown> }
-    tpWindow.TPWL_CONFIGURATION = {
-      ...tpWindow.TPWL_CONFIGURATION,
-      resultsURL: 'https://trexifly.com/results',
-    }
-
-    let script = document.getElementById('tpwl-widget-main') as HTMLScriptElement | null
-    if (!script) {
-      script = document.createElement('script')
-      script.id = 'tpwl-widget-main'
-      script.async = true
-      script.type = 'module'
-      script.src = 'https://tpwdg.com/wl_web/main.js?wl_id=24943'
-      script.addEventListener('load', () => { script!.dataset.loaded = 'true' }, { once: true })
-      document.head.appendChild(script)
-    }
-
-    return () => {
-      // Only remove an uninitialized loader; keep a successfully loaded widget
-      // available if React remounts the Results route.
-      if (script && !script.dataset.loaded) script.remove()
-    }
-  }, [])
-  return <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-      <p className="text-sm font-bold text-slate-900 dark:text-white">Live flight search and results</p>
-      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Powered by Trexifly flight partners</p>
-    </div>
-    <div className="min-h-[650px] p-3 sm:p-5">
-      <div id="tpwl-search" className="w-full" />
-      <div id="tpwl-tickets" className="mt-5 w-full" />
-    </div>
-  </div>
-}
 
 function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }) {
   const { money } = usePrefs()
@@ -157,6 +120,169 @@ function OfferCard({ deal }: { deal: Deal }) {
   </article>
 }
 
+type FlightApiOffer = {
+  id: string; price: number; currency: string; airlineCode: string; flightNumber: string
+  departureAt: string; arrivalAt: string | null; stops: number | null; durationMinutes: number | null
+  originAirport?: string; destinationAirport?: string; bookingUrl: string; markerId: string
+}
+function flightAirportCode(value: string): string {
+  const explicit = value.match(/\(([A-Z]{3})\)/i)?.[1]
+  if (explicit) return explicit.toUpperCase()
+  const normalized = value.toLowerCase()
+  return PLACES.find(place => place.code && (normalized.includes(place.city.toLowerCase()) || (!!place.airport && normalized.includes(place.airport.toLowerCase()))))?.code ?? ''
+}
+
+const FLIGHT_AIRLINE_NAMES: Record<string,string> = { PK:'Pakistan International Airlines',PA:'Airblue',ER:'SereneAir','9P':'Fly Jinnah',PF:'AirSial',EK:'Emirates',QR:'Qatar Airways',EY:'Etihad Airways',SV:'Saudia',XY:'Flynas',FZ:'flydubai',TK:'Turkish Airlines',BA:'British Airways',LH:'Lufthansa',AF:'Air France',KL:'KLM',AC:'Air Canada',UA:'United Airlines',DL:'Delta Air Lines',AA:'American Airlines',QF:'Qantas',NZ:'Air New Zealand',GF:'Gulf Air',WY:'Oman Air',KU:'Kuwait Airways' }
+function durationText(minutes: number) { return Math.floor(minutes / 60) + 'h ' + String(minutes % 60).padStart(2, '0') + 'm' }
+function FlightTime({ value }: { value: string | null }) {
+  if (!value) return <span className="text-slate-400">Not supplied</span>
+  const date = new Date(value)
+  return <span>{Number.isNaN(date.getTime()) ? 'Not supplied' : date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</span>
+}
+function aviasalesSearchUrl(query: SearchQuery, origin: string, destination: string, oneWay: boolean, cabinClass = query.pax) {
+  const dateCode = (value: string) => { const parsed = new Date(value + 'T00:00:00'); return String(parsed.getDate()).padStart(2, '0') + String(parsed.getMonth() + 1).padStart(2, '0') }
+  const adults = Math.min(9, Math.max(1, query.adults ?? 2))
+  const children = Math.min(9 - adults, Math.max(0, query.children ?? 0))
+  const cabin = /business/i.test(cabinClass) ? 'c' : /first/i.test(cabinClass) ? 'f' : /premium economy|comfort/i.test(cabinClass) ? 'w' : ''
+  const route = origin + dateCode(query.out) + destination + (oneWay ? '' : dateCode(query.back)) + cabin + String(adults) + (children ? String(children) : '')
+  return 'https://www.aviasales.com/search/' + route + '?marker=806576'
+}
+function airportDisplay(code: string) {
+  const place = PLACES.find(item => item.code === code)
+  return place ? place.airport + ', ' + place.code : code
+}
+function LiveFlightsResults({ query }: { query: SearchQuery }) {
+  const [offers,setOffers] = useState<FlightApiOffer[]>([])
+  const [flexibleOffers,setFlexibleOffers] = useState<FlightApiOffer[]>([])
+  const [status,setStatus] = useState<'loading'|'ready'|'empty'|'error'>('loading')
+  const [notice,setNotice] = useState('')
+  const [sort,setSort] = useState<'price'|'departure'|'duration'>('price')
+  const [calendarPrices,setCalendarPrices] = useState<Array<{date:string;price:number;currency:string}>>([])
+  const [calendarNotice,setCalendarNotice] = useState('')
+  const origin = flightAirportCode(query.from), destination = flightAirportCode(query.to)
+  const oneWay = query.back === query.out
+  useEffect(() => {
+    const controller = new AbortController()
+    async function load() {
+      setStatus('loading'); setNotice(''); setOffers([]); setFlexibleOffers([])
+      if (!origin || !destination) { setStatus('error'); setNotice('Select a recognised airport from the suggestions so we can search its IATA code.'); return }
+      const params = new URLSearchParams({
+        origin, destination, departure_at: query.out, one_way: String(oneWay), currency: 'USD',
+        adults: String(query.adults ?? 2), children: String(query.children ?? 0),
+        trip_class: /business/i.test(query.pax) ? 'C' : /first/i.test(query.pax) ? 'F' : /premium economy|comfort/i.test(query.pax) ? 'W' : 'Y',
+      })
+      if (!oneWay) params.set('return_at', query.back)
+      try {
+        const response = await fetch('/api/flights/search?'+params.toString(),{signal:controller.signal,headers:{Accept:'application/json'}})
+        const payload = await response.json() as { error?:string; offers?:FlightApiOffer[]; flexibleOffers?:FlightApiOffer[]; cacheWindow?:string }
+        if (!response.ok) throw new Error(payload.error || 'Flight fare search is temporarily unavailable.')
+        const rows = Array.isArray(payload.offers) ? payload.offers : []
+        const flexible = Array.isArray(payload.flexibleOffers) ? payload.flexibleOffers : []
+        setOffers(rows); setFlexibleOffers(flexible); setStatus(rows.length?'ready':'empty')
+        setNotice(payload.cacheWindow || 'Recent cached fares; not real-time inventory.')
+      } catch(error) {
+        if(controller.signal.aborted)return
+        setStatus('error'); setNotice(error instanceof Error?error.message:'Flight fare search is temporarily unavailable.')
+      }
+    }
+    void load()
+    return ()=>controller.abort()
+  },[origin,destination,query.out,query.back,oneWay,query.adults,query.children,query.pax])
+  useEffect(() => {
+    const controller = new AbortController()
+    async function loadCalendar() {
+      if (!origin || !destination) return
+      const calendarParams = new URLSearchParams({ origin, destination, month: query.out.slice(0, 7), one_way: String(oneWay), departure_at: query.out, return_at: query.back, currency: 'USD' })
+      try {
+        const response = await fetch('/api/flights/calendar?' + calendarParams.toString(), { signal: controller.signal, headers: { Accept: 'application/json' } })
+        const payload = await response.json() as { prices?: Array<{date:string;price:number;currency:string}>; message?:string }
+        if (!response.ok) throw new Error(payload.message || 'Fare calendar is temporarily unavailable.')
+        setCalendarPrices(Array.isArray(payload.prices) ? payload.prices : [])
+        setCalendarNotice(payload.message || '')
+      } catch (error) { if (!controller.signal.aborted) setCalendarNotice(error instanceof Error ? error.message : 'Fare calendar is temporarily unavailable.') }
+    }
+    void loadCalendar()
+    return () => controller.abort()
+  }, [origin, destination, query.out, query.back, oneWay])
+  const searchUrl = aviasalesSearchUrl(query, origin, destination, oneWay)
+  const sorted = [...offers].sort((a,b)=>sort==='price'?a.price-b.price:sort==='departure'?Date.parse(a.departureAt)-Date.parse(b.departureAt):(a.durationMinutes??Number.MAX_SAFE_INTEGER)-(b.durationMinutes??Number.MAX_SAFE_INTEGER))
+  const passengerCount = (query.adults ?? 2) + (query.children ?? 0)
+  const currency = (amount:number,code:string)=>new Intl.NumberFormat('en-US',{style:'currency',currency:/^[A-Z]{3}$/.test(code)?code:'USD',maximumFractionDigits:0}).format(amount)
+  return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950"><div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
+    <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Trexifly recent-search fares. Cached estimates are not real-time availability or guaranteed ticket prices.</p></div>
+    <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
+    <section aria-label="Fare calendar" className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-bold text-slate-900 dark:text-white">Fare calendar · {new Date(query.out + 'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h2><span className="text-[10px] text-slate-500">Lowest cached fare by departure date</span></div>
+      {calendarPrices.length ? <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">{calendarPrices.map(item => <div key={item.date} className={'rounded-lg border px-2 py-2 text-center ' + (item.date === query.out ? 'border-orange-400 bg-orange-50 dark:bg-orange-950/30' : 'border-slate-100 dark:border-slate-700')}><p className="text-[10px] text-slate-500">{new Date(item.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric'})}</p><p className="mt-1 text-xs font-bold text-slate-900 dark:text-white">{currency(item.price * passengerCount,item.currency)}</p></div>)}</div> : <p className="mt-2 text-xs text-slate-500">{calendarNotice || 'Loading cached fare calendar…'}</p>}
+    </section>
+    <section className="mb-5 rounded-xl border border-orange-100 bg-white p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">Recent flight fares</h2><p className="mt-1 text-xs text-slate-500">{origin || '—'} → {destination || '—'} · {query.out}{oneWay ? ' -  One-way' : ' -  Return ' + query.back}</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold text-amber-800">Recent fare data</span></div>
+      {status==='ready'&&<div className="mt-4 flex flex-wrap gap-2">{([['price','Cheapest'],['departure','Earliest departure'],['duration','Shortest journey']] as const).map(([value,label])=><button key={value} type="button" onClick={()=>setSort(value)} aria-pressed={sort===value} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===value?'bg-[#FF5500] text-white':'bg-orange-50 text-slate-700')}>{label}</button>)}</div>}
+    </section>
+    {status==='loading'&&<div role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">Checking recent flight fares…</div>}
+    {status==='error'&&<div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><p className="font-bold">Flight fare data unavailable</p><p className="mt-2">{notice}</p></div>}
+    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No exact-date cached fare</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for {query.out}. Check live availability or compare other dates in the same month.</p>{flexibleOffers.length>0&&<section className="mt-5"><h3 className="font-bold text-slate-900 dark:text-white">Flexible dates in {new Date(query.out+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})} - Estimated total for {passengerCount} passengers: {currency(flexibleOffers[0].price * passengerCount,flexibleOffers[0].currency)}</h3><div className="mt-3 grid gap-2 sm:grid-cols-2">{flexibleOffers.map(offer=>{const date=offer.departureAt.slice(0,10);const flexibleUrl=aviasalesSearchUrl({...query,out:date,back:oneWay?date:query.back},origin,destination,oneWay);return <a key={offer.id} href={flexibleUrl} target="_blank" rel="noopener noreferrer sponsored" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-400 dark:border-slate-700"><span><strong className="block text-sm text-slate-900 dark:text-white">{new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</strong><span className="text-[10px] text-slate-500">{FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'}</span></span><strong className="text-sm text-emerald-700 dark:text-emerald-300">{currency(offer.price * passengerCount,offer.currency)}</strong></a>})}</div></section>}<a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book on Official Partner <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
+    {status==='ready'&&<div className="space-y-3">{sorted.map(offer=>{
+      const carrier = FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'
+      const fromCode = offer.originAirport || origin
+      const toCode = offer.destinationAirport || destination
+      const departureDate = new Date(offer.departureAt)
+      const arrivalDate = offer.arrivalAt ? new Date(offer.arrivalAt) : null
+      const dateLabel = (value: Date) => value.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+      const baggageCount = passengerCount
+      return <article key={offer.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <AirlineLogo name={carrier} size="size-12"/>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2"><h3 className="font-bold text-slate-900 dark:text-white">{carrier}</h3></div>
+              <p className="mt-1 text-xs text-slate-500">{offer.flightNumber ? 'Flight ' + offer.flightNumber + ' · ' : ''}{offer.stops===null?'Stops not supplied':offer.stops===0?'Non-stop':offer.stops+' stop(s)'}</p>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-700 dark:text-slate-200">
+                <span><strong>{fromCode}</strong><br/><FlightTime value={offer.departureAt}/></span>
+                <span><strong>{toCode}</strong><br/><FlightTime value={offer.arrivalAt}/></span>
+                {offer.durationMinutes ? <span className="col-span-2 text-slate-500">{durationText(offer.durationMinutes)} journey</span> : null}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 dark:border-slate-700 sm:min-w-[230px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+            <div className="sm:text-right"><p className="text-[10px] text-slate-500">Estimated total for {passengerCount} passengers</p><p className="text-2xl font-black text-slate-900 dark:text-white">{currency(offer.price * passengerCount,offer.currency)}</p><p className="max-w-[190px] text-[10px] text-slate-500">Live seat price & baggage confirmed at checkout.</p></div>
+            <a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book <Icon name="arrowUpRight" className="size-4"/></a>
+          </div>
+        </div>
+        <details className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-700">
+          <summary className="cursor-pointer list-none text-xs font-bold text-[#D94700] dark:text-orange-300">Fare conditions & flight details <span className="float-right text-slate-400">＋</span></summary>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <section className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white">Route & flight timeline</h4>
+              <div className="mt-3 space-y-3 text-xs text-slate-700 dark:text-slate-200">
+                <div><strong>{airportDisplay(fromCode)}</strong><p className="mt-1">{dateLabel(departureDate)} · <FlightTime value={offer.departureAt}/></p></div>
+                <div className="border-l-2 border-dashed border-orange-300 pl-3">{offer.durationMinutes ? durationText(offer.durationMinutes) : 'Duration not supplied'} · {offer.stops===0?'Non-stop':offer.stops===null?'Stops not supplied':offer.stops+' stop(s)'}</div>
+                <div><strong>{airportDisplay(toCode)}</strong><p className="mt-1">{arrivalDate && !Number.isNaN(arrivalDate.getTime()) ? dateLabel(arrivalDate) : 'Arrival date not supplied'} · <FlightTime value={offer.arrivalAt}/></p></div>
+                <span className="inline-flex rounded-full bg-white px-2.5 py-1 text-[10px] font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-200">Airline: {carrier}</span>
+              </div>
+            </section>
+            <section className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white">Fare conditions & baggage guide · {query.pax.match(/(Economy|Business|First Class|Premium Economy)/i)?.[1] ?? 'Economy'}</h4>
+              <div className="mt-3 space-y-2 text-xs text-slate-700 dark:text-slate-200">
+                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Personal item — 1 pc per passenger</p>
+                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Carry-on: Check fare tier</p>
+                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Checked baggage: Optional / fare-dependent</p>
+                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Exchangeable for additional fee</p>
+                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Refund policy: Fare-dependent</p>
+                <p className="font-semibold">Passenger summary: {query.adults ?? 2} adult(s) + {query.children ?? 0} child(ren) = {baggageCount} travellers. Allowance is per-ticket and must be confirmed for each passenger.</p>
+              </div>
+              <a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="mt-3 inline-flex items-center rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Change fare / Select baggage on partner →</a>
+            </section>
+          </div>
+          <p className="mt-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Baggage and exchange/refund rows are general guidance, not verified fare-family rules. Final conditions depend on the selected ticket and are confirmed by the airline or booking partner at checkout.</p>
+        </details>
+      </article>
+    })}</div>}
+    <p className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700">{notice||'Prices are based on recent partner fare data. The provider may no longer have the fare; verify schedule, baggage, taxes and availability before booking. Partner booking links include Trexifly tracking automatically.'}</p>
+  </div></div>
+}
+
+
 type SampleKind = 'cars' | 'tours' | 'transfers'
 type SamplePartnerLink = { name: string; url: string }
 type SampleListing = {id:string;kind:SampleKind;title:string;category:string;subtitle:string;price:number;score:number;duration:string;perks:string[];affiliateUrl:string;affiliateLinks:SamplePartnerLink[];transmission?:string;fuel?:string;capacity?:string;provider:string;imageUrl:string;seats?:string;bags?:string}
@@ -212,12 +338,12 @@ function SampleCard({item}:{item:SampleListing}){
    <div className="grid sm:grid-cols-[220px_minmax(0,1fr)]">
      <div className="relative flex h-44 items-center justify-center bg-gradient-to-br from-white to-slate-100 p-3 sm:h-full sm:min-h-[190px]"><img src={item.imageUrl} alt={item.title} loading="lazy" className="h-full w-full object-contain"/><span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-extrabold text-[#172B4D] shadow">{item.provider}</span></div>
      <div className="flex min-w-0 flex-col justify-between gap-3 p-4 sm:p-5">
-       <div><div className="flex flex-wrap items-center gap-2"><h3 className="font-extrabold text-slate-900 dark:text-white">{item.title}</h3><span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold text-[#C93400]">{item.category}</span><span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-extrabold text-amber-800">? {item.score}/10 illustrative</span></div>
+       <div><div className="flex flex-wrap items-center gap-2"><h3 className="font-extrabold text-slate-900 dark:text-white">{item.title}</h3><span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-bold text-[#C93400]">{item.category}</span><span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-extrabold text-amber-800">{item.score}/10 illustrative</span></div>
          <p className="mt-1 text-xs text-slate-500">{item.subtitle}</p>
          <div className="mt-3 flex flex-wrap gap-1.5">{item.perks.map(v=><span key={v} className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">{v}</span>)}{item.seats&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.seats} seats</span>}{item.bags&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.bags} bags</span>}{item.transmission&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.transmission}</span>}{item.fuel&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.fuel}</span>}{item.kind==='cars'&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">AC</span>}{item.capacity&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-700">{item.capacity}</span>}</div>
          <p className="mt-2 text-[11px] font-semibold text-emerald-700">Illustrative partner rates - click to verify live availability</p>
        </div>
-       <div className="flex items-end justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-700"><div><p className="text-[10px] text-slate-500">{item.kind==='cars'?'Daily estimate':item.kind==='tours'?'Per person':'Total fare estimate'}</p><p className="text-2xl font-black text-slate-900 dark:text-white">{money(item.price)}{item.kind==='cars'&&<span className="text-xs font-semibold text-slate-500"> / day</span>}</p><p className="text-[10px] text-slate-500">{item.duration}</p></div><div className="flex flex-wrap justify-end gap-2">{item.affiliateLinks.map(link=><a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-marker="806576" className="inline-flex shrink-0 rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Compare {link.name} â†—</a>)}</div></div>
+       <div className="flex items-end justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-700"><div><p className="text-[10px] text-slate-500">{item.kind==='cars'?'Daily estimate':item.kind==='tours'?'Per person':'Total fare estimate'}</p><p className="text-2xl font-black text-slate-900 dark:text-white">{money(item.price)}{item.kind==='cars'&&<span className="text-xs font-semibold text-slate-500"> / day</span>}</p><p className="text-[10px] text-slate-500">{item.duration}</p></div><div className="flex flex-wrap justify-end gap-2">{item.affiliateLinks.map(link=><a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-marker="806576" className="inline-flex shrink-0 rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Compare {link.name} {String.fromCharCode(8599)}</a>)}</div></div>
      </div>
    </div>
  </article>
@@ -276,13 +402,14 @@ export function Results() {
   const flightInfants = Number(params.get('infants') ?? 0)
   const flightCabin = params.get('cabin') ?? query.pax.match(/premium economy|business|first class|first|economy/i)?.[0] ?? 'Economy'
   const flightOneWay = params.get('tripType') === 'one-way' || (!params.has('tripType') && query.back === query.out)
+  if (query.type === 'flights' && !transfer) return <LiveFlightsResults query={query} />
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
-    <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
       <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only. Final prices and availability must be confirmed with the booking provider.</p></div>
       {<div className="mb-6 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-900"><SearchWidget initial={query} compact/></div>}
-      {query.type !== 'flights' && partnerLinks.length > 0 && <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Continue to a Travelpayouts-tracked partner site. Search details may need to be entered again on the partner website.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>}
-      {query.type === 'flights' ? <section aria-label="Live flight comparison" className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-7">
+      {query.type !== 'flights' && partnerLinks.length > 0 && <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Compare options and continue securely with the selected booking partner.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>}
+      {query.type === 'flights' && !transfer ? <section aria-label="Live flight comparison" className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-7">
         <div className="mb-5"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#FF5500]">Live Flight Comparison</p><h2 className="mt-2 text-xl font-extrabold text-slate-900 dark:text-white">Your selected journey</h2><p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Live availability and final fares are checked on our flight partners.</p></div>
         <div className="grid gap-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800 sm:grid-cols-2 lg:grid-cols-3">
           <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Route</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{query.from} <span className="text-[#FF5500]">→</span> {query.to}</p></div>
@@ -290,7 +417,7 @@ export function Results() {
           <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cabin</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{flightCabin}</p></div>
           <div className="sm:col-span-2 lg:col-span-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Passengers</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{flightAdults} {flightAdults === 1 ? 'Adult' : 'Adults'}, {flightChildren} {flightChildren === 1 ? 'Child' : 'Children'}, {flightInfants} {flightInfants === 1 ? 'Infant' : 'Infants'}</p></div>
         </div>
-        <TravelpayoutsLiveFlights />
+
       </section> : <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           {transfer ? <><h2 className="font-bold text-slate-900">Airport transfer filters</h2><p className="mt-2 text-xs leading-5 text-slate-600">Compare private, VIP, family, SUV, minibus and shared vehicle examples.</p></> : <>

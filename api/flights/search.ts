@@ -3,14 +3,14 @@ type VercelRequest = { method?: string; query?: Record<string, string | string[]
 type VercelResponse = { setHeader(name: string, value: string): void; status(code: number): VercelResponse; json(body: unknown): VercelResponse }
 declare const process: { env: ApiEnv }
 
-type AviasalesFare = {
+type ProviderFare = {
   origin?: string; destination?: string; origin_airport?: string; destination_airport?: string;
   price?: number; currency?: string; airline?: string; flight_number?: string;
   departure_at?: string; return_at?: string; transfers?: number; duration?: number; duration_to?: number;
   link?: string; found_at?: string;
 }
 type FareResponse<T> = { success?: boolean; data?: T; error?: string | null; currency?: string }
-const VERIFIED_AVIASALES_AFFILIATE = 'https://aviasales.tpx.lv/ZOqzJHaf'
+const VERIFIED_FLIGHT_PARTNER_URL = 'https://aviasales.tpx.lv/ZOqzJHaf'
 const MARKER_ID = '806576'
 const ALLOWED_CURRENCIES = new Set(['USD','EUR','GBP','PKR','AED','SAR','CAD','AUD'])
 function first(value: string | string[] | undefined): string { return (Array.isArray(value) ? value[0] : value ?? '').trim() }
@@ -39,7 +39,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const token = process.env.TRAVELPAYOUTS_API_TOKEN?.trim()
   if (!token) {
     res.setHeader('Cache-Control', 'no-store')
-    return res.status(503).json({ error: 'Flight fare data is not configured yet. Add the server-only TRAVELPAYOUTS_API_TOKEN to the deployment environment.' })
+    return res.status(503).json({ error: 'Flight search is not configured yet. Please contact Trexifly support.' })
   }
 
   const endpoint = new URL('https://api.travelpayouts.com/aviasales/v3/prices_for_dates')
@@ -60,11 +60,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await fetch(endpoint, { headers: { 'X-Access-Token': token, Accept: 'application/json' }, signal: AbortSignal.timeout(12000) })
     if (!response.ok) {
       res.setHeader('Cache-Control', 'no-store')
-      return res.status(response.status === 429 ? 429 : 502).json({ error: response.status === 401 ? 'Travelpayouts rejected the API token.' : 'Travelpayouts fare data is temporarily unavailable.', upstreamStatus: response.status })
+      return res.status(response.status === 429 ? 429 : 502).json({ error: response.status === 401 ? 'Flight data provider authorization failed.' : 'Flight data is temporarily unavailable.', upstreamStatus: response.status })
     }
-    const payload = await response.json() as FareResponse<AviasalesFare[]>
+    const payload = await response.json() as FareResponse<ProviderFare[]>
     let rows = Array.isArray(payload.data) ? payload.data : []
-    let flexibleRows: AviasalesFare[] = []
+    let flexibleRows: ProviderFare[] = []
     let source: 'prices_for_dates' | 'prices/cheap' = 'prices_for_dates'
     if (!rows.some(item => item.departure_at?.slice(0, 10) === departureAt.slice(0, 10) && (oneWay || item.return_at?.slice(0, 10) === returnAt.slice(0, 10)))) {
       const monthly = new URL('https://api.travelpayouts.com/aviasales/v3/prices_for_dates')
@@ -76,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!oneWay) monthly.searchParams.set('return_at', returnAt.slice(0, 7))
       const monthResponse = await fetch(monthly, { headers: { 'X-Access-Token': token, Accept: 'application/json' }, signal: AbortSignal.timeout(10000) })
       if (monthResponse.ok) {
-        const monthPayload = await monthResponse.json() as FareResponse<AviasalesFare[]>
+        const monthPayload = await monthResponse.json() as FareResponse<ProviderFare[]>
         flexibleRows = Array.isArray(monthPayload.data) ? monthPayload.data : []
       }
     }
@@ -112,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         arrivalAt: item.duration_to && item.departure_at ? new Date(new Date(item.departure_at).getTime() + item.duration_to * 60000).toISOString() : null,
         returnAt: item.return_at ?? null, stops: Number.isInteger(item.transfers) ? item.transfers : null,
         durationMinutes: asNumber(item.duration_to ?? item.duration), foundAt: item.found_at ?? null,
-        bookingUrl: VERIFIED_AVIASALES_AFFILIATE, markerId: MARKER_ID, source, cached: true,
+        bookingUrl: VERIFIED_FLIGHT_PARTNER_URL, markerId: MARKER_ID, source, cached: true,
       }))
     const flexibleOffers = flexibleRows
       .filter(item => asNumber(item.price) !== null && typeof item.departure_at === 'string' && item.departure_at.slice(0, 7) === departureAt.slice(0, 7))
@@ -127,10 +127,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         departureAt: item.departure_at!, arrivalAt: item.duration_to ? new Date(new Date(item.departure_at!).getTime() + item.duration_to * 60000).toISOString() : null,
         returnAt: item.return_at ?? null, stops: Number.isInteger(item.transfers) ? item.transfers : null,
         durationMinutes: asNumber(item.duration_to ?? item.duration), foundAt: item.found_at ?? null,
-        bookingUrl: VERIFIED_AVIASALES_AFFILIATE, markerId: MARKER_ID, source: 'prices_for_dates_month', cached: true,
+        bookingUrl: VERIFIED_FLIGHT_PARTNER_URL, markerId: MARKER_ID, source: 'prices_for_dates_month', cached: true,
       }))
     res.setHeader('Cache-Control', 'public, max-age=180, stale-while-revalidate=600')
-    return res.status(200).json({ ok: true, origin, destination, currency: currency.toUpperCase(), markerId: MARKER_ID, source, cached: true, cacheWindow: 'Recent Aviasales search cache; not real-time inventory', offers, flexibleOffers })
+    return res.status(200).json({ ok: true, origin, destination, currency: currency.toUpperCase(), markerId: MARKER_ID, source, cached: true, cacheWindow: 'Recent partner search cache; not real-time inventory', offers, flexibleOffers })
   } catch {
     res.setHeader('Cache-Control', 'no-store')
     return res.status(502).json({ error: 'Could not retrieve recent flight fare data. Please try again shortly.' })

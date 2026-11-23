@@ -1,5 +1,5 @@
 import type { SearchQuery } from './data'
-import { TRAVELPAYOUTS_MARKER_ID } from './affiliates'
+import { AFFILIATE_MARKER_ID } from './affiliates'
 
 export type HotelProviderLink = {
   id: 'agoda' | 'booking' | 'expedia' | 'trip'
@@ -12,11 +12,7 @@ function cleanDestination(value: string): string {
   return value.trim().replace(/\s*\([A-Z]{3}\)\s*$/, '') || 'Dubai'
 }
 
-/** Build destination- and occupancy-prefilled brand search pages.
- * marker is carried as a requested tracking hint; true Travelpayouts attribution
- * requires converting each URL with the account's Partner Links API and active
- * brand subscription. Direct URLs alone do not prove affiliate attribution.
- */
+/** Build destination- and occupancy-prefilled partner search pages. */
 export function buildHotelProviderLinks(query: SearchQuery): HotelProviderLink[] {
   const destination = cleanDestination(query.to)
   const checkin = query.out
@@ -25,7 +21,7 @@ export function buildHotelProviderLinks(query: SearchQuery): HotelProviderLink[]
   const children = Math.max(0, Math.min(10, query.children ?? 0))
   const rooms = Math.max(1, Math.min(30, query.rooms ?? 1))
   const ages = (query.childAges ?? []).slice(0, children)
-  const marker = TRAVELPAYOUTS_MARKER_ID
+  const marker = AFFILIATE_MARKER_ID
 
   const booking = new URL('https://www.booking.com/searchresults.html')
   booking.searchParams.set('ss', destination)

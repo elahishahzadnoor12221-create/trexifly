@@ -59,7 +59,7 @@ test('global activities hubs render destination cards with four marked compariso
     ['Hunza Valley, Pakistan', 'Hunza Valley Forts & Village Tour'],
   ] as const
   for (const [destination, attraction] of hubs) {
-    await page.goto('/results?type=tours&to=' + encodeURIComponent(destination) + '&out=2026-12-10')
+    await page.goto('/results?type=tours&to=' + encodeURIComponent(destination) + '&out=2026-12-10', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: attraction })).toBeVisible()
     const links = markerLinks(page)
     await expect(links.first()).toHaveAttribute('href', /marker=806576/)

@@ -133,7 +133,7 @@
   body {
     background-color: #F8FAFC;
     color: var(--color-ink);
-    font-family: var(--font-sans);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
     overflow-x: clip;
   }
   h1,
@@ -923,3 +923,7 @@ html[data-theme="dark"] #smart-travel-alerts > div > div > div:first-child > p:f
 #smart-travel-alerts select { border-width: 1px; }
 html[data-theme="dark"] #smart-travel-alerts input:not([type="checkbox"]),
 html[data-theme="dark"] #smart-travel-alerts select { border-color: #64748B !important; }
+
+/* Results stay on Trexifly typography and a consistent responsive content grid. */
+.results-page { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.results-page h1, .results-page h2, .results-page h3, .results-page h4 { font-family: inherit; }
