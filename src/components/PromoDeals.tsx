@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { findVerifiedAffiliatePartner, isVerifiedAffiliateUrl } from '../lib/affiliates'
+import { recordPartnerCheckout, type TripCategory } from '../lib/trips'
 
 type PromoDeal = {
   brand: string
@@ -102,7 +104,7 @@ function isValidExpiryDate(value: string): boolean {
 function filterActiveDeals(deals: PromoDeal[]): PromoDeal[] {
   const today = currentLocalDate()
   return deals.filter((deal) =>
-    Boolean(deal.brand && deal.title && deal.discount && deal.description && safeHttpUrl(deal.affiliate_url)) &&
+    Boolean(deal.brand && deal.title && deal.discount && deal.description && safeHttpUrl(deal.affiliate_url) && isVerifiedAffiliateUrl(deal.affiliate_url)) &&
     (deal.evergreen === true || (isValidExpiryDate(deal.expiry_date) && deal.expiry_date >= today)),
   )
 }
@@ -213,8 +215,10 @@ export function PromoDeals() {
         </div>
         {deals.length > 0 ? (
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {deals.map((deal) => (
-              <article key={deal.brand + '-' + (deal.evergreen ? 'evergreen' : deal.expiry_date)} className="flex h-full flex-col rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-xl hover:shadow-orange-100">
+            {deals.map((deal) => {
+              const partner = findVerifiedAffiliatePartner(deal.affiliate_url)
+              const category: TripCategory | null = partner ? (partner.category === 'tours' ? 'activities' : partner.category) : null
+              return <article key={deal.brand + '-' + (deal.evergreen ? 'evergreen' : deal.expiry_date)} className="flex h-full flex-col rounded-2xl border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-[#FF5500] hover:shadow-xl hover:shadow-orange-100">
                 <div className="flex items-start justify-between gap-3">
                   <span className="rounded-lg bg-[#FFF0E8] px-3 py-1.5 text-sm font-extrabold text-[#B83B00]">{deal.brand}</span>
                   {deal.evergreen ? null : <span className="rounded-full bg-[#FF5500] px-3 py-1.5 text-sm font-extrabold text-white">{deal.discount}</span>}
@@ -225,9 +229,9 @@ export function PromoDeals() {
                 {deal.evergreen ? null : (
                   <p className="mt-4 text-xs text-slate-500">Offer ends {new Date(deal.expiry_date + 'T23:59:59').toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                 )}
-                <a href={safeHttpUrl(deal.affiliate_url) ?? '#'} target="_blank" rel="nofollow noopener sponsored" className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#FF5500] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#E64A00]">{deal.evergreen ? 'Book transfer' : 'Claim Deal'} <span aria-hidden="true" className="ml-2">{'\u2197'}</span></a>
+                <a href={partner?.url ?? '#'} onClick={() => { if (partner && category) recordPartnerCheckout({ title: deal.title, category, origin: '', destination: deal.brand, departureDate: '', returnDate: '', partner: partner.name, partnerUrl: partner.url }) }} data-affiliate-status="verified" target="_blank" rel="nofollow noopener sponsored" className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#FF5500] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#E64A00]">{deal.evergreen ? 'Book transfer' : 'Claim Deal'} <span aria-hidden="true" className="ml-2">{'\u2197'}</span></a>
               </article>
-            ))}
+            })}
           </div>
         ) : (
           <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-orange-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:p-8">

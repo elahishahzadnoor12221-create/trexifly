@@ -80,7 +80,7 @@ export function DealCard({ deal }: { deal: Deal }) {
           </div>
 
           {/* Affiliate redirect target — swap via buildAffiliateUrl in src/lib/affiliates.ts */}
-          <a
+          {deal.affiliateUrl ? <a
             href={deal.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer sponsored"
@@ -89,7 +89,7 @@ export function DealCard({ deal }: { deal: Deal }) {
           >
             View Deal
             <Icon name="arrowUpRight" className="size-3.5" strokeWidth={2.2} />
-          </a>
+          </a> : <span className="text-xs font-semibold text-muted">No verified partner link currently available.</span>}
         </div>
       </div>
     </article>

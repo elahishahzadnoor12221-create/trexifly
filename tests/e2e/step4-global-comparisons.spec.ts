@@ -1,49 +1,28 @@
 import { expect, test } from '@playwright/test'
 
-const markerLinks = (page: import('@playwright/test').Page) => page.locator('a[data-affiliate-marker="806576"]')
+const verifiedLinks = (page: import('@playwright/test').Page) => page.locator('a[data-affiliate-status="verified"]')
 
-test('global car comparison preserves 30 examples and prefills all three partner searches', async ({ page }) => {
+test('car listings retain 30 examples and expose only verified AutoEurope/QEEQ short links', async ({ page }) => {
   await page.goto('/results?type=cars&from=Heathrow%20Airport%2C%20London&to=Central%20London&out=2026-12-10&back=2026-12-14&pickupTime=09%3A30&dropTime=11%3A00&driverAge=35')
   await expect(page.getByRole('heading', { name: '30 options to compare' })).toBeVisible()
-  const links = markerLinks(page)
-  await expect(links).toHaveCount(90)
-  const urls = await links.evaluateAll(nodes => nodes.slice(0, 3).map(node => (node as HTMLAnchorElement).href))
-  for (const href of urls) {
-    const url = new URL(href)
-    expect(url.searchParams.get('marker')).toBe('806576')
-  }
-  const discover = new URL(urls[0])
-  expect(discover.searchParams.get('pick_up_location')).toContain('Heathrow')
-  expect(discover.searchParams.get('pick_up_date')).toBe('2026-12-10')
-  expect(discover.searchParams.get('drop_off_date')).toBe('2026-12-14')
-  expect(discover.searchParams.get('driver_age')).toBe('35')
-  const toggle = page.getByRole('button', { name: /Switch to (dark|light) mode/ })
-  for (const dark of [false, true]) {
-    const isDark = (await toggle.getAttribute('aria-pressed')) === 'true'
-    if (isDark !== dark) await toggle.click()
-    await expect(page.locator('html')).toHaveAttribute('data-theme', dark ? 'dark' : 'light')
-    await expect(links.first()).toHaveCSS('color', 'rgb(255, 255, 255)')
-  }
+  const links = verifiedLinks(page)
+  await expect(links).toHaveCount(60)
+  const hrefs = await links.evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).href))
+  expect(new Set(hrefs)).toEqual(new Set(['https://autoeurope.tpx.lv/1NuZscel', 'https://qeeq.tpx.lv/xVJH8wOZ']))
+  await expect(page.locator('a[href*="discovercars.com"], a[href*="economybookings.com"]')).toHaveCount(0)
 })
 
-test('global airport transfer comparison preserves 20 examples and passes passenger/luggage counts', async ({ page }) => {
+test('airport transfer listings retain 20 examples and show only clean GetTransfer/Intui links', async ({ page }) => {
   await page.goto('/results?type=transfers&service=airport-transfer&from=Dubai%20International%20Airport&to=Dubai%20Marina&out=2026-12-10&back=2026-12-12&pickupTime=08%3A15&passengers=3&luggage=4')
   await expect(page.getByRole('heading', { name: '20 options to compare' })).toBeVisible()
-  const links = markerLinks(page)
-  await expect(links).toHaveCount(60)
-  const urls = await links.evaluateAll(nodes => nodes.slice(0, 3).map(node => (node as HTMLAnchorElement).href))
-  for (const href of urls) {
-    const url = new URL(href)
-    expect(url.searchParams.get('marker')).toBe('806576')
-    expect(url.searchParams.get('passengers')).toBe('3')
-    expect(url.searchParams.get('luggage')).toBe('4')
-  }
-  const intui = new URL(urls[1])
-  expect(intui.searchParams.get('arrivaldate')).toBe('2026-12-10')
-  expect(intui.searchParams.get('arrivaltime')).toBe('08:15')
+  const links = verifiedLinks(page)
+  await expect(links).toHaveCount(40)
+  const hrefs = await links.evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).href))
+  expect(new Set(hrefs)).toEqual(new Set(['https://gettransfer.tpx.lv/dt5dWuQv', 'https://intui.tpx.lv/XuaKpcpV']))
+  await expect(page.locator('a[href*="kiwitaxi.com"]')).toHaveCount(0)
 })
 
-test('global activities hubs render destination cards with four marked comparison providers', async ({ page }) => {
+test('activities hubs retain native listings and expose only verified Tiqets short links', async ({ page }) => {
   const hubs = [
     ['Dubai, United Arab Emirates', 'Burj Khalifa At The Top'],
     ['Makkah, Saudi Arabia', 'Makkah Holy Sites Ziyarat'],
@@ -61,13 +40,9 @@ test('global activities hubs render destination cards with four marked compariso
   for (const [destination, attraction] of hubs) {
     await page.goto('/results?type=tours&to=' + encodeURIComponent(destination) + '&out=2026-12-10', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { name: attraction })).toBeVisible()
-    const links = markerLinks(page)
-    await expect(links.first()).toHaveAttribute('href', /marker=806576/)
-    await expect(links).toHaveCount(12)
-    const names = await links.allTextContents()
-    expect(names.join(' ')).toContain('Klook')
-    expect(names.join(' ')).toContain('Tiqets')
-    expect(names.join(' ')).toContain('GetYourGuide')
-    expect(names.join(' ')).toContain('Viator')
+    const links = verifiedLinks(page)
+    await expect(links).toHaveCount(3)
+    await expect(links.first()).toHaveAttribute('href', 'https://tiqets.tpx.lv/JkNGKSuf')
+    await expect(page.locator('a[href*="getyourguide.com"], a[href*="viator.com"], a[href*="klook.com"]')).toHaveCount(0)
   }
 })

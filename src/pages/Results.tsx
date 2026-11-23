@@ -4,8 +4,8 @@ import { Icon } from '../components/Icons'
 import { SearchWidget } from '../components/SearchWidget'
 import { readQuery, dealsFor, PLACES, type Deal, type SearchQuery } from '../lib/data'
 import { generateHotelInventory, type HotelListing } from '../lib/hotels'
-import { getAffiliatePartners } from '../lib/affiliates'
-import { buildHotelProviderLinks } from '../lib/hotelLinks'
+import { buildAffiliateUrl, getAffiliatePartners } from '../lib/affiliates'
+import { recordPartnerCheckout, saveTrip, type TripCategory } from '../lib/trips'
 import { usePrefs } from '../lib/prefs'
 import { imgFallback } from '../lib/imageFallback'
 import { CAR_ROWS, TRANSFER_ROWS, getInventoryVehicleVisual } from '../data/vehicleInventory'
@@ -14,25 +14,7 @@ import { CAR_ROWS, TRANSFER_ROWS, getInventoryVehicleVisual } from '../data/vehi
 function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }) {
   const { money } = usePrefs()
   const [saved, setSaved] = useState(false)
-  const directLinks = buildHotelProviderLinks(query)
-  const [links, setLinks] = useState(directLinks.map(link => ({ ...link, status: 'unverified' as 'verified' | 'unverified' })))
-  useEffect(() => {
-    const controller = new AbortController()
-    fetch('/api/affiliates/link', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ links: directLinks.map(({ id, url }) => ({ id, url })) }),
-      signal: controller.signal,
-    }).then(async response => {
-      if (!response.ok) throw new Error('Affiliate link conversion unavailable')
-      const payload = await response.json() as { links?: Array<{ id: string; url: string; status: 'verified' | 'unverified' }> }
-      if (Array.isArray(payload.links)) setLinks(current => current.map(link => {
-        const converted = payload.links?.find(item => item.id === link.id)
-        return converted ? { ...link, url: converted.url, status: converted.status } : link
-      }))
-    }).catch(() => undefined)
-    return () => controller.abort()
-  }, [query.to, query.out, query.back, query.adults, query.children, query.rooms, query.childAges?.join(',')])
+  const links = getAffiliatePartners('hotels')
   return (
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 transition hover:border-orange-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
       <div className="flex flex-col gap-4 md:flex-row">
@@ -61,15 +43,15 @@ function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }
           </div>
           <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-bold text-slate-900 dark:text-white">Trexifly Partner Rates</p>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Hotel booking partners</p>
               <span className="text-[10px] font-semibold text-slate-500">Partner rates</span>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {links.map(link => <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer sponsored" data-provider-id={link.id} data-affiliate-status={link.status} className="hotel-provider-link inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-700 bg-[#172033] px-2 py-2 text-center text-[11px] font-bold text-white transition hover:border-[#FF5500] hover:bg-[#26364F] dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-orange-400">
+              {links.length ? links.map(link => <a key={link.id} href={link.url} onClick={() => recordPartnerCheckout({ title: hotel.title, category: 'hotels', origin: '', destination: query.to, departureDate: query.out, returnDate: query.back, partner: link.name, partnerUrl: link.url })} target="_blank" rel="noopener noreferrer sponsored" data-provider-id={link.id} data-affiliate-status={link.status} className="hotel-provider-link inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-700 bg-[#172033] px-2 py-2 text-center text-[11px] font-bold text-white transition hover:border-[#FF5500] hover:bg-[#26364F] dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-orange-400">
                 Search {link.name} ↗
-              </a>)}
+              </a>) : <p className="col-span-2 rounded-lg bg-slate-100 px-3 py-3 text-center text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300">Hotel partner links are temporarily unavailable while tracking is re-verified.</p>}
             </div>
-            <p className="mt-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Compare live room rates — book directly with the official partner. Your destination, dates and guest details are pre-filled.</p>
+            <p className="mt-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Unverified hotel booking buttons remain hidden until their affiliate redirects pass a clean check.</p>
           </div>
         </div>
         <div className="flex flex-row items-end justify-between border-t border-slate-100 pt-3 md:w-48 md:shrink-0 md:flex-col md:border-l md:border-t-0 md:pl-4 md:pt-0 dark:border-slate-700">
@@ -101,6 +83,14 @@ function AirlineLogo({ name, size='size-10' }: { name: string; size?: string }) 
     {code && !failed ? <img src={`https://pics.avs.io/64/64/${code}.png`} alt="" loading="lazy" className="max-h-full max-w-full object-contain" onError={()=>setFailed(true)}/> : <span aria-label={name} className="text-xs font-extrabold text-[#D94700]">{name.split(/\s+/).map(v=>v[0]).join('').slice(0,3).toUpperCase()}</span>}
   </span>
 }
+function queryTitleForTrips(query: SearchQuery, category: TripCategory): string {
+  if (category === 'flights') return query.from + ' to ' + query.to
+  if (category === 'hotels') return 'Stay in ' + query.to
+  if (category === 'cars') return 'Car rental: ' + query.from + ' to ' + query.to
+  if (category === 'transfers') return 'Airport transfer: ' + query.from + ' to ' + query.to
+  return 'Activities in ' + query.to
+}
+
 function FilterGroup({ title, children }: { title: string; children: ReactNode }) {
   return <section className="border-t border-slate-200 py-4 dark:border-slate-700"><h3 className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{title}</h3>{children}</section>
 }
@@ -114,7 +104,7 @@ function OfferCard({ deal }: { deal: Deal }) {
       </div>
       <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 sm:min-w-[190px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
         <div className="sm:text-right"><p className="text-[11px] text-slate-500">{deal.priceUnit}</p><p className="text-2xl font-bold tracking-tight text-slate-900">{money(deal.price)}</p><p className="text-[10px] text-slate-500">Indicative estimate</p>{deal.title.includes(" Â· ") && <p className="mt-1 text-[10px] text-slate-500">Flight number shown on partner site</p>}</div>
-        <a href={deal.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#E64A00]">View Deal <Icon name="arrowUpRight" className="size-4"/></a>
+        {deal.affiliateUrl ? <a href={deal.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-status="verified" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#E64A00]">View Deal <Icon name="arrowUpRight" className="size-4"/></a> : <span className="text-xs font-semibold text-slate-500">No verified booking partner is currently available.</span>}
       </div>
     </div>
   </article>
@@ -139,14 +129,7 @@ function FlightTime({ value }: { value: string | null }) {
   const date = new Date(value)
   return <span>{Number.isNaN(date.getTime()) ? 'Not supplied' : date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</span>
 }
-function aviasalesSearchUrl(query: SearchQuery, origin: string, destination: string, oneWay: boolean, cabinClass = query.pax) {
-  const dateCode = (value: string) => { const parsed = new Date(value + 'T00:00:00'); return String(parsed.getDate()).padStart(2, '0') + String(parsed.getMonth() + 1).padStart(2, '0') }
-  const adults = Math.min(9, Math.max(1, query.adults ?? 2))
-  const children = Math.min(9 - adults, Math.max(0, query.children ?? 0))
-  const cabin = /business/i.test(cabinClass) ? 'c' : /first/i.test(cabinClass) ? 'f' : /premium economy|comfort/i.test(cabinClass) ? 'w' : ''
-  const route = origin + dateCode(query.out) + destination + (oneWay ? '' : dateCode(query.back)) + cabin + String(adults) + (children ? String(children) : '')
-  return 'https://www.aviasales.com/search/' + route + '?marker=806576'
-}
+
 function airportDisplay(code: string) {
   const place = PLACES.find(item => item.code === code)
   return place ? place.airport + ', ' + place.code : code
@@ -204,13 +187,16 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
     void loadCalendar()
     return () => controller.abort()
   }, [origin, destination, query.out, query.back, oneWay])
-  const searchUrl = aviasalesSearchUrl(query, origin, destination, oneWay)
+  const searchUrl = buildAffiliateUrl('flights')
+  const trackFlightCheckout = () => recordPartnerCheckout({ title: query.from + ' to ' + query.to, category: 'flights', origin: query.from, destination: query.to, departureDate: query.out, returnDate: query.back, partner: 'Aviasales', partnerUrl: searchUrl })
+  const [savedNotice, setSavedNotice] = useState('')
+  const saveFlightItinerary = () => { saveTrip({ title: query.from + ' to ' + query.to, category: 'flights', origin: query.from, destination: query.to, departureDate: query.out, returnDate: query.back }); setSavedNotice('Itinerary saved to My Trips on this device.') }
   const sorted = [...offers].sort((a,b)=>sort==='price'?a.price-b.price:sort==='departure'?Date.parse(a.departureAt)-Date.parse(b.departureAt):(a.durationMinutes??Number.MAX_SAFE_INTEGER)-(b.durationMinutes??Number.MAX_SAFE_INTEGER))
   const passengerCount = (query.adults ?? 2) + (query.children ?? 0)
   const currency = (amount:number,code:string)=>new Intl.NumberFormat('en-US',{style:'currency',currency:/^[A-Z]{3}$/.test(code)?code:'USD',maximumFractionDigits:0}).format(amount)
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950"><div className="mx-auto max-w-7xl px-4 sm:px-6">
     <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
-    <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Trexifly recent-search fares. Cached estimates are not real-time availability or guaranteed ticket prices.</p></div>
+    <div className="mb-5 mt-3 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Trexifly recent-search fares. Cached estimates are not real-time availability or guaranteed ticket prices.</p>{savedNotice && <p role="status" className="mt-2 text-xs font-semibold text-emerald-700">{savedNotice}</p>}</div><button type="button" onClick={saveFlightItinerary} className="rounded-lg border border-[#FF5500] bg-white px-4 py-2.5 text-xs font-bold text-[#D94700] hover:bg-orange-50">Save itinerary to My Trips</button></div>
     <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>
     <section aria-label="Fare calendar" className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-bold text-slate-900 dark:text-white">Fare calendar · {new Date(query.out + 'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h2><span className="text-[10px] text-slate-500">Lowest cached fare by departure date</span></div>
@@ -221,7 +207,7 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
     </section>
     {status==='loading'&&<div role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">Checking recent flight fares…</div>}
     {status==='error'&&<div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><p className="font-bold">Flight fare data unavailable</p><p className="mt-2">{notice}</p></div>}
-    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No exact-date cached fare</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for {query.out}. Check live availability or compare other dates in the same month.</p>{flexibleOffers.length>0&&<section className="mt-5"><h3 className="font-bold text-slate-900 dark:text-white">Flexible dates in {new Date(query.out+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})} - Estimated total for {passengerCount} passengers: {currency(flexibleOffers[0].price * passengerCount,flexibleOffers[0].currency)}</h3><div className="mt-3 grid gap-2 sm:grid-cols-2">{flexibleOffers.map(offer=>{const date=offer.departureAt.slice(0,10);const flexibleUrl=aviasalesSearchUrl({...query,out:date,back:oneWay?date:query.back},origin,destination,oneWay);return <a key={offer.id} href={flexibleUrl} target="_blank" rel="noopener noreferrer sponsored" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-400 dark:border-slate-700"><span><strong className="block text-sm text-slate-900 dark:text-white">{new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</strong><span className="text-[10px] text-slate-500">{FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'}</span></span><strong className="text-sm text-emerald-700 dark:text-emerald-300">{currency(offer.price * passengerCount,offer.currency)}</strong></a>})}</div></section>}<a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book on Official Partner <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
+    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No exact-date cached fare</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for {query.out}. Check live availability or compare other dates in the same month.</p>{flexibleOffers.length>0&&<section className="mt-5"><h3 className="font-bold text-slate-900 dark:text-white">Flexible dates in {new Date(query.out+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})} - Estimated total for {passengerCount} passengers: {currency(flexibleOffers[0].price * passengerCount,flexibleOffers[0].currency)}</h3><div className="mt-3 grid gap-2 sm:grid-cols-2">{flexibleOffers.map(offer=>{const date=offer.departureAt.slice(0,10);return <a key={offer.id} href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-400 dark:border-slate-700"><span><strong className="block text-sm text-slate-900 dark:text-white">{new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</strong><span className="text-[10px] text-slate-500">{FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'}</span></span><strong className="text-sm text-emerald-700 dark:text-emerald-300">{currency(offer.price * passengerCount,offer.currency)}</strong></a>})}</div></section>}<a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book on Official Partner <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
     {status==='ready'&&<div className="space-y-3">{sorted.map(offer=>{
       const carrier = FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'
       const fromCode = offer.originAirport || origin
@@ -246,7 +232,7 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
           </div>
           <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 dark:border-slate-700 sm:min-w-[230px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
             <div className="sm:text-right"><p className="text-[10px] text-slate-500">Estimated total for {passengerCount} passengers</p><p className="text-2xl font-black text-slate-900 dark:text-white">{currency(offer.price * passengerCount,offer.currency)}</p><p className="max-w-[190px] text-[10px] text-slate-500">Live seat price & baggage confirmed at checkout.</p></div>
-            <a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book <Icon name="arrowUpRight" className="size-4"/></a>
+            <a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book <Icon name="arrowUpRight" className="size-4"/></a>
           </div>
         </div>
         <details className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-700">
@@ -271,7 +257,7 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
                 <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Refund policy: Fare-dependent</p>
                 <p className="font-semibold">Passenger summary: {query.adults ?? 2} adult(s) + {query.children ?? 0} child(ren) = {baggageCount} travellers. Allowance is per-ticket and must be confirmed for each passenger.</p>
               </div>
-              <a href={searchUrl} target="_blank" rel="noopener noreferrer sponsored" className="mt-3 inline-flex items-center rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Change fare / Select baggage on partner →</a>
+              <a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="mt-3 inline-flex items-center rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Change fare / Select baggage on partner →</a>
             </section>
           </div>
           <p className="mt-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Baggage and exchange/refund rows are general guidance, not verified fare-family rules. Final conditions depend on the selected ticket and are confirmed by the airline or booking partner at checkout.</p>
@@ -288,8 +274,8 @@ type SamplePartnerLink = { name: string; url: string }
 type SampleListing = {id:string;kind:SampleKind;title:string;category:string;subtitle:string;price:number;score:number;duration:string;perks:string[];affiliateUrl:string;affiliateLinks:SamplePartnerLink[];transmission?:string;fuel?:string;capacity?:string;provider:string;imageUrl:string;seats?:string;bags?:string}
 const TOUR_PHOTOS=['https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=85','https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=900&q=85','https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85','https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=900&q=85']
 const CAR_SUPPLIERS=['Europcar','Hertz','Avis','Sixt','Budget','Enterprise','Dollar']
-const TOUR_SUPPLIERS=['Klook','Tiqets','KKday']
-const TRANSFER_SUPPLIERS=['GetTransfer','Kiwitaxi','Intui.travel']
+const TOUR_SUPPLIERS=['Tiqets']
+const TRANSFER_SUPPLIERS=['GetTransfer','Intui.travel']
 const TOUR_ROWS:Array<[string,string,number,string,string[]]>=[
 ['Old Town & City Highlights','City Tours & Sightseeing',35,'Half-Day',['Local guide','Small group']],['Hop-on Hop-off City Pass','City Tours & Sightseeing',49,'Full-Day',['Flexible stops','Digital ticket']],['Guided Food & Market Walk','City Tours & Sightseeing',42,'Half-Day',['Food tasting','Local guide']],['Panoramic Night City Tour','City Tours & Sightseeing',39,'Half-Day',['Evening departure','Photo stops']],['Private City Discovery','City Tours & Sightseeing',95,'Full-Day',['Private guide','Hotel pickup']],
 ['Desert Safari & Dune Drive','Adventure & Desert Safari / Mountain Expeditions',68,'Half-Day',['4x4 dune drive','Refreshments']],['Sunset Desert Camp','Adventure & Desert Safari / Mountain Expeditions',82,'Half-Day',['Sunset stop','Camp experience']],['Mountain Jeep Expedition','Adventure & Desert Safari / Mountain Expeditions',115,'Full-Day',['4x4 transport','Scenic stops']],['Guided Valley Trek','Adventure & Desert Safari / Mountain Expeditions',74,'Full-Day',['Trail guide','Water included']],['Multi-Day Mountain Explorer','Adventure & Desert Safari / Mountain Expeditions',340,'Multi-Day',['Local host','Multi-day itinerary']],
@@ -310,29 +296,18 @@ const HUB_TOUR_ROWS:Record<string,Array<[string,string,number,string,string[]]>>
  fiji:[['Mamanuca Islands Day Cruise','Island & Ocean Tours',115,'Full-Day',['Island cruise','Snorkelling stop']],['Fiji Coral Reef Snorkel','Water Activities',65,'Half-Day',['Boat transfer','Snorkel gear']],['Nadi Cultural & Garden Tour','Culture & Nature',42,'Half-Day',['Local guide','Garden visit']]],
  pakistan:[['Hunza Valley Forts & Village Tour','Northern Pakistan Heritage',92,'Full-Day',['Local guide','Heritage stops']],['Skardu Lakes & Deosai Explorer','Northern Pakistan Nature',185,'Multi-Day',['Mountain transport','Local guide']],['Swat & Kalam Scenic Escape','Northern Pakistan Nature',120,'Full-Day',['Scenic drive','Valley viewpoints']]]
 }
-function markedSearchUrl(base:string,values:Record<string,string>){const url=new URL(base);for(const [key,value] of Object.entries(values))if(value)url.searchParams.set(key,value);url.searchParams.set('marker','806576');return url.toString()}
-function samplePartnerLinks(kind:SampleKind,params:URLSearchParams):SamplePartnerLink[]{
- const pickup=params.get('from')??'',dropoff=params.get('to')??pickup,out=params.get('out')??'',back=params.get('back')??out,time=params.get('pickupTime')??'10:00',dropTime=params.get('dropTime')??time
- if(kind==='cars'){
-  const values={pick_up_location:pickup,drop_off_location:dropoff,pick_up_date:out,pick_up_time:time,drop_off_date:back,drop_off_time:dropTime,driver_age:params.get('driverAge')??'35'}
-  return [{name:'DiscoverCars',url:markedSearchUrl('https://www.discovercars.com/',values)},{name:'EconomyBookings',url:markedSearchUrl('https://www.economybookings.com/en/',{...values,pickup_location:pickup,pickup_date:out,pickup_time:time,dropoff_date:back,dropoff_time:dropTime})},{name:'AutoEurope',url:markedSearchUrl('https://www.autoeurope.com/',{...values,pickup_location:pickup,pickup_date:out,dropoff_date:back})}]
- }
- if(kind==='transfers'){
-  const values={from:pickup,to:dropoff,date:out,time,return_date:back,passengers:params.get('passengers')??'2',luggage:params.get('luggage')??'2'}
-  return [{name:'Kiwitaxi',url:markedSearchUrl('https://kiwitaxi.com/',values)},{name:'Intui.travel',url:markedSearchUrl('https://en.intui.travel/transfer/',{...values,arrivaldate:out,arrivaltime:time,numberofadults:values.passengers})},{name:'GetTransfer',url:markedSearchUrl('https://gettransfer.com/',values)}]
- }
- const destination=params.get('to')??'';const date=params.get('out')??'';const values={q:destination,query:destination,date,marker:'806576'}
- return [{name:'Klook',url:markedSearchUrl('https://www.klook.com/search/',values)},{name:'Tiqets',url:markedSearchUrl('https://www.tiqets.com/en/search/',values)},{name:'GetYourGuide',url:markedSearchUrl('https://www.getyourguide.com/s/',{...values,date_from:date})},{name:'Viator',url:markedSearchUrl('https://www.viator.com/searchResults/all',{...values,text:destination})}]
+function samplePartnerLinks(kind: SampleKind): SamplePartnerLink[] {
+  return getAffiliatePartners(kind).map(partner => ({ name: partner.name, url: partner.url }))
 }
-function makeSamples(kind:SampleKind,route:string,params:URLSearchParams):SampleListing[]{
- const affiliateLinks=samplePartnerLinks(kind,params)
+function makeSamples(kind:SampleKind,route:string):SampleListing[]{
+ const affiliateLinks=samplePartnerLinks(kind)
  const factor=/pakistan|lahore|islamabad|karachi|makkah|madinah|jeddah|riyadh/i.test(route)?0.82:1
  const seed=[...route].reduce((n,c)=>(n*31+c.charCodeAt(0))>>>0,7)
- if(kind==='cars')return CAR_ROWS.map((r,i)=>({id:'car-'+i,kind,title:r[0],category:r[1],subtitle:route+' - '+r[1]+' - Per-day estimate',price:Math.round(r[2]*factor*(0.92+((seed+i*17)%19)/100)),score:Number((8.1+((seed+i*13)%19)/10).toFixed(1)),duration:'Per day',perks:['Illustrative partner rates','Air conditioning','Unlimited mileage estimate'],affiliateUrl:affiliateLinks[i%affiliateLinks.length].url,affiliateLinks,transmission:r[3],fuel:i%3===0?'Hybrid':i%3===1?'Petrol':'Diesel',provider:CAR_SUPPLIERS[i%CAR_SUPPLIERS.length],imageUrl:getInventoryVehicleVisual(r[0],r[1]).src,seats:i%4===0?'4':'5',bags:i%3===0?'2':'3'}))
- if(kind==='tours'){const lower=route.toLowerCase();const hubKey=Object.keys(HUB_TOUR_ROWS).find(key=>key==='new york'?lower.includes(key):key==='fiji'?/fiji|pacific|nadi|suva|papeete|apia|port vila/.test(lower):key==='pakistan'?/hunza|skardu|swat|gilgit|chitral|pakistan/.test(lower):lower.includes(key));const rows=hubKey?HUB_TOUR_ROWS[hubKey]:TOUR_ROWS;return rows.map((r,i)=>({id:'tour-'+i,kind,title:r[0],category:r[1],subtitle:route+' - '+r[3]+' experience',price:Math.round(r[2]*factor*(0.93+((seed+i*11)%17)/100)),score:Number((8.2+((seed+i*7)%18)/10).toFixed(1)),duration:r[3],perks:r[4],affiliateUrl:affiliateLinks[i%affiliateLinks.length].url,affiliateLinks,provider:TOUR_SUPPLIERS[i%TOUR_SUPPLIERS.length],imageUrl:TOUR_PHOTOS[i%TOUR_PHOTOS.length]}))}
- return TRANSFER_ROWS.map((r,i)=>({id:'transfer-'+i,kind,title:r[0],category:r[1],subtitle:route+' - '+r[3],price:Math.round(r[2]*factor*(0.94+((seed+i*9)%15)/100)),score:Number((8.3+((seed+i*5)%17)/10).toFixed(1)),duration:'One-way estimate',perks:r[4],capacity:r[3],affiliateUrl:affiliateLinks[i%affiliateLinks.length].url,affiliateLinks,provider:TRANSFER_SUPPLIERS[i%TRANSFER_SUPPLIERS.length],imageUrl:getInventoryVehicleVisual(r[0],r[1]).src}))
+ if(kind==='cars')return CAR_ROWS.map((r,i)=>({id:'car-'+i,kind,title:r[0],category:r[1],subtitle:route+' - '+r[1]+' - Per-day estimate',price:Math.round(r[2]*factor*(0.92+((seed+i*17)%19)/100)),score:Number((8.1+((seed+i*13)%19)/10).toFixed(1)),duration:'Per day',perks:['Illustrative partner rates','Air conditioning','Unlimited mileage estimate'],affiliateUrl:affiliateLinks.length ? affiliateLinks[i%affiliateLinks.length].url : '',affiliateLinks,transmission:r[3],fuel:i%3===0?'Hybrid':i%3===1?'Petrol':'Diesel',provider:CAR_SUPPLIERS[i%CAR_SUPPLIERS.length],imageUrl:getInventoryVehicleVisual(r[0],r[1]).src,seats:i%4===0?'4':'5',bags:i%3===0?'2':'3'}))
+ if(kind==='tours'){const lower=route.toLowerCase();const hubKey=Object.keys(HUB_TOUR_ROWS).find(key=>key==='new york'?lower.includes(key):key==='fiji'?/fiji|pacific|nadi|suva|papeete|apia|port vila/.test(lower):key==='pakistan'?/hunza|skardu|swat|gilgit|chitral|pakistan/.test(lower):lower.includes(key));const rows=hubKey?HUB_TOUR_ROWS[hubKey]:TOUR_ROWS;return rows.map((r,i)=>({id:'tour-'+i,kind,title:r[0],category:r[1],subtitle:route+' - '+r[3]+' experience',price:Math.round(r[2]*factor*(0.93+((seed+i*11)%17)/100)),score:Number((8.2+((seed+i*7)%18)/10).toFixed(1)),duration:r[3],perks:r[4],affiliateUrl:affiliateLinks.length ? affiliateLinks[i%affiliateLinks.length].url : '',affiliateLinks,provider:TOUR_SUPPLIERS[i%TOUR_SUPPLIERS.length],imageUrl:TOUR_PHOTOS[i%TOUR_PHOTOS.length]}))}
+ return TRANSFER_ROWS.map((r,i)=>({id:'transfer-'+i,kind,title:r[0],category:r[1],subtitle:route+' - '+r[3],price:Math.round(r[2]*factor*(0.94+((seed+i*9)%15)/100)),score:Number((8.3+((seed+i*5)%17)/10).toFixed(1)),duration:'One-way estimate',perks:r[4],capacity:r[3],affiliateUrl:affiliateLinks.length ? affiliateLinks[i%affiliateLinks.length].url : '',affiliateLinks,provider:TRANSFER_SUPPLIERS[i%TRANSFER_SUPPLIERS.length],imageUrl:getInventoryVehicleVisual(r[0],r[1]).src}))
 }
-function SampleCard({item}:{item:SampleListing}){
+function SampleCard({item,query}:{item:SampleListing;query:SearchQuery}){
  const {money}=usePrefs()
  return <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-orange-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
    <div className="grid sm:grid-cols-[220px_minmax(0,1fr)]">
@@ -343,7 +318,7 @@ function SampleCard({item}:{item:SampleListing}){
          <div className="mt-3 flex flex-wrap gap-1.5">{item.perks.map(v=><span key={v} className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">{v}</span>)}{item.seats&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.seats} seats</span>}{item.bags&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.bags} bags</span>}{item.transmission&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.transmission}</span>}{item.fuel&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">{item.fuel}</span>}{item.kind==='cars'&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] text-slate-600">AC</span>}{item.capacity&&<span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-700">{item.capacity}</span>}</div>
          <p className="mt-2 text-[11px] font-semibold text-emerald-700">Illustrative partner rates - click to verify live availability</p>
        </div>
-       <div className="flex items-end justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-700"><div><p className="text-[10px] text-slate-500">{item.kind==='cars'?'Daily estimate':item.kind==='tours'?'Per person':'Total fare estimate'}</p><p className="text-2xl font-black text-slate-900 dark:text-white">{money(item.price)}{item.kind==='cars'&&<span className="text-xs font-semibold text-slate-500"> / day</span>}</p><p className="text-[10px] text-slate-500">{item.duration}</p></div><div className="flex flex-wrap justify-end gap-2">{item.affiliateLinks.map(link=><a key={link.name} href={link.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-marker="806576" className="inline-flex shrink-0 rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Compare {link.name} {String.fromCharCode(8599)}</a>)}</div></div>
+       <div className="flex items-end justify-between gap-3 border-t border-slate-100 pt-3 dark:border-slate-700"><div><p className="text-[10px] text-slate-500">{item.kind==='cars'?'Daily estimate':item.kind==='tours'?'Per person':'Total fare estimate'}</p><p className="text-2xl font-black text-slate-900 dark:text-white">{money(item.price)}{item.kind==='cars'&&<span className="text-xs font-semibold text-slate-500"> / day</span>}</p><p className="text-[10px] text-slate-500">{item.duration}</p></div><div className="flex flex-wrap justify-end gap-2">{item.affiliateLinks.length ? item.affiliateLinks.map(link=><a key={link.name} href={link.url} onClick={()=>recordPartnerCheckout({title:item.title,category:item.kind==='tours'?'activities':item.kind,origin:query.from,destination:query.to,departureDate:query.out,returnDate:query.back,partner:link.name,partnerUrl:link.url})} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-status="verified" className="inline-flex shrink-0 rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Compare {link.name} {String.fromCharCode(8599)}</a>) : <span className="text-xs font-semibold text-slate-500">No verified booking partner link is currently available.</span>}</div></div>
      </div>
    </div>
  </article>
@@ -352,6 +327,9 @@ function SampleCard({item}:{item:SampleListing}){
 export function Results() {
   const [params, setParams] = useSearchParams()
   const query = readQuery(params)
+  const [savedNotice, setSavedNotice] = useState('')
+  const tripCategory: TripCategory = params.get('type') === 'transfers' || params.get('service') === 'airport-transfer' ? 'transfers' : query.type === 'flights' ? 'flights' : query.type === 'tours' ? 'activities' : query.type === 'cars' ? 'cars' : 'hotels'
+  const saveCurrentItinerary = () => { saveTrip({ title: queryTitleForTrips(query, tripCategory), category: tripCategory, origin: query.from, destination: query.to, departureDate: query.out, returnDate: query.back }); setSavedNotice('Itinerary saved to My Trips on this device.') }
   useEffect(() => {
     const onTab = (e: Event) => {
       const next = (e as CustomEvent<{ tab?: string }>).detail?.tab
@@ -375,7 +353,7 @@ export function Results() {
   const partnerLinks = query.type === 'flights' || query.type === 'hotels' || query.type === 'cars' || query.type === 'tours' || transfer ? [] : getAffiliatePartners(query.type)
   const { money } = usePrefs()
   const sampleKind:SampleKind|null = transfer ? 'transfers' : query.type === 'cars' || query.type === 'tours' ? query.type : null
-  const sampleRows = sampleKind ? makeSamples(sampleKind, sampleKind === 'tours' ? query.to : query.from+' ? '+query.to, params) : []
+  const sampleRows = sampleKind ? makeSamples(sampleKind, sampleKind === 'tours' ? query.to : query.from+' ? '+query.to) : []
   const max = deals.length ? Math.max(...deals.map(d=>d.price)) : 0
   const [cap,setCap] = useState(max)
   const [stops,setStops] = useState<string[]>([])
@@ -406,7 +384,7 @@ export function Results() {
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
     <div className="mx-auto max-w-7xl px-4 sm:px-6">
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
-      <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only. Final prices and availability must be confirmed with the booking provider.</p></div>
+      <div className="mb-5 mt-3 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only. Final prices and availability must be confirmed with the booking provider.</p>{savedNotice && <p role="status" className="mt-2 text-xs font-semibold text-emerald-700">{savedNotice}</p>}</div><button type="button" onClick={saveCurrentItinerary} className="rounded-lg border border-[#FF5500] bg-white px-4 py-2.5 text-xs font-bold text-[#D94700] hover:bg-orange-50">Save itinerary to My Trips</button></div>
       {<div className="mb-6 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-900"><SearchWidget initial={query} compact/></div>}
       {query.type !== 'flights' && partnerLinks.length > 0 && <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Compare options and continue securely with the selected booking partner.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>}
       {query.type === 'flights' && !transfer ? <section aria-label="Live flight comparison" className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-7">
@@ -436,7 +414,7 @@ export function Results() {
           {<>
             <div className="mb-4"><h2 className="font-bold text-slate-900 dark:text-white">{sampleKind ? filteredSamples.length : query.type==='hotels'?filteredHotels.length:filtered.length} options to compare</h2><p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Select a provider to continue</p></div>
             {sampleKind ? <div className="mb-4 flex flex-wrap items-center gap-2">{(['Price','Rating'] as const).map(mode=><button key={mode} type="button" onClick={()=>setSampleSort(mode)} aria-pressed={sampleSort===mode} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sampleSort===mode?'bg-[#FF5A00] text-white':'bg-white text-slate-600')}>{mode==='Price'?'Lowest Price':'Top Rated'}</button>)}</div> : query.type==='hotels' ? <div className="mb-4 flex flex-wrap items-center gap-2">{(['Lowest Price','Highest Price','Top Rated','Star Rating'] as const).map(mode=><button key={mode} type="button" onClick={()=>setHotelSort(mode)} aria-pressed={hotelSort===mode} className={'rounded-lg px-3 py-2 text-xs font-bold '+(hotelSort===mode?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50 dark:bg-slate-800 dark:text-slate-200')}>{mode}</button>)}</div> : <div className="mb-4 flex gap-2">{(['Best','Cheapest','Fastest'] as SortMode[]).map(v=><button key={v} onClick={()=>setSort(v)} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===v?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50')}>{v}</button>)}</div>}
-            <div className="space-y-3">{sampleKind ? (filteredSamples.length ? filteredSamples.map(item=><SampleCard key={item.id} item={item}/>) : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No listings match these filters. Reset filters to see all examples.</div>) : query.type==='hotels' ? (filteredHotels.length ? filteredHotels.slice(0,hotelPageSize).map(hotel=><HotelCard key={hotel.id} hotel={hotel} query={query}/>) : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No hotels match this star filter. Choose All Stars to see every sample.</div>) : (filtered.length?filtered.map(deal=><OfferCard key={deal.id} deal={deal}/>):<div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No offers match these filters. Reset your filters to see all options.</div>)}</div>
+            <div className="space-y-3">{sampleKind ? (filteredSamples.length ? filteredSamples.map(item=><SampleCard key={item.id} item={item} query={query}/>) : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No listings match these filters. Reset filters to see all examples.</div>) : query.type==='hotels' ? (filteredHotels.length ? filteredHotels.slice(0,hotelPageSize).map(hotel=><HotelCard key={hotel.id} hotel={hotel} query={query}/>) : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No hotels match this star filter. Choose All Stars to see every sample.</div>) : (filtered.length?filtered.map(deal=><OfferCard key={deal.id} deal={deal}/>):<div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No offers match these filters. Reset your filters to see all options.</div>)}</div>
             {query.type==='hotels' && hotelPageSize<filteredHotels.length && <button type="button" onClick={()=>setHotelPageSize(v=>v+12)} className="mt-5 w-full rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm font-bold text-[#D94700] transition hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-900 dark:text-orange-300">Load More Hotels ({filteredHotels.length-hotelPageSize} remaining)</button>}
             <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-100">{sampleKind ? 'Illustrative partner rates - click to verify live availability. Car, tour and transfer listings, ratings, durations, capacities and prices are generated examples, not live inventory or confirmed bookings. Verify final terms and availability with the linked partner.' : query.type==='hotels'?'Compare live room rates with Trexifly partner sites. Choose a provider to check current property availability, room details, taxes and final prices before booking.':'Trexifly currently displays illustrative comparison estimates, not live inventory. These are not guaranteed fares, room rates or vehicle availability. Confirm the final price, taxes, terms and availability with the booking provider before paying.'}</div>
           </>}
