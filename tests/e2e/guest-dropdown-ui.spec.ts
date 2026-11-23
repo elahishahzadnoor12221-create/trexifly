@@ -46,10 +46,11 @@ test('traveller dropdown closes on Escape and outside pointer click', async ({ p
   await expect(page.locator('.trexifly-guest-menu')).toBeHidden()
 })
 
-test('traveller dropdown closes when switching search tabs', async ({ page }) => {
+test('traveller dropdown closes when using the global category navigation from results', async ({ page }) => {
   await page.goto('/results?type=flights', { waitUntil: 'domcontentloaded' })
   await page.getByRole('button', { name: /Choose passengers/ }).click()
   await expect(page.locator('.trexifly-guest-menu')).toBeVisible()
-  await page.getByRole('tab', { name: 'Stays' }).click()
+  await page.getByRole('link', { name: 'Stays' }).first().click()
+  await expect(page).toHaveURL(/\\?tab=hotels/)
   await expect(page.locator('.trexifly-guest-menu')).toBeHidden()
 })

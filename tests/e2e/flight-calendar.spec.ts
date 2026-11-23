@@ -19,7 +19,7 @@ test('unified two-month calendar selects departure and return, toggles trip type
   })
 
   await page.goto('/results?type=flights&from=Lahore%20(LHE)&to=Dubai%20(DXB)&out=2026-12-01&back=2026-12-05')
-  await page.getByRole('tab', { name: 'Flights' }).click()
+  await expect(page.getByRole('tablist', { name: 'Travel search type' })).toHaveCount(0)
   await page.getByRole('button', { name: /2026-12-01|Choose departure date/ }).click()
   const calendar = page.getByRole('dialog', { name: 'Flight price calendar' })
   await expect(calendar.getByRole('heading', { name: 'December 2026' })).toBeVisible()
