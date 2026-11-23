@@ -20,7 +20,7 @@ test('Flights use native Trexifly results and never load a third-party widget', 
   await page.goto('/results?type=flights&from=Lahore%20(LHE)&to=Dubai%20(DXB)&out=2026-12-01&back=2026-12-05&adults=3&children=2&infants=1&pax=Business')
   await expect(page.locator('#root')).not.toBeEmpty()
   await expect(page.getByRole('heading', { name: 'Lahore (LHE) to Dubai (DXB)' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Recent flight fares' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Recent flight fare estimates' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Emirates' })).toBeVisible()
   await expect(page.getByText('Estimated total for 5 passengers')).toBeVisible()
   await expect(page.getByText('$500').first()).toBeVisible()

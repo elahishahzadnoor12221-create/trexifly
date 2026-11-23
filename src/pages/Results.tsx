@@ -162,10 +162,10 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
         const rows = Array.isArray(payload.offers) ? payload.offers : []
         const flexible = Array.isArray(payload.flexibleOffers) ? payload.flexibleOffers : []
         setOffers(rows); setFlexibleOffers(flexible); setStatus(rows.length?'ready':'empty')
-        setNotice(payload.cacheWindow || 'Recent cached fares; not real-time inventory.')
+        setNotice('Recent fare estimates only. Live availability and the final ticket price must be confirmed with the booking partner.')
       } catch(error) {
         if(controller.signal.aborted)return
-        setStatus('error'); setNotice(error instanceof Error?error.message:'Flight fare search is temporarily unavailable.')
+        setStatus('error'); setNotice('We could not load recent fare estimates. Please try again shortly or check live prices with the booking partner.')
       }
     }
     void load()
@@ -182,7 +182,7 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
         if (!response.ok) throw new Error(payload.message || 'Fare calendar is temporarily unavailable.')
         setCalendarPrices(Array.isArray(payload.prices) ? payload.prices : [])
         setCalendarNotice(payload.message || '')
-      } catch (error) { if (!controller.signal.aborted) setCalendarNotice(error instanceof Error ? error.message : 'Fare calendar is temporarily unavailable.') }
+      } catch { if (!controller.signal.aborted) setCalendarNotice('Fare estimates are temporarily unavailable. Please try again shortly.') }
     }
     void loadCalendar()
     return () => controller.abort()
@@ -196,18 +196,18 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
   const currency = (amount:number,code:string)=>new Intl.NumberFormat('en-US',{style:'currency',currency:/^[A-Z]{3}$/.test(code)?code:'USD',maximumFractionDigits:0}).format(amount)
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950"><div className="mx-auto max-w-7xl px-4 sm:px-6">
     <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
-    <div className="mb-5 mt-3 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Trexifly recent-search fares. Cached estimates are not real-time availability or guaranteed ticket prices.</p>{savedNotice && <p role="status" className="mt-2 text-xs font-semibold text-emerald-700">{savedNotice}</p>}</div><button type="button" onClick={saveFlightItinerary} className="rounded-lg border border-[#FF5500] bg-white px-4 py-2.5 text-xs font-bold text-[#D94700] hover:bg-orange-50">Save itinerary to My Trips</button></div>
+    <div className="mb-5 mt-3 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Trexifly fare estimates are based on recent partner data. They are not live availability or guaranteed ticket prices.</p>{savedNotice && <p role="status" className="mt-2 text-xs font-semibold text-emerald-700">{savedNotice}</p>}</div><button type="button" onClick={saveFlightItinerary} className="rounded-lg border border-[#FF5500] bg-white px-4 py-2.5 text-xs font-bold text-[#D94700] hover:bg-orange-50">Save itinerary to My Trips</button></div>
     <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact hideCategoryTabs/></div>
     <section aria-label="Fare calendar" className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-bold text-slate-900 dark:text-white">Fare calendar · {new Date(query.out + 'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h2><span className="text-[10px] text-slate-500">Lowest cached fare by departure date</span></div>
-      {calendarPrices.length ? <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">{calendarPrices.map(item => <div key={item.date} className={'rounded-lg border px-2 py-2 text-center ' + (item.date === query.out ? 'border-orange-400 bg-orange-50 dark:bg-orange-950/30' : 'border-slate-100 dark:border-slate-700')}><p className="text-[10px] text-slate-500">{new Date(item.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric'})}</p><p className="mt-1 text-xs font-bold text-slate-900 dark:text-white">{currency(item.price * passengerCount,item.currency)}</p></div>)}</div> : <p className="mt-2 text-xs text-slate-500">{calendarNotice || 'Loading cached fare calendar…'}</p>}
+      <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-bold text-slate-900 dark:text-white">Fare calendar · {new Date(query.out + 'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h2><span className="text-[10px] text-slate-500">Lowest recent fare estimate by departure date</span></div>
+      {calendarPrices.length ? <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">{calendarPrices.map(item => <div key={item.date} className={'rounded-lg border px-2 py-2 text-center ' + (item.date === query.out ? 'border-orange-400 bg-orange-50 dark:bg-orange-950/30' : 'border-slate-100 dark:border-slate-700')}><p className="text-[10px] text-slate-500">{new Date(item.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric'})}</p><p className="mt-1 text-xs font-bold text-slate-900 dark:text-white">{currency(item.price * passengerCount,item.currency)}</p></div>)}</div> : <p className="mt-2 text-xs text-slate-500">{calendarNotice || 'Loading fare estimates…'}</p>}
     </section>
-    <section className="mb-5 rounded-xl border border-orange-100 bg-white p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">Recent flight fares</h2><p className="mt-1 text-xs text-slate-500">{origin || '—'} → {destination || '—'} · {query.out}{oneWay ? ' -  One-way' : ' -  Return ' + query.back}</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold text-amber-800">Recent fare data</span></div>
+    <section className="mb-5 rounded-xl border border-orange-100 bg-white p-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold text-slate-900">Recent flight fare estimates</h2><p className="mt-1 text-xs text-slate-500">{origin || '—'} → {destination || '—'} · {query.out}{oneWay ? ' -  One-way' : ' -  Return ' + query.back}</p></div><span className="rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold text-amber-800">Estimated fares</span></div>
       {status==='ready'&&<div className="mt-4 flex flex-wrap gap-2">{([['price','Cheapest'],['departure','Earliest departure'],['duration','Shortest journey']] as const).map(([value,label])=><button key={value} type="button" onClick={()=>setSort(value)} aria-pressed={sort===value} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===value?'bg-[#FF5500] text-white':'bg-orange-50 text-slate-700')}>{label}</button>)}</div>}
     </section>
     {status==='loading'&&<div role="status" className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">Checking recent flight fares…</div>}
     {status==='error'&&<div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950"><p className="font-bold">Flight fare data unavailable</p><p className="mt-2">{notice}</p></div>}
-    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No exact-date cached fare</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for {query.out}. Check live availability or compare other dates in the same month.</p>{flexibleOffers.length>0&&<section className="mt-5"><h3 className="font-bold text-slate-900 dark:text-white">Flexible dates in {new Date(query.out+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})} - Estimated total for {passengerCount} passengers: {currency(flexibleOffers[0].price * passengerCount,flexibleOffers[0].currency)}</h3><div className="mt-3 grid gap-2 sm:grid-cols-2">{flexibleOffers.map(offer=>{const date=offer.departureAt.slice(0,10);return <a key={offer.id} href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-400 dark:border-slate-700"><span><strong className="block text-sm text-slate-900 dark:text-white">{new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</strong><span className="text-[10px] text-slate-500">{FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'}</span></span><strong className="text-sm text-emerald-700 dark:text-emerald-300">{currency(offer.price * passengerCount,offer.currency)}</strong></a>})}</div></section>}<a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book on Official Partner <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
+    {status==='empty'&&<div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"><h2 className="font-bold text-slate-900 dark:text-white">No fare estimate for this date</h2><p className="mt-2 text-sm text-slate-600 dark:text-slate-300">No recent fare estimate is available for {query.out}. Check live availability with the booking partner or compare other dates in the same month.</p>{flexibleOffers.length>0&&<section className="mt-5"><h3 className="font-bold text-slate-900 dark:text-white">Flexible dates in {new Date(query.out+'T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'})} - Estimated total for {passengerCount} passengers: {currency(flexibleOffers[0].price * passengerCount,flexibleOffers[0].currency)}</h3><div className="mt-3 grid gap-2 sm:grid-cols-2">{flexibleOffers.map(offer=>{const date=offer.departureAt.slice(0,10);return <a key={offer.id} href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3 text-left hover:border-emerald-400 dark:border-slate-700"><span><strong className="block text-sm text-slate-900 dark:text-white">{new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}</strong><span className="text-[10px] text-slate-500">{FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'}</span></span><strong className="text-sm text-emerald-700 dark:text-emerald-300">{currency(offer.price * passengerCount,offer.currency)}</strong></a>})}</div></section>}<a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="mt-5 inline-flex rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book with Partner <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>}
     {status==='ready'&&<div className="space-y-3">{sorted.map(offer=>{
       const carrier = FLIGHT_AIRLINE_NAMES[offer.airlineCode] || 'Airline name not supplied'
       const fromCode = offer.originAirport || origin
@@ -215,7 +215,6 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
       const departureDate = new Date(offer.departureAt)
       const arrivalDate = offer.arrivalAt ? new Date(offer.arrivalAt) : null
       const dateLabel = (value: Date) => value.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-      const baggageCount = passengerCount
       return <article key={offer.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -231,12 +230,12 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
             </div>
           </div>
           <div className="flex items-center justify-between gap-4 border-t border-slate-100 pt-3 dark:border-slate-700 sm:min-w-[230px] sm:justify-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-            <div className="sm:text-right"><p className="text-[10px] text-slate-500">Estimated total for {passengerCount} passengers</p><p className="text-2xl font-black text-slate-900 dark:text-white">{currency(offer.price * passengerCount,offer.currency)}</p><p className="max-w-[190px] text-[10px] text-slate-500">Live seat price & baggage confirmed at checkout.</p></div>
+            <div className="sm:text-right"><p className="text-[10px] text-slate-500">Estimated total for {passengerCount} passengers</p><p className="text-2xl font-black text-slate-900 dark:text-white">{currency(offer.price * passengerCount,offer.currency)}</p><p className="max-w-[190px] text-[10px] text-slate-500">Live availability and final ticket price are confirmed by the booking partner.</p></div>
             <a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-3 text-xs font-bold text-white">Compare & Book <Icon name="arrowUpRight" className="size-4"/></a>
           </div>
         </div>
         <details className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-700">
-          <summary className="cursor-pointer list-none text-xs font-bold text-[#D94700] dark:text-orange-300">Fare conditions & flight details <span className="float-right text-slate-400">＋</span></summary>
+          <summary className="cursor-pointer list-none text-xs font-bold text-[#D94700] dark:text-orange-300">Flight details <span className="float-right text-slate-400">＋</span></summary>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <section className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
               <h4 className="text-xs font-bold text-slate-900 dark:text-white">Route & flight timeline</h4>
@@ -248,19 +247,10 @@ function LiveFlightsResults({ query }: { query: SearchQuery }) {
               </div>
             </section>
             <section className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800/70">
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white">Fare conditions & baggage guide · {query.pax.match(/(Economy|Business|First Class|Premium Economy)/i)?.[1] ?? 'Economy'}</h4>
-              <div className="mt-3 space-y-2 text-xs text-slate-700 dark:text-slate-200">
-                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Personal item — 1 pc per passenger</p>
-                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Carry-on: Check fare tier</p>
-                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Checked baggage: Optional / fare-dependent</p>
-                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Exchangeable for additional fee</p>
-                <p className="rounded-md bg-white px-3 py-2 dark:bg-slate-900">Refund policy: Fare-dependent</p>
-                <p className="font-semibold">Passenger summary: {query.adults ?? 2} adult(s) + {query.children ?? 0} child(ren) = {baggageCount} travellers. Allowance is per-ticket and must be confirmed for each passenger.</p>
-              </div>
-              <a href={searchUrl} onClick={trackFlightCheckout} data-affiliate-status="verified" target="_blank" rel="noopener noreferrer sponsored" className="mt-3 inline-flex items-center rounded-lg bg-[#FF5500] px-3 py-2.5 text-xs font-bold text-white">Change fare / Select baggage on partner →</a>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white">Baggage & ticket conditions</h4>
+              <p className="mt-3 rounded-lg bg-white p-3 text-xs leading-5 text-slate-700 dark:bg-slate-900 dark:text-slate-200">Baggage allowance, refunds and ticket-change rules are not included in this fare estimate. Check the exact conditions for the selected ticket with the airline or booking partner before payment.</p>
             </section>
           </div>
-          <p className="mt-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Baggage and exchange/refund rows are general guidance, not verified fare-family rules. Final conditions depend on the selected ticket and are confirmed by the airline or booking partner at checkout.</p>
         </details>
       </article>
     })}</div>}
