@@ -24,32 +24,6 @@ function isValidFlightAirport(value: string): boolean {
     normalized === place.city.toLowerCase()
   ))
 }
-function buildTrexiflyFlightUrl(from: string, to: string, departure: string, returning: string, trip: string, cabinClass: string, adults: number, children: number, infants: number): string | null {
-  const airportCode = (value: string) => {
-    const explicit = value.match(/\(([A-Z]{3})\)/i)?.[1]
-    if (explicit) return explicit.toUpperCase()
-    const normalized = value.trim().toLowerCase()
-    return PLACES.find(place => place.code && (normalized === place.city.toLowerCase() || (!!place.airport && normalized === place.airport.toLowerCase())))?.code ?? ''
-  }
-  const dateCode = (value: string) => {
-    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (!match) return null
-    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3])
-    const date = new Date(Date.UTC(year, month - 1, day))
-    if (date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return null
-    return String(day).padStart(2, '0') + String(month).padStart(2, '0')
-  }
-  const origin = airportCode(from), destination = airportCode(to), departCode = dateCode(departure)
-  const oneWay = trip === 'One-way'
-  const returnCode = oneWay ? '' : dateCode(returning)
-  if (!origin || !destination || !departCode || (!oneWay && !returnCode)) return null
-  const cabin = /business/i.test(cabinClass) ? 'c' : /first/i.test(cabinClass) ? 'f' : /premium economy|comfort/i.test(cabinClass) ? 'w' : ''
-  const passengerDigits = `${adults}${children}${infants}`.replace(/0+$/, '')
-  const url = new URL('https://flights.trexifly.com/')
-  url.searchParams.set('flightSearch', `${origin}${departCode}${destination}${returnCode}${cabin}${passengerDigits}`)
-  url.searchParams.set('marker', '806576')
-  return url.toString()
-}
 const WORLD_DESTINATIONS = ["Dubai, United Arab Emirates","Abu Dhabi, United Arab Emirates","Doha, Qatar","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Makkah, Saudi Arabia","Madinah, Saudi Arabia","Muscat, Oman","Istanbul, Türkiye","Antalya, Türkiye","London, United Kingdom","Manchester, United Kingdom","Paris, France","Nice, France","Amsterdam, Netherlands","Rome, Italy","Milan, Italy","Barcelona, Spain","Madrid, Spain","Zurich, Switzerland","Geneva, Switzerland","Berlin, Germany","Munich, Germany","Vienna, Austria","Prague, Czechia","Athens, Greece","New York, United States","Los Angeles, United States","San Francisco, United States","Miami, United States","Orlando, United States","Toronto, Canada","Vancouver, Canada","Montreal, Canada","Mexico City, Mexico","Cancun, Mexico","São Paulo, Brazil","Rio de Janeiro, Brazil","Buenos Aires, Argentina","Lahore, Pakistan","Islamabad, Pakistan","Karachi, Pakistan","Hunza Valley, Pakistan","Hunza, Pakistan","Swat, Pakistan","Kalam, Pakistan","Skardu, Pakistan","Bangkok, Thailand","Phuket, Thailand","Singapore","Kuala Lumpur, Malaysia","Bali, Indonesia","Jakarta, Indonesia","Hong Kong","Tokyo, Japan","Osaka, Japan","Seoul, South Korea","Shanghai, China","Beijing, China","Delhi, India","Mumbai, India","Goa, India","Colombo, Sri Lanka","Kathmandu, Nepal","Maldives","Sydney, Australia","Melbourne, Australia","Auckland, New Zealand","Cairo, Egypt","Cape Town, South Africa","Johannesburg, South Africa","Nairobi, Kenya","Marrakech, Morocco","Tbilisi, Georgia","Baku, Azerbaijan"]
 const GLOBAL_STAYS_DESTINATIONS = [
   'Dublin, Ireland','Cork, Ireland','Galway, Ireland','Belfast, Northern Ireland',
@@ -255,20 +229,16 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
       return
     }
     setFlightValidationError('')
-    if (tab === 'flights') {
-      const liveFlightsUrl = buildTrexiflyFlightUrl(from, to, depart, back, trip, cabinClass, adults, children, infants)
-      if (!liveFlightsUrl) {
-        setFlightValidationError('Please select valid airports and travel dates before searching for flights.')
-        return
-      }
-      window.location.assign(liveFlightsUrl)
-      return
-    }
     setSearching(true)
     try {
-      const type = tab === 'hotels' ? 'hotels' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
+      const type = tab === 'hotels' ? 'hotels' : tab === 'flights' ? 'flights' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
       const query = new URLSearchParams({ type })
-      if (tab === 'hotels') {
+      if (tab === 'flights') {
+        query.set('from', from); query.set('to', to); query.set('out', depart); query.set('back', trip === 'One-way' ? depart : back)
+        query.set('adults', String(adults)); query.set('children', String(children)); query.set('infants', String(infants))
+        query.set('childAges', childAges.slice(0, children).join(',')); query.set('cabin', cabinClass)
+        query.set('pax', cabinClass); query.set('tripType', trip === 'One-way' ? 'one-way' : 'round-trip')
+      } else if (tab === 'hotels') {
         query.set('to', destination); query.set('out', depart); query.set('back', back); query.set('adults', String(adults)); query.set('children', String(children)); query.set('rooms', String(roomCount)); query.set('childAges', childAges.slice(0, children).join(',')); query.set('pax', adults + (adults === 1 ? ' adult' : ' adults') + ' / ' + children + (children === 1 ? ' child' : ' children') + ' / ' + roomCount + (roomCount === 1 ? ' room' : ' rooms'))
       } else if (tab === 'cars') {
         query.set('from', pickup); query.set('to', carDifferent ? dropoff : pickup); query.set('out', depart); query.set('back', back); query.set('vehicle', 'Standard'); query.set('pickupTime', pickupTime); query.set('dropTime', dropTime); query.set('driverAge', driverAgeValue)

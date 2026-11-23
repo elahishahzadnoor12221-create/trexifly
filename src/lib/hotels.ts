@@ -98,8 +98,8 @@ export function generateHotelInventory(query: SearchQuery): HotelListing[] {
         address: `${area}, ${city}, ${profile.country}`,
         photoUrl: `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=800&q=85`,
         priceUnit: `estimated total for ${nights} night${nights === 1 ? '' : 's'} · ${adults} adult${adults === 1 ? '' : 's'}`,
-        subtitle: `${stars === 7 ? 'Iconic ultra-luxury (editorial tier)' : `${stars}-star sample property`} · ${area}`,
-        perks: stars >= 4 ? ['Sample listing', 'Verify amenities with provider'] : ['Sample listing', 'Provider details may differ'],
+        subtitle: `${stars === 7 ? 'Iconic ultra-luxury stay' : `${stars}-star stay`} · ${area}`,
+        perks: ['Property details on partner site', 'Availability varies by dates'],
       })
     }
   }

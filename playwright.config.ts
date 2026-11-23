@@ -8,7 +8,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://127.0.0.1:4173',
+    baseURL: 'http://127.0.0.1:4174',
     browserName: 'chromium',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -21,8 +21,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort --outDir dist/client',
-    url: 'http://127.0.0.1:4173',
+    command: 'npx vite preview --config vite.preview.config.ts --host 127.0.0.1 --port 4174 --strictPort',
+    url: 'http://127.0.0.1:4174',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

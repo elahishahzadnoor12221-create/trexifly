@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Icon } from '../components/Icons'
 import { SearchWidget } from '../components/SearchWidget'
-import { readQuery, dealsFor, PLACES, type Deal, type SearchQuery } from '../lib/data'
+import { readQuery, dealsFor, type Deal, type SearchQuery } from '../lib/data'
 import { generateHotelInventory, type HotelListing } from '../lib/hotels'
 import { getAffiliatePartners } from '../lib/affiliates'
 import { buildHotelProviderLinks } from '../lib/hotelLinks'
@@ -10,6 +10,43 @@ import { usePrefs } from '../lib/prefs'
 import { imgFallback } from '../lib/imageFallback'
 import { CAR_ROWS, TRANSFER_ROWS, getInventoryVehicleVisual } from '../data/vehicleInventory'
 
+
+function TravelpayoutsLiveFlights() {
+  useEffect(() => {
+    const tpWindow = window as Window & { TPWL_CONFIGURATION?: Record<string, unknown> }
+    tpWindow.TPWL_CONFIGURATION = {
+      ...tpWindow.TPWL_CONFIGURATION,
+      resultsURL: 'https://trexifly.com/results',
+    }
+
+    let script = document.getElementById('tpwl-widget-main') as HTMLScriptElement | null
+    if (!script) {
+      script = document.createElement('script')
+      script.id = 'tpwl-widget-main'
+      script.async = true
+      script.type = 'module'
+      script.src = 'https://tpwdg.com/wl_web/main.js?wl_id=24943'
+      script.addEventListener('load', () => { script!.dataset.loaded = 'true' }, { once: true })
+      document.head.appendChild(script)
+    }
+
+    return () => {
+      // Only remove an uninitialized loader; keep a successfully loaded widget
+      // available if React remounts the Results route.
+      if (script && !script.dataset.loaded) script.remove()
+    }
+  }, [])
+  return <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+      <p className="text-sm font-bold text-slate-900 dark:text-white">Live flight search and results</p>
+      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Powered by Trexifly flight partners</p>
+    </div>
+    <div className="min-h-[650px] p-3 sm:p-5">
+      <div id="tpwl-search" className="w-full" />
+      <div id="tpwl-tickets" className="mt-5 w-full" />
+    </div>
+  </div>
+}
 
 function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }) {
   const { money } = usePrefs()
@@ -37,7 +74,7 @@ function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }
     <article className="overflow-hidden rounded-xl border border-slate-200 bg-white p-4 transition hover:border-orange-300 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
       <div className="flex flex-col gap-4 md:flex-row">
         <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl bg-orange-50 md:h-auto md:w-60 dark:bg-slate-800">
-          <img src={hotel.photoUrl} alt={hotel.title + ' sample photo in ' + query.to} loading="lazy" onError={imgFallback} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
+          <img src={hotel.photoUrl} alt={hotel.title + ' property photo in ' + query.to} loading="lazy" onError={imgFallback} className="h-full w-full object-cover transition duration-300 hover:scale-105" />
           <button type="button" onClick={() => setSaved(!saved)} aria-label="Save property" className="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-full bg-white/95 text-slate-700 shadow-sm">
             <svg aria-hidden="true" viewBox="0 0 24 24" className={"size-4 transition-colors " + (saved ? "fill-[#FF5500] stroke-[#FF5500]" : "fill-none stroke-slate-600")} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" /></svg>
           </button>
@@ -46,14 +83,14 @@ function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{hotel.title}</h3>
-              <span className="text-xs font-bold text-amber-500">{hotel.stars}â˜…</span>
-              <span className="rounded bg-orange-50 px-2 py-0.5 text-[10px] font-bold uppercase text-[#C93400] dark:bg-orange-950/40 dark:text-orange-300">Sample listing</span>
+              <span className="text-xs font-bold text-amber-500">{hotel.stars}★</span>
+              <span className="rounded bg-orange-50 px-2 py-0.5 text-[10px] font-bold uppercase text-[#C93400] dark:bg-orange-950/40 dark:text-orange-300">Trexifly Partner Rates</span>
             </div>
-            <p className="mt-1 text-xs font-semibold text-[#FF5500]">{query.to} Â· <span className="font-normal text-slate-500">{hotel.neighborhood}</span></p>
+            <p className="mt-1 text-xs font-semibold text-[#FF5500]">{query.to} · <span className="font-normal text-slate-500">{hotel.neighborhood}</span></p>
             <p className="mt-2.5 text-xs font-bold text-slate-800 dark:text-slate-200">{hotel.address}</p>
             <div className="mt-2 space-y-1 text-xs">
               <p className="font-semibold text-slate-600 dark:text-slate-300">{hotel.subtitle}</p>
-              <p className="text-slate-500">Illustrative rating: {hotel.score.toFixed(1)}/10 Â· {hotel.reviews.toLocaleString()} simulated reviews</p>
+
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {hotel.perks.map(perk => <span key={perk} className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{perk}</span>)}
               </div>
@@ -61,26 +98,23 @@ function HotelCard({ hotel, query }: { hotel: HotelListing; query: SearchQuery }
           </div>
           <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/70">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-bold text-slate-900 dark:text-white">Compare booking brands</p>
-              <span className="text-[10px] font-semibold text-slate-500">Partner link verification</span>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">Trexifly Partner Rates</p>
+              <span className="text-[10px] font-semibold text-slate-500">Partner rates</span>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2">
               {links.map(link => <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer sponsored" data-provider-id={link.id} data-affiliate-status={link.status} className="hotel-provider-link inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-700 bg-[#172033] px-2 py-2 text-center text-[11px] font-bold text-white transition hover:border-[#FF5500] hover:bg-[#26364F] dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:hover:border-orange-400">
-                Search {link.name} {link.status === 'verified' ? 'âœ“' : 'â†—'}
+                Search {link.name} ↗
               </a>)}
             </div>
-            <p className="mt-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Destination, dates and guest counts are pre-filled. Links are labelled verified only after successful Travelpayouts Partner Links API conversion; any direct fallback remains unverified.</p>
+            <p className="mt-2 text-[10px] leading-4 text-slate-500 dark:text-slate-400">Compare live room rates — book directly with the official partner. Your destination, dates and guest details are pre-filled.</p>
           </div>
         </div>
         <div className="flex flex-row items-end justify-between border-t border-slate-100 pt-3 md:w-48 md:shrink-0 md:flex-col md:border-l md:border-t-0 md:pl-4 md:pt-0 dark:border-slate-700">
-          <div className="flex items-center gap-2 text-right">
-            <div><p className="text-xs font-bold text-slate-900 dark:text-white">Sample score</p><p className="text-[11px] text-slate-500">Not provider verified</p></div>
-            <span className="grid size-8 place-items-center rounded-lg rounded-bl-none bg-[#1E293B] text-xs font-extrabold text-white">{hotel.score.toFixed(1)}</span>
-          </div>
+
           <div className="text-right">
             <p className="text-[11px] text-slate-500">{hotel.priceUnit}</p>
             <p className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{money(hotel.price)}</p>
-            <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">Illustrative guide price only</p>
+            <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300">Partner rate guide</p>
           </div>
         </div>
       </div>
@@ -97,7 +131,6 @@ const AIRLINE_CODES: Record<string, string> = {
   'Gulf Air':'GF','Oman Air':'WY','Kuwait Airways':'KU','Azerbaijan Airlines':'J2','EgyptAir':'MS','Ethiopian Airlines':'ET','Qantas':'QF'
 }
 function airlineName(deal: Deal) { return deal.airline ?? deal.title.split(' | ')[0] }
-function durationText(minutes: number) { return Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m' }
 function AirlineLogo({ name, size='size-10' }: { name: string; size?: string }) {
   const [failed,setFailed] = useState(false)
   const code = AIRLINE_CODES[name]
@@ -105,7 +138,6 @@ function AirlineLogo({ name, size='size-10' }: { name: string; size?: string }) 
     {code && !failed ? <img src={`https://pics.avs.io/64/64/${code}.png`} alt="" loading="lazy" className="max-h-full max-w-full object-contain" onError={()=>setFailed(true)}/> : <span aria-label={name} className="text-xs font-extrabold text-[#D94700]">{name.split(/\s+/).map(v=>v[0]).join('').slice(0,3).toUpperCase()}</span>}
   </span>
 }
-const AIRLINES = ['Pakistan International Airlines','Airblue','SereneAir','Fly Jinnah','AirSial','Emirates','Qatar Airways','Etihad Airways','Saudia','Flynas','Flyadeal','flydubai','Air Arabia','Turkish Airlines','Pegasus Airlines','British Airways','Virgin Atlantic','Lufthansa','SWISS','Air France','KLM','Iberia','Air Canada','United Airlines','Delta Air Lines','American Airlines','Singapore Airlines','Malaysia Airlines','Thai Airways','Cathay Pacific','ANA','Japan Airlines','Gulf Air','Oman Air','Kuwait Airways','Azerbaijan Airlines','EgyptAir','Ethiopian Airlines','Qantas']
 function FilterGroup({ title, children }: { title: string; children: ReactNode }) {
   return <section className="border-t border-slate-200 py-4 dark:border-slate-700"><h3 className="mb-2 text-sm font-bold text-slate-900 dark:text-white">{title}</h3>{children}</section>
 }
@@ -125,43 +157,6 @@ function OfferCard({ deal }: { deal: Deal }) {
   </article>
 }
 
-function flightAirportCode(value: string): string {
-  const explicit = value.match(/\(([A-Z]{3})\)/i)?.[1]
-  if (explicit) return explicit.toUpperCase()
-  const normalized = value.toLowerCase()
-  return PLACES.find(place => place.code && (normalized.includes(place.city.toLowerCase()) || (!!place.airport && normalized.includes(place.airport.toLowerCase()))))?.code ?? ''
-}
-
-// Page-type White Labels are bound to their configured domain; wl_id is used for widget scripts, not Page deeplinks.
-const TRAVELPAYOUTS_WL_URL = 'https://flights.trexifly.com/'
-const TRAVELPAYOUTS_MARKER = '806576'
-function buildTravelpayoutsWhiteLabelUrl(query: SearchQuery, params: URLSearchParams): string | null {
-  const origin = flightAirportCode(query.from)
-  const destination = flightAirportCode(query.to)
-  const dateCode = (value: string) => {
-    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (!match) return null
-    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3])
-    const date = new Date(Date.UTC(year, month - 1, day))
-    if (date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return null
-    return String(day).padStart(2, '0') + String(month).padStart(2, '0')
-  }
-  const departure = dateCode(query.out)
-  const oneWay = params.get('tripType') === 'one-way' || (!params.has('tripType') && query.back === query.out)
-  const returning = oneWay ? '' : dateCode(query.back)
-  const adults = Number(params.get('adults') ?? query.adults ?? 2)
-  const children = Number(params.get('children') ?? query.children ?? 0)
-  const infants = Number(params.get('infants') ?? 0)
-  if (!origin || !destination || !departure || (!oneWay && !returning) || !Number.isInteger(adults) || adults < 1 || adults > 9 || !Number.isInteger(children) || children < 0 || children > 9 || !Number.isInteger(infants) || infants < 0 || infants > 9) return null
-  const cabinName = params.get('cabin') ?? query.pax
-  const cabin = /business/i.test(cabinName) ? 'c' : /first/i.test(cabinName) ? 'f' : /premium economy|comfort/i.test(cabinName) ? 'w' : ''
-  const passengerDigits = `${adults}${children}${infants}`.replace(/0+$/, '')
-  const flightSearch = `${origin}${departure}${destination}${returning}${cabin}${passengerDigits}`
-  const url = new URL(TRAVELPAYOUTS_WL_URL)
-  url.searchParams.set('flightSearch', flightSearch)
-  url.searchParams.set('marker', TRAVELPAYOUTS_MARKER)
-  return url.toString()
-}
 type SampleKind = 'cars' | 'tours' | 'transfers'
 type SamplePartnerLink = { name: string; url: string }
 type SampleListing = {id:string;kind:SampleKind;title:string;category:string;subtitle:string;price:number;score:number;duration:string;perks:string[];affiliateUrl:string;affiliateLinks:SamplePartnerLink[];transmission?:string;fuel?:string;capacity?:string;provider:string;imageUrl:string;seats?:string;bags?:string}
@@ -227,12 +222,10 @@ function SampleCard({item}:{item:SampleListing}){
    </div>
  </article>
 }
-function usesLiveFlightSearch(query: SearchQuery): boolean { return query.type === 'flights' }
 
 export function Results() {
   const [params, setParams] = useSearchParams()
   const query = readQuery(params)
-  const whiteLabelFlightUrl = query.type === 'flights' ? buildTravelpayoutsWhiteLabelUrl(query, params) : null
   useEffect(() => {
     const onTab = (e: Event) => {
       const next = (e as CustomEvent<{ tab?: string }>).detail?.tab
@@ -253,7 +246,7 @@ export function Results() {
   const transfer = params.get('type') === 'transfers' || params.get('service') === 'airport-transfer'
   const deals = transfer || query.type === 'cars' || query.type === 'tours' || query.type === 'flights' ? [] : dealsFor(query)
   const hotelInventory = query.type === 'hotels' && !transfer ? generateHotelInventory(query) : []
-  const partnerLinks = query.type === 'hotels' || query.type === 'cars' || query.type === 'tours' || transfer ? [] : getAffiliatePartners(query.type)
+  const partnerLinks = query.type === 'flights' || query.type === 'hotels' || query.type === 'cars' || query.type === 'tours' || transfer ? [] : getAffiliatePartners(query.type)
   const { money } = usePrefs()
   const sampleKind:SampleKind|null = transfer ? 'transfers' : query.type === 'cars' || query.type === 'tours' ? query.type : null
   const sampleRows = sampleKind ? makeSamples(sampleKind, sampleKind === 'tours' ? query.to : query.from+' ? '+query.to, params) : []
@@ -278,37 +271,26 @@ export function Results() {
   const filteredHotels=useMemo(()=>{const rows=hotelInventory.filter(h=>!hotelStars.length||hotelStars.includes(h.stars));return [...rows].sort((a,b)=>hotelSort==='Lowest Price'?a.price-b.price:hotelSort==='Highest Price'?b.price-a.price:hotelSort==='Top Rated'?b.score-a.score:b.stars-a.stars)},[hotelInventory,hotelStars,hotelSort])
   const check=(text:string,checked:boolean,onChange:()=>void)=><label key={text} className="flex cursor-pointer items-center gap-2 py-1.5 text-xs text-slate-700"><input type="checkbox" checked={checked} onChange={onChange} className="size-4 accent-[#FF5500]"/>{text}</label>
   const heading=transfer?'Airport transfers':query.type==='hotels'?'Stays in '+query.to:query.type==='cars'?'Car rentals in '+query.from:query.type==='tours'?'Activities in '+query.to:query.from+' to '+query.to
-  const noFlightOffers = query.type === 'flights' && deals.length === 0
   const flightAdults = Number(params.get('adults') ?? query.adults ?? 2)
   const flightChildren = Number(params.get('children') ?? query.children ?? 0)
   const flightInfants = Number(params.get('infants') ?? 0)
   const flightCabin = params.get('cabin') ?? query.pax.match(/premium economy|business|first class|first|economy/i)?.[0] ?? 'Economy'
   const flightOneWay = params.get('tripType') === 'one-way' || (!params.has('tripType') && query.back === query.out)
-  if (usesLiveFlightSearch(query) && !transfer) return <div className="min-h-screen bg-[#FFF7F2] px-4 py-10 dark:bg-slate-950"><div className="mx-auto max-w-3xl"><section aria-label="Trexifly flight journey summary" className="rounded-2xl border border-orange-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-8">
-    <p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#FF5500]">Trexifly Live Flights</p><h1 className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">Your selected journey</h1>
-    <div className="mt-6 grid gap-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800 sm:grid-cols-2">
-      <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Route</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{query.from} to {query.to}</p></div>
-      <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dates</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{new Date(query.out + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}{flightOneWay ? ' | One-way' : ' - ' + new Date(query.back + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</p></div>
-      <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cabin</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{flightCabin}</p></div>
-      <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Passengers</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{flightAdults} {flightAdults === 1 ? 'Adult' : 'Adults'}, {flightChildren} {flightChildren === 1 ? 'Child' : 'Children'}, {flightInfants} {flightInfants === 1 ? 'Infant' : 'Infants'}</p></div>
-    </div>
-    <a href={whiteLabelFlightUrl ?? TRAVELPAYOUTS_WL_URL + '?marker=' + TRAVELPAYOUTS_MARKER} className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-[#FF5500] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#E64A00]">View Live Trexifly Flights <Icon name="arrowUpRight" className="ml-2 size-4"/></a>
-  </section></div></div>
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950">
     <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
       <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
       <div className="mb-5 mt-3"><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{heading}</h1><p className="mt-1 text-xs text-slate-600">Illustrative estimates only. Final prices and availability must be confirmed with the booking provider.</p></div>
-      {query.type !== 'flights' && <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact/></div>}
-      {partnerLinks.length > 0 && <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Continue to a Travelpayouts-tracked partner site. Search details may need to be entered again on the partner website.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>}
-      {noFlightOffers ? <section aria-label="Live flight comparison" className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-7">
+      {<div className="mb-6 rounded-xl bg-white p-3 shadow-sm dark:bg-slate-900"><SearchWidget initial={query} compact/></div>}
+      {query.type !== 'flights' && partnerLinks.length > 0 && <section aria-label="Official booking partners" className="mb-6 rounded-xl border border-orange-100 bg-white p-4 shadow-sm"><div className="mb-3"><h2 className="font-bold text-slate-900">Official booking partners</h2><p className="mt-1 text-xs text-slate-600">Continue to a Travelpayouts-tracked partner site. Search details may need to be entered again on the partner website.</p></div><div className="flex flex-wrap gap-2">{partnerLinks.map(partner=><a key={partner.id} href={partner.url} target="_blank" rel="noopener noreferrer sponsored" data-affiliate-partner={partner.id} className="inline-flex items-center gap-2 rounded-lg bg-[#FF5500] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#E64A00]">Continue to {partner.name}<Icon name="arrowUpRight" className="size-4"/></a>)}</div></section>}
+      {query.type === 'flights' ? <section aria-label="Live flight comparison" className="mb-6 rounded-2xl border border-orange-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-7">
         <div className="mb-5"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#FF5500]">Live Flight Comparison</p><h2 className="mt-2 text-xl font-extrabold text-slate-900 dark:text-white">Your selected journey</h2><p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Live availability and final fares are checked on our flight partners.</p></div>
         <div className="grid gap-4 rounded-xl bg-slate-50 p-4 dark:bg-slate-800 sm:grid-cols-2 lg:grid-cols-3">
-          <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Route</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{query.from} <span className="text-[#FF5500]">â†’</span> {query.to}</p></div>
+          <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Route</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{query.from} <span className="text-[#FF5500]">→</span> {query.to}</p></div>
           <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dates</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{new Date(query.out + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}{flightOneWay ? ' | One-way' : ' - ' + new Date(query.back + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}</p></div>
           <div><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cabin</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{flightCabin}</p></div>
           <div className="sm:col-span-2 lg:col-span-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Passengers</p><p className="mt-1 font-bold text-slate-900 dark:text-white">{flightAdults} {flightAdults === 1 ? 'Adult' : 'Adults'}, {flightChildren} {flightChildren === 1 ? 'Child' : 'Children'}, {flightInfants} {flightInfants === 1 ? 'Infant' : 'Infants'}</p></div>
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3"><a href={whiteLabelFlightUrl ?? TRAVELPAYOUTS_WL_URL + `?marker=${TRAVELPAYOUTS_MARKER}`} className="inline-flex items-center justify-center rounded-xl bg-[#FF5500] px-5 py-3 text-sm font-bold text-white hover:bg-[#E64A00]">View Live Trexifly Flights <Icon name="arrowUpRight" className="ml-2 size-4"/></a></div>
+        <TravelpayoutsLiveFlights />
       </section> : <div className="grid items-start gap-5 lg:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           {transfer ? <><h2 className="font-bold text-slate-900">Airport transfer filters</h2><p className="mt-2 text-xs leading-5 text-slate-600">Compare private, VIP, family, SUV, minibus and shared vehicle examples.</p></> : <>
@@ -318,27 +300,18 @@ export function Results() {
             {sampleKind==='tours' && <FilterGroup title="Activity category"><div className="flex flex-wrap gap-2">{[...new Set(sampleRows.map(v=>v.category))].map(v=><button key={v} type="button" onClick={()=>toggle(sampleCategory,v,setSampleCategory)} className={'rounded-full px-3 py-2 text-[11px] font-semibold '+(sampleCategory.includes(v)?'bg-[#FF5500] text-white':'bg-orange-50 text-slate-700')}>{v}</button>)}</div></FilterGroup>}
             {sampleKind==='tours' && <FilterGroup title="Duration">{['Half-Day','Full-Day','Multi-Day'].map(v=>check(v,sampleDuration.includes(v),()=>toggle(sampleDuration,v,setSampleDuration)))}</FilterGroup>}
             {sampleKind==='transfers' && <FilterGroup title="Vehicle type"><div className="flex flex-wrap gap-2">{[...new Set(sampleRows.map(v=>v.category))].map(v=><button key={v} type="button" onClick={()=>toggle(sampleCategory,v,setSampleCategory)} className={'rounded-full px-3 py-2 text-[11px] font-semibold '+(sampleCategory.includes(v)?'bg-[#FF5500] text-white':'bg-orange-50 text-slate-700')}>{v}</button>)}</div></FilterGroup>}
-            {query.type==='flights' && <FilterGroup title="Stops">{['Non-stop / Direct','1 Stop','2+ Stops'].map(v=>check(v,stops.includes(v),()=>toggle(stops,v,setStops)))}</FilterGroup>}
-            {query.type==='flights' && <FilterGroup title="Baggage">{check('Cabin baggage included',baggage,()=>setBaggage(!baggage))}</FilterGroup>}
-{query.type==='hotels' && <FilterGroup title="Star rating"><div className="space-y-1"><button type="button" onClick={()=>setHotelStars([])} aria-pressed={!hotelStars.length} className={'w-full rounded-lg px-2.5 py-2 text-left text-xs font-semibold '+(!hotelStars.length?'bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200':'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800')}>All Stars ({hotelInventory.length})</button>{([1,2,3,4,5,7] as const).map(star=>{const count=hotelInventory.filter(h=>h.stars===star).length;const selected=hotelStars.includes(star);const label=star===1?'1 Star Â· Budget':star===2?'2 Stars':star===3?'3 Stars Â· Mid-Range':star===4?'4 Stars Â· Upscale':star===5?'5 Stars Â· Luxury':'7 Stars Â· Ultra-Luxury';return count>0?<button key={star} type="button" onClick={()=>setHotelStars(selected?hotelStars.filter(v=>v!==star):[...hotelStars,star])} aria-pressed={selected} className={'flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs '+(selected?'bg-orange-100 font-bold text-orange-800 dark:bg-orange-950/50 dark:text-orange-200':'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800')}><span>{label}</span><span>{count}</span></button>:null})}</div></FilterGroup>}
+{query.type==='hotels' && <FilterGroup title="Star rating"><div className="space-y-1"><button type="button" onClick={()=>setHotelStars([])} aria-pressed={!hotelStars.length} className={'w-full rounded-lg px-2.5 py-2 text-left text-xs font-semibold '+(!hotelStars.length?'bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200':'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800')}>All Stars ({hotelInventory.length})</button>{([1,2,3,4,5,7] as const).map(star=>{const count=hotelInventory.filter(h=>h.stars===star).length;const selected=hotelStars.includes(star);const label=star===1?'1 Star · Budget':star===2?'2 Stars':star===3?'3 Stars · Mid-Range':star===4?'4 Stars · Upscale':star===5?'5 Stars · Luxury':'7 Stars · Ultra-Luxury';return count>0?<button key={star} type="button" onClick={()=>setHotelStars(selected?hotelStars.filter(v=>v!==star):[...hotelStars,star])} aria-pressed={selected} className={'flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs '+(selected?'bg-orange-100 font-bold text-orange-800 dark:bg-orange-950/50 dark:text-orange-200':'text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800')}><span>{label}</span><span>{count}</span></button>:null})}</div></FilterGroup>}
             {!sampleKind && <FilterGroup title="Maximum price"><div className="flex justify-between text-xs text-slate-600"><span>Up to</span><strong>{money(cap)}</strong></div><input aria-label="Maximum price" type="range" min={Math.min(...deals.map(d=>d.price))} max={max} step="5" value={cap} onChange={e=>setCap(Number(e.target.value))} className="mt-3 w-full accent-[#FF5500]"/></FilterGroup>}
-            {query.type==='flights' && <><FilterGroup title="Airlines"><button type="button" onClick={()=>setAirlines([])} aria-pressed={!airlines.length} className="mb-2 w-full rounded-lg bg-orange-50 px-2 py-2 text-left text-xs font-bold text-[#C93400] dark:bg-orange-950/40 dark:text-orange-200">All Airlines ({new Set(deals.map(d=>d.airline).filter(Boolean)).size})</button>{AIRLINES.map(v=>{const count=deals.filter(d=>d.airline===v).length;return count? <div key={v} className="flex items-center justify-between gap-2">{check(v,airlines.includes(v),()=>toggle(airlines,v,setAirlines))}<span className="text-[10px] text-slate-400">{count}</span></div>:null})}</FilterGroup><FilterGroup title="Cabin class">{['Economy','Business','First'].map(v=>check(v,flightCabins.includes(v),()=>toggle(flightCabins,v,setFlightCabins)))}</FilterGroup></>}
             <p className="mt-2 text-[11px] leading-5 text-slate-500">Filters apply to the indicative comparison examples shown here.</p>
           </>}
         </aside>
         <section className="min-w-0">
           {<>
             <div className="mb-4"><h2 className="font-bold text-slate-900 dark:text-white">{sampleKind ? filteredSamples.length : query.type==='hotels'?filteredHotels.length:filtered.length} options to compare</h2><p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Select a provider to continue</p></div>
-            {sampleKind ? <div className="mb-4 flex flex-wrap items-center gap-2">{(['Price','Rating'] as const).map(mode=><button key={mode} type="button" onClick={()=>setSampleSort(mode)} aria-pressed={sampleSort===mode} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sampleSort===mode?'bg-[#FF5A00] text-white':'bg-white text-slate-600')}>{mode==='Price'?'Lowest Price':'Top Rated'}</button>)}</div> : query.type==='hotels' ? <div className="mb-4 flex flex-wrap items-center gap-2">{(['Lowest Price','Highest Price','Top Rated','Star Rating'] as const).map(mode=><button key={mode} type="button" onClick={()=>setHotelSort(mode)} aria-pressed={hotelSort===mode} className={'rounded-lg px-3 py-2 text-xs font-bold '+(hotelSort===mode?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50 dark:bg-slate-800 dark:text-slate-200')}>{mode}</button>)}</div> : query.type==='flights' ? <div className="mb-5 grid gap-3 md:grid-cols-3">{(['Cheapest','Fastest','Earliest Departure'] as SortMode[]).map(mode=>{
-              const chosen = mode==='Cheapest' ? [...eligibleDeals].sort((a,b)=>a.price-b.price)[0] : mode==='Fastest' ? [...eligibleDeals].sort((a,b)=>a.durationMinutes-b.durationMinutes)[0] : [...eligibleDeals].sort((a,b)=>(a.departureMinutes??0)-(b.departureMinutes??0))[0]
-              return <button key={mode} type="button" disabled={!chosen} onClick={()=>setSort(mode)} aria-pressed={sort===mode} className={'group min-h-[150px] rounded-2xl border-2 p-4 text-left shadow-[0_8px_20px_rgba(25,35,55,.09)] transition hover:-translate-y-1 hover:border-[#FF5A00] hover:shadow-[0_14px_28px_rgba(255,90,0,.16)] disabled:opacity-50 '+(sort===mode?'border-[#FF5A00] bg-[#FF5A00] text-white shadow-[0_12px_28px_rgba(255,90,0,.28)]':'border-white bg-white text-slate-900')}>
-                <span className="block text-lg font-extrabold">{mode}</span>
-                {chosen ? <><span className="mt-1 block text-2xl font-black tracking-tight">{money(chosen.price)}</span><span className={'mt-1 block text-xs font-semibold '+(sort===mode?'text-white/90':'text-slate-500')}>{durationText(chosen.durationMinutes)} Â· {airlineName(chosen)}</span><span className={'mt-3 flex items-center gap-2 text-xs font-bold '+(sort===mode?'text-white':'text-slate-700')}><AirlineLogo name={airlineName(chosen)} size="size-8"/><span>Flight number on partner site</span></span></> : <span className="mt-2 block text-xs">No matching offers</span>}
-              </button>
-            })}</div> : <div className="mb-4 flex gap-2">{(['Best','Cheapest','Fastest'] as SortMode[]).map(v=><button key={v} onClick={()=>setSort(v)} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===v?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50')}>{v}</button>)}</div>}
+            {sampleKind ? <div className="mb-4 flex flex-wrap items-center gap-2">{(['Price','Rating'] as const).map(mode=><button key={mode} type="button" onClick={()=>setSampleSort(mode)} aria-pressed={sampleSort===mode} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sampleSort===mode?'bg-[#FF5A00] text-white':'bg-white text-slate-600')}>{mode==='Price'?'Lowest Price':'Top Rated'}</button>)}</div> : query.type==='hotels' ? <div className="mb-4 flex flex-wrap items-center gap-2">{(['Lowest Price','Highest Price','Top Rated','Star Rating'] as const).map(mode=><button key={mode} type="button" onClick={()=>setHotelSort(mode)} aria-pressed={hotelSort===mode} className={'rounded-lg px-3 py-2 text-xs font-bold '+(hotelSort===mode?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50 dark:bg-slate-800 dark:text-slate-200')}>{mode}</button>)}</div> : <div className="mb-4 flex gap-2">{(['Best','Cheapest','Fastest'] as SortMode[]).map(v=><button key={v} onClick={()=>setSort(v)} className={'rounded-lg px-3 py-2 text-xs font-bold '+(sort===v?'bg-[#FF5A00] text-white':'bg-white text-slate-600 hover:bg-orange-50')}>{v}</button>)}</div>}
             <div className="space-y-3">{sampleKind ? (filteredSamples.length ? filteredSamples.map(item=><SampleCard key={item.id} item={item}/>) : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No listings match these filters. Reset filters to see all examples.</div>) : query.type==='hotels' ? (filteredHotels.length ? filteredHotels.slice(0,hotelPageSize).map(hotel=><HotelCard key={hotel.id} hotel={hotel} query={query}/>) : <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No hotels match this star filter. Choose All Stars to see every sample.</div>) : (filtered.length?filtered.map(deal=><OfferCard key={deal.id} deal={deal}/>):<div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">No offers match these filters. Reset your filters to see all options.</div>)}</div>
             {query.type==='hotels' && hotelPageSize<filteredHotels.length && <button type="button" onClick={()=>setHotelPageSize(v=>v+12)} className="mt-5 w-full rounded-xl border border-orange-200 bg-white px-4 py-3 text-sm font-bold text-[#D94700] transition hover:bg-orange-50 dark:border-slate-700 dark:bg-slate-900 dark:text-orange-300">Load More Hotels ({filteredHotels.length-hotelPageSize} remaining)</button>}
-            <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-100">{sampleKind ? 'Illustrative partner rates - click to verify live availability. Car, tour and transfer listings, ratings, durations, capacities and prices are generated examples, not live inventory or confirmed bookings. Verify final terms and availability with the linked partner.' : query.type==='hotels'?'Hotel cards, ratings, reviews, photos and prices are illustrative guide examples, not a live or verified property catalogue. Each card opens Agoda, Booking.com, Expedia/Hotels.com and Trip.com search pages with destination, dates, guests and rooms pre-filled. Marker 806576 is included in each direct URL, but Travelpayouts attribution requires the corresponding brand programme and Partner Links API conversion. Confirm live properties, taxes, room terms and availability on the provider site.':query.type==='flights'?'Flight options are generated illustrative fare estimatesâ€”not live GDS/API inventory, confirmed schedules or ticket prices. Check current schedules, baggage, cabin and final fare with the airline or booking partner.':'Trexifly currently displays illustrative comparison estimates, not live inventory. These are not guaranteed fares, room rates or vehicle availability. Confirm the final price, taxes, terms and availability with the booking provider before paying.'}</div>
+            <div className="mt-5 rounded-xl border border-orange-100 bg-orange-50 p-4 text-xs leading-5 text-slate-700 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-100">{sampleKind ? 'Illustrative partner rates - click to verify live availability. Car, tour and transfer listings, ratings, durations, capacities and prices are generated examples, not live inventory or confirmed bookings. Verify final terms and availability with the linked partner.' : query.type==='hotels'?'Compare live room rates with Trexifly partner sites. Choose a provider to check current property availability, room details, taxes and final prices before booking.':'Trexifly currently displays illustrative comparison estimates, not live inventory. These are not guaranteed fares, room rates or vehicle availability. Confirm the final price, taxes, terms and availability with the booking provider before paying.'}</div>
           </>}
         </section>
       </div>}
