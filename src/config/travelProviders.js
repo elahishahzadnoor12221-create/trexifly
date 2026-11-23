@@ -1,42 +1,33 @@
 /**
  * Trexifly provider configuration.
- * Keep credentials server-side. Public affiliate IDs are safe to configure here.
- * These links are templates, not live inventory APIs; configure provider APIs
- * on the server before advertising real-time availability or guaranteed prices.
+ * Only independently resolved Travelpayouts short links are eligible for
+ * outbound booking CTAs. Unverified inventory/partners remain disabled.
  */
 export const TRAVEL_PROVIDERS = Object.freeze({
-flights: {
+  flights: {
     provider: 'Aviasales',
     enabled: true,
-    searchUrl: 'https://www.aviasales.com/',
+    searchUrl: 'https://aviasales.tpx.lv/ZOqzJHaf',
     requiresServerApi: true,
   },
   stays: {
-    provider: 'Booking.com',
-    enabled: true,
-    searchUrl: 'https://www.booking.com/',
+    provider: 'Hotel partners',
+    enabled: false,
+    searchUrl: '',
     requiresServerApi: true,
   },
   cars: [
-    { name: 'DiscoverCars', url: 'https://www.discovercars.com/' },
-    { name: 'Europcar', url: 'https://www.europcar.com/' },
-    { name: 'Hertz', url: 'https://www.hertz.com/' },
-    { name: 'Sixt', url: 'https://www.sixt.com/' },
+    { name: 'AutoEurope', url: 'https://autoeurope.tpx.lv/1NuZscel' },
+    { name: 'QEEQ', url: 'https://qeeq.tpx.lv/xVJH8wOZ' },
   ],
   activities: [
-    { name: 'Viator', url: 'https://www.viator.com/' },
-    { name: 'GetYourGuide', url: 'https://www.getyourguide.com/' },
+    { name: 'Tiqets', url: 'https://tiqets.tpx.lv/JkNGKSuf' },
   ],
   transfers: {
-    provider: 'Kiwitaxi',
-    url: 'https://kiwitaxi.com/',
+    provider: 'GetTransfer.com',
+    url: 'https://gettransfer.tpx.lv/dt5dWuQv',
     requiresServerApi: true,
   },
-  demoOffers: [
-    { id: 'europcar-demo', category: 'cars', provider: 'Europcar', title: 'Economy car · indicative sample', priceFrom: 42, currency: 'USD', live: false, url: 'https://www.europcar.com/' },
-    { id: 'hertz-demo', category: 'cars', provider: 'Hertz', title: 'Compact car · indicative sample', priceFrom: 49, currency: 'USD', live: false, url: 'https://www.hertz.com/' },
-    { id: 'serena-demo', category: 'stays', provider: 'Serena Hotels', title: 'Pakistan hotel collection · indicative sample', priceFrom: 95, currency: 'USD', live: false, url: 'https://www.serenahotels.com/' },
-    { id: 'pc-demo', category: 'stays', provider: 'Pearl Continental', title: 'Pakistan city and resort stays · indicative sample', priceFrom: 110, currency: 'USD', live: false, url: 'https://www.pchotels.com/' },
-    { id: 'northern-4x4-demo', category: 'activities', provider: 'Northern Pakistan 4x4 Tours', title: 'Private northern areas 4×4 tour · indicative sample', priceFrom: 180, currency: 'USD', live: false, url: 'https://www.getyourguide.com/' },
-  ],
+  // Demo inventory with direct, untracked provider URLs is intentionally hidden.
+  demoOffers: [],
 });

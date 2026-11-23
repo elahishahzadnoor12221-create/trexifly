@@ -27,7 +27,7 @@ test('flight results show exact fare labels, route link and expandable fare deta
   await expect(page.getByText('Flight 204 · Non-stop')).toBeVisible()
   await expect(page.getByText('$200')).toBeVisible()
   const booking = page.getByRole('link', { name: 'Compare & Book' })
-  await expect(booking).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB2?marker=806576')
+  await expect(booking).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
   const details = page.getByText('Fare conditions & flight details')
   await expect(details).toBeVisible()
   await details.click()
@@ -46,9 +46,9 @@ test('flight results show the same-month flexible cached fares and exact-date fa
   await expect(page.getByRole('heading', { name: /Flexible dates in December 2026.*Estimated total for 2 passengers/ })).toBeVisible()
   await expect(page.getByText('$176').first()).toBeVisible()
   const flexibleFare = page.getByRole('link', { name: /Sun, Dec 6/ })
-  await expect(flexibleFare).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0612DXB2?marker=806576')
+  await expect(flexibleFare).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
   const liveFare = page.getByRole('link', { name: /Compare & Book on Official Partner/ })
-  await expect(liveFare).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB2?marker=806576')
+  await expect(liveFare).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
 })
 
 test('round-trip flight request and Aviasales link preserve dates, passengers and cabin', async ({ page }) => {
@@ -68,5 +68,5 @@ test('round-trip flight request and Aviasales link preserve dates, passengers an
   expect(request.searchParams.get('adults')).toBe('2')
   expect(request.searchParams.get('children')).toBe('1')
   expect(request.searchParams.get('trip_class')).toBe('C')
-  await expect(page.getByRole('link', { name: /Compare & Book on Official Partner/ })).toHaveAttribute('href', 'https://www.aviasales.com/search/LHE0112DXB0512c21?marker=806576')
+  await expect(page.getByRole('link', { name: /Compare & Book on Official Partner/ })).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
 })

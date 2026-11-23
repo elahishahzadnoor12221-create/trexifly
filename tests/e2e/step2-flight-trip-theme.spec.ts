@@ -40,20 +40,17 @@ for (const dark of [false, true]) {
   })
 }
 
-
-test('Stays comparison labels stay white and visible in Light and Dark Mode', async ({ page }) => {
+test('Hotel booking buttons remain hidden until their affiliate redirects pass verification', async ({ page }) => {
   await page.goto('/results?type=hotels&to=Dubai%2C%20United%20Arab%20Emirates&out=2026-12-10&back=2026-12-14')
-  const links = page.locator('.hotel-provider-link')
-  expect(await links.count()).toBeGreaterThanOrEqual(4)
-  const firstFour = (await links.all()).slice(0, 4)
+  await expect(page.locator('.hotel-provider-link')).toHaveCount(0)
+  await expect(page.getByText(/Unverified hotel booking buttons remain hidden/i).first()).toBeVisible()
   for (const dark of [false, true]) {
     const toggle = page.getByRole('button', { name: /Switch to (dark|light) mode/ })
     const isDark = (await toggle.getAttribute('aria-pressed')) === 'true'
     if (isDark !== dark) await toggle.click()
     await expect(page.locator('html')).toHaveAttribute('data-theme', dark ? 'dark' : 'light')
-    for (const link of firstFour) await expect(link).toHaveCSS('color', 'rgb(255, 255, 255)')
+    await expect(page.getByText(/Hotel partner links are temporarily unavailable/i).first()).toBeVisible()
   }
-  await expect(page.locator('article svg[aria-hidden="true"]').first()).toBeVisible()
   const visible = await page.locator('body').innerText()
   expect(visible).not.toContain(String.fromCharCode(0x00c2, 0x00b7))
   expect(visible).not.toContain(String.fromCharCode(0x00e2, 0x2020, 0x2014))

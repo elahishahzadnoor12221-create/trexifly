@@ -237,14 +237,14 @@ export function Header() {
           <div className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
             <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} aria-pressed={theme === 'dark'} className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[#FF5500] hover:text-[#FF5500]" title={theme === 'dark' ? 'Light mode' : 'Dark mode'}><span aria-hidden="true" className="text-base leading-none">{theme === 'dark' ? '☀' : '☾'}</span></button>
             <PrefsMenu />
-            
-            
+            <Link to="/my-trips" className="hidden rounded-lg border border-orange-200 px-3 py-2 text-sm font-semibold text-[#B93800] hover:bg-orange-50 sm:inline-flex">My Trips</Link>
             <button onClick={() => {setAuthMode('register');setAuthMessage('')}} className="hidden rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-orange-50 sm:inline-flex">Register</button>
             <button onClick={() => {setAuthMode('signin');setAuthMessage('')}} className="rounded-lg bg-[#FF5500] px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00]">Account</button>
           </div>
         </div>
                 <nav aria-label="Travel categories" className="no-scrollbar flex gap-2 overflow-x-auto pb-3 xl:hidden">
           {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
+          <Link to="/my-trips" className="inline-flex shrink-0 items-center rounded-full border border-orange-200 px-3.5 py-2.5 text-sm font-semibold text-[#B93800]">My Trips</Link>
         </nav>
       </div>
       {notice && <div role="dialog" aria-modal="true" className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 p-4" onClick={() => setNotice('')}><div className="max-w-md rounded-2xl bg-white p-6 text-slate-900 shadow-2xl" onClick={e => e.stopPropagation()}><h2 className="text-lg font-bold">Trexifly</h2><p className="mt-2 text-sm leading-6 text-slate-600">{notice}</p><button onClick={() => setNotice('')} className="mt-5 rounded-lg bg-[#FF5500] px-5 py-2.5 text-sm font-bold text-white">Close</button></div></div>}
@@ -296,6 +296,7 @@ export function Footer() {
             <li><Link to="/?tab=cars#search-widget" className="transition hover:text-[#FF5500]">Car Rental</Link></li>
             <li><Link to="/?tab=tours#search-widget" className="transition hover:text-[#FF5500]">Activities</Link></li>
             <li><Link to="/?tab=transfers#search-widget" className="transition hover:text-[#FF5500]">Airport Transfers</Link></li>
+            <li><Link to="/my-trips" className="transition hover:text-[#FF5500]">My Trips / Booking Tracker</Link></li>
             <li><button type="button" onClick={() => window.dispatchEvent(new CustomEvent("trexifly:open-account"))} className="transition hover:text-[#FF5500]">Account</button></li>
             <li><Link to="/guides" className="transition hover:text-[#FF5500]">Travel Guides</Link></li>
             <li><Link to="/about" className="transition hover:text-[#FF5500]">About Us</Link></li>

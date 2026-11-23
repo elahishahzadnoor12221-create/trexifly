@@ -5,6 +5,7 @@ import { Footer, Header, MobileTabBar } from './components/Chrome'
 import { PrefsProvider } from './lib/prefs'
 import { Home } from './pages/Home'
 import { Results } from './pages/Results'
+import { MyTrips } from './pages/MyTrips'
 import { Landing, type LandingConfig } from './pages/Landing'
 import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
 import { GuideIndexEnhancements, TravelGuideArticle } from './pages/TravelGuidePages'
@@ -105,6 +106,7 @@ export function App() {
       <Route index element={<Home />} />
       <Route path="admin/alerts" element={<AdminAlertsPage />} />
       <Route path="results" element={<Results />} />
+      <Route path="my-trips" element={<MyTrips />} />
       <Route path="about" element={<LegalPage page="about" />} />
       <Route path="contact" element={<LegalPage page="contact" />} />
       <Route path="privacy" element={<LegalPage page="privacy" />} />
