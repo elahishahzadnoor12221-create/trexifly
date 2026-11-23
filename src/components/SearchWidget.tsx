@@ -49,7 +49,7 @@ const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'
 
 function SelectField({ title, value, onChange, options, wide = false }: { title: string; value: string; onChange: (value: string) => void; options: string[]; wide?: boolean }) {
-  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[0.9]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
+  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[0.9] lg:min-w-[174px] lg:flex-[0_0_174px]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
 }
 function TextField({ title, value, onChange, placeholder, type = 'text' }: { title: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
   return <label data-search-field={title} className={cell + (type === 'date' ? ' sm:min-w-[150px]' : '')}><span className={label}>{title}</span><input className={field} type={type} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>
@@ -109,7 +109,7 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
     return ()=>{window.clearTimeout(timer);controller.abort()}
   },[value])
   const suggestions = [...new Set([...local, ...remote])].slice(0,20)
-  return <div data-search-field={title} ref={rootRef} className={cell + ' relative min-w-0' + (fieldId === 'flight-from' || fieldId === 'flight-to' ? ' sm:min-w-[160px] sm:flex-[1.1]' : '')}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></div></label>
+  return <div data-search-field={title} ref={rootRef} className={cell + ' relative min-w-0' + (fieldId === 'flight-from' || fieldId === 'flight-to' ? ' sm:min-w-[160px] sm:flex-[1.1] lg:min-w-[135px] lg:flex-[1_1_145px]' : '')}><label className="block"><span className={label}>{title}</span><div className="flex min-w-0 items-center gap-1"><input className={field + ' min-w-0 flex-1'} role="combobox" aria-expanded={open} aria-autocomplete="list" aria-controls={fieldId+'-options'} value={value} placeholder={placeholder} autoComplete="off" onFocus={() => window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))} onChange={e => {onChange(e.target.value);window.dispatchEvent(new CustomEvent('trexifly:location-open',{detail:fieldId}))}} onKeyDown={e => {if(e.key==='Enter'&&suggestions[0]&&open){e.preventDefault();onChange(suggestions[0]);setOpen(false)}}} /></div></label>
     {open && (suggestions.length > 0 || loading || value.trim().length >= 2) && <div role="listbox" id={fieldId+'-options'} className="absolute left-0 top-full z-[999] mt-1 max-h-64 min-w-[290px] w-max max-w-[min(90vw,480px)] overflow-y-auto rounded-xl border border-orange-100 bg-white p-1.5 shadow-[0_14px_35px_rgba(30,20,10,.18)]">
       {suggestions.map((item) => <button type="button" role="option" aria-selected={item === value} key={item} onMouseDown={e => e.preventDefault()} onClick={() => { onChange(item); setOpen(false) }} className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-slate-800 hover:bg-orange-50"><span className="grid size-7 shrink-0 place-items-center rounded-lg bg-orange-100 text-[#FFB800]"><Icon name="mapPin" className="size-4"/></span><span className="min-w-0 flex-1 whitespace-normal break-words leading-5">{item}</span></button>)}
       {loading && <p className="px-3 py-2 text-xs text-slate-500">Searching worldwide locations…</p>}{!loading && suggestions.length === 0 && value.trim().length >= 2 && <p className="px-3 py-3 text-xs text-slate-500">No geocoding match yet. You can still use the entered location.</p>}
@@ -119,7 +119,7 @@ function LocationField({ fieldId, title, value, onChange, placeholder, options =
 }
 function Check({ children }: { children: ReactNode }) { return <label className="inline-flex items-center gap-2 text-xs text-slate-700">{children}</label> }
 
-export function SearchWidget({ initial, compact = false }: { initial?: Partial<SearchQuery>; compact?: boolean }) {
+export function SearchWidget({ initial, compact = false, hideCategoryTabs = false }: { initial?: Partial<SearchQuery>; compact?: boolean; hideCategoryTabs?: boolean }) {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [searching, setSearching] = useState(false)
@@ -198,7 +198,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   } as Record<Tab, string[]>)[tab], [tab])
 
   const guestSelector = (showRooms: boolean, showCabin: boolean) => (
-    <div ref={guestSelectorRef} className={cell + ' trexifly-guest-selector relative z-[60] min-w-[175px] lg:w-[190px] lg:flex-none'}>
+    <div ref={guestSelectorRef} data-search-field="Travellers" className={cell + ' trexifly-guest-selector relative z-[60] min-w-[175px] lg:min-w-[150px] lg:w-[160px] lg:flex-[0_0_160px]'}>
       <span className={label}>Travellers{showRooms ? ' & rooms' : ''}</span>
       <button type="button" aria-expanded={guestOpen} aria-label="Choose passengers, child ages, rooms and cabin class" onClick={() => setGuestOpen(open => !open)} className="trexifly-guest-toggle relative w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-left text-sm font-semibold text-slate-800 hover:border-[#FF5500]">
         <span className="block min-w-0 truncate pr-6 text-gray-900 dark:text-white">{adults} {adults === 1 ? 'Adult' : 'Adults'}, {children} {children === 1 ? 'Child' : 'Children'}{showCabin ? ', ' + infants + (infants === 1 ? ' Infant' : ' Infants') : ''}{showRooms ? ' \u2022 ' + roomCount + (roomCount === 1 ? ' Room' : ' Rooms') : ''}{showCabin ? ' \u2022 ' + cabinClass : ''}</span>
@@ -263,7 +263,7 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
   return <section id="search-widget" className={compact ? 'w-full' : 'w-full'}>
     {!compact && <div className="mb-5 text-[#111111]"><h1 className="max-w-3xl text-3xl font-extrabold uppercase leading-tight tracking-tight text-[#111111] sm:text-4xl lg:text-[2.8rem]">{tab === 'flights' ? <>Search <span className="text-[#FF5500] underline decoration-orange-300 decoration-2 underline-offset-4">hundreds of flight sites</span> at once.</> : tab === 'hotels' ? <>Find your <span className="text-[#FF5500]">next stay</span></> : tab === 'cars' ? <>Car rentals for <span className="text-[#FF5500]">any kind of trip</span></> : tab === 'tours' ? <>Attractions, activities, and <span className="text-[#FF5500]">experiences</span></> : <>Book your <span className="text-[#FF5500]">airport transfer</span></>}</h1><p className="mt-2 max-w-2xl text-sm font-medium text-slate-700 sm:text-base">{copy[1]}</p></div>}
 
-    {compact && <div className="mb-3">{tabNav}</div>}
+    {compact && !hideCategoryTabs && <div className="mb-3">{tabNav}</div>}
     <form onSubmit={submit} className={'rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50' + (highlight ? ' search-flash' : '')}>
       {flightValidationError && tab === 'flights' && <p role="alert" className="m-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{flightValidationError}</p>}
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
@@ -274,13 +274,13 @@ export function SearchWidget({ initial, compact = false }: { initial?: Partial<S
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
       {tab === 'hotels' && <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><Check><input type="checkbox" checked={entireHome} onChange={e => setEntireHome(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm looking for an entire home or apartment</Check><Check><input type="checkbox" checked={workTrip} onChange={e => setWorkTrip(e.target.checked)} className="size-4 accent-[#FF5500]"/>I'm traveling for work</Check></div>}
-      {tab === 'flights' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
+      {tab === 'flights' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch lg:flex-nowrap lg:items-stretch">
         <SelectField title="Trip type" value={trip} onChange={setTrip} options={['Round-trip','One-way']} />
         <LocationField fieldId="flight-from" title="From" value={from} onChange={setFrom} placeholder="City or airport worldwide" options={FLIGHT_LOCATIONS} />
         <LocationField fieldId="flight-to" title="To" value={to} onChange={setTo} placeholder="Search worldwide city or airport" options={FLIGHT_LOCATIONS.filter(a => a !== from)} />
         <FlightDatePicker value={depart} onChange={setDepart} returnValue={back} onReturnChange={setBack} origin={from} destination={to} tripType={trip} onTripTypeChange={setTrip} />
         {guestSelector(false, true)}
-        <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
+        <button data-search-field="Search" className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00] lg:flex-[0_0_104px] lg:px-3 lg:whitespace-nowrap">Search</button>
       </div>}
       {tab === 'cars' && <><div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="car-pickup" title="Pick-up location" value={pickup} onChange={setPickup} placeholder="Airport, city, or station worldwide" options={LOCATIONS} />

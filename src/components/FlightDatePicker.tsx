@@ -108,7 +108,7 @@ export function FlightDatePicker({ value, onChange, returnValue, onReturnChange,
     while (cells.length % 7) cells.push(null)
     return <section key={monthKey(month)} className="min-w-0">
       <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{monthLabel(month)}</h3><span className="text-[10px] text-slate-400">Lowest daily fares</span></div>
-      <div className="grid grid-cols-7 gap-1 text-center">
+      <div className="grid min-w-0 grid-cols-7 gap-1 text-center">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <span key={day} className="py-1 text-[10px] font-bold text-slate-400">{day}</span>)}
         {cells.map((day, index) => {
           if (!day) return <span key={`blank-${index}`} />
@@ -127,23 +127,23 @@ export function FlightDatePicker({ value, onChange, returnValue, onReturnChange,
               : isCheapest
                 ? 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200'
                 : 'border-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800'
-          return <button key={date} type="button" disabled={disabled} onClick={() => chooseDate(date)} aria-label={`${date}${fare ? ', ' + money(fare.price, fare.currency) : ', price unavailable'}`} aria-pressed={isSelected} className={'flex min-h-[54px] flex-col items-center justify-center rounded-lg border px-0.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-25 ' + cellStyle}>
-            <span className="text-xs font-bold">{day}</span>
-            <span className={'mt-0.5 text-[9px] font-semibold leading-3 ' + (isCheapest ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400')}>{fare ? money(fare.price, fare.currency) : '—'}</span>
+          return <button key={date} type="button" disabled={disabled} onClick={() => chooseDate(date)} aria-label={`${date}${fare ? ', ' + money(fare.price, fare.currency) : ', price unavailable'}`} aria-pressed={isSelected} className={'flex min-h-[46px] w-full min-w-0 flex-col items-center justify-center overflow-hidden rounded-lg border px-0.5 py-1 transition disabled:cursor-not-allowed disabled:opacity-25 ' + cellStyle}>
+            <span className="whitespace-nowrap text-xs font-bold">{day}</span>
+            <span className={'mt-0.5 max-w-full truncate whitespace-nowrap text-[9px] font-semibold leading-3 ' + (isCheapest ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400')}>{fare ? money(fare.price, fare.currency) : '—'}</span>
           </button>
         })}
       </div>
     </section>
   }
 
-  return <div className="relative min-w-0 flex-[1.15] border-b border-slate-200 px-2 py-1 sm:min-w-[170px] sm:border-b-0 sm:border-r dark:border-slate-700">
+  return <div data-search-field="Departure / Return" className="relative min-w-0 flex-[1.15] border-b border-slate-200 px-2 py-1 sm:min-w-[170px] sm:border-b-0 sm:border-r lg:min-w-[175px] lg:flex-[1_1_190px] dark:border-slate-700">
     <span className="mb-1 block text-[11px] font-semibold text-slate-500">Departure</span>
     <button type="button" aria-expanded={open} aria-haspopup="dialog" onClick={openCalendar} className="w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-[#0F172A] hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800">{value || 'Choose departure date'} <span className="float-right text-slate-400">▦</span></button>
     {tripType === 'Round-trip' && <>
       <span className="mb-1 block text-[11px] font-semibold text-slate-500">Return</span>
       <button type="button" aria-expanded={open} aria-haspopup="dialog" onClick={openCalendar} className="w-full rounded-lg px-3 py-3 text-left text-sm font-semibold text-[#0F172A] hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800">{returnValue || 'Choose return date'} <span className="float-right text-slate-400">▦</span></button>
     </>}
-    {open && <div role="dialog" aria-label="Flight price calendar" className="absolute left-0 top-full z-[100] mt-2 w-[min(94vw,760px)] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:left-auto sm:right-0">
+    {open && <div role="dialog" aria-label="Flight price calendar" className="absolute left-0 top-full z-[100] mt-2 box-border h-auto max-h-[min(82vh,720px)] w-[min(94vw,760px)] overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900 sm:left-auto sm:right-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><h2 className="text-base font-extrabold text-slate-900 dark:text-white">Flexible flight dates</h2><p className="text-[11px] text-slate-500">Daily cached lowest fares · rolling 12-month window</p></div>
         <div className="flex items-center gap-2">
@@ -163,10 +163,10 @@ export function FlightDatePicker({ value, onChange, returnValue, onReturnChange,
       <p className="mb-3 text-xs font-semibold text-slate-600 dark:text-slate-300" aria-live="polite">{tripType === 'One-way' ? 'Choose your departure date' : selectionStep === 'departure' ? '1. Choose departure date' : selectionStep === 'return' ? '2. Choose return date (dates before departure are disabled)' : 'Departure and return selected. Review your trip and continue.'}</p>
       <div className="grid gap-5 md:grid-cols-2">{monthList.map(renderMonth)}</div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 dark:border-slate-700">
-        <p className="text-[10px] text-slate-500">Green = cheapest date with cached fare. Orange = selected trip range. Prices are indicative and may change.</p>
+        <p className="min-w-0 break-words text-[10px] text-slate-500">Green = cheapest date with cached fare. Orange = selected trip range. Prices are indicative and may change.</p>
         {loading && <span role="status" className="text-[10px] text-slate-500">Loading fares…</span>}
       </div>
-      {calendarNotice && <p role="status" className="mt-2 text-xs text-amber-700 dark:text-amber-300">{calendarNotice}</p>}
+      {calendarNotice && <p role="status" className="mt-2 min-w-0 break-words text-xs text-amber-700 dark:text-amber-300">{calendarNotice}</p>}
       <button type="button" disabled={!value || value < today || !roundTripReady} onClick={() => setOpen(false)} className="mt-3 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-extrabold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">Select for {tripType === 'One-way' ? 'one-way trip' : 'round-trip'}{displayFare ? ' — from ' + money(displayFare, displayCurrency) : ''}</button>
     </div>}
   </div>
