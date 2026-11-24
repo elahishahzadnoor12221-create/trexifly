@@ -47,12 +47,15 @@ const LOCATIONS = [...new Set([...AIRPORTS.map(a => a.replace(/ \([A-Z]{3}\)$/, 
 const field = 'min-w-0 w-full border-0 bg-transparent px-3 py-3 text-sm text-[#0F172A] outline-none placeholder:text-slate-500 dark:text-white'
 const label = 'mb-1 block text-[11px] font-semibold text-slate-500'
 const cell = 'min-w-0 flex-1 border-b border-slate-200 px-2 py-1 sm:border-b-0 sm:border-r last:border-0'
+const todayIsoDate = () => { const date = new Date(); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
+const nextIsoDate = (value: string) => { if (!isRealIsoDate(value)) return todayIsoDate(); const [year, month, day] = value.split('-').map(Number); const date = new Date(year, month - 1, day + 1); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` }
+const isRealIsoDate = (value: string) => { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false; const [year, month, day] = value.split('-').map(Number); const date = new Date(year, month - 1, day); return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day }
 
 function SelectField({ title, value, onChange, options, wide = false }: { title: string; value: string; onChange: (value: string) => void; options: string[]; wide?: boolean }) {
-  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[0.9] lg:min-w-[174px] lg:flex-[0_0_174px]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
+  return <label data-search-field={title} className={cell + (wide ? ' sm:min-w-[250px] sm:flex-[1.7]' : title === 'Trip type' ? ' sm:min-w-[174px] sm:flex-[0.9] lg:min-w-[174px] lg:flex-[0_0_174px]' : '')}><span className={label}>{title}</span><select className={field + (title === 'Trip type' ? ' min-w-[132px] max-w-[162px]' : '')} value={value} onChange={e => onChange(e.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select></label>
 }
-function TextField({ title, value, onChange, placeholder, type = 'text' }: { title: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string }) {
-  return <label data-search-field={title} className={cell + (type === 'date' ? ' sm:min-w-[150px]' : '')}><span className={label}>{title}</span><input className={field} type={type} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>
+function TextField({ title, value, onChange, placeholder, type = 'text', min }: { title: string; value: string; onChange: (value: string) => void; placeholder: string; type?: string; min?: string }) {
+  return <label data-search-field={title} className={cell + (type === 'date' ? ' sm:min-w-[150px]' : '')}><span className={label}>{title}</span><input className={field} type={type} min={min} value={value} placeholder={placeholder} autoComplete="off" onChange={e => onChange(e.target.value)} /></label>
 }
 
 function LocationField({ fieldId, title, value, onChange, placeholder, options = [], countryCode }: { fieldId: string; title: string; value: string; onChange: (value: string) => void; placeholder: string; options?: string[]; countryCode?: string }) {
@@ -124,6 +127,7 @@ export function SearchWidget({ initial, compact = false, hideCategoryTabs = fals
   const [params, setParams] = useSearchParams()
   const [searching, setSearching] = useState(false)
   const [flightValidationError, setFlightValidationError] = useState('')
+  const [dateValidationError, setDateValidationError] = useState('')
   const fromUrl = params.get('tab')
   const validTab = TABS.some(t => t.id === fromUrl) ? fromUrl as Tab : undefined
   const [tab, setTab] = useState<Tab>(params.get('type') === 'transfers' || params.get('service') === 'airport-transfer' ? 'transfers' : initial?.type === 'hotels' ? 'hotels' : initial?.type === 'flights' ? 'flights' : initial?.type === 'cars' ? 'cars' : initial?.type === 'tours' ? 'tours' : validTab ?? 'hotels')
@@ -194,7 +198,7 @@ export function SearchWidget({ initial, compact = false, hideCategoryTabs = fals
     flights: ['Search hundreds of flight sites at once.', 'Compare routes, schedules and booking options in one place.'],
     cars: ['Car rentals for any kind of trip', 'Great cars at great prices from the biggest rental companies'],
     tours: ['Attractions, activities, and experiences', 'Discover new activities and experiences to match your interests and travel style'],
-    transfers: ['Book your airport transfer', 'Easy transportation between the airport and your accommodations'],
+    transfers: ['Compare airport transfer options', 'Choose a route and continue to a partner to confirm available vehicles, terms and final pricing'],
   } as Record<Tab, string[]>)[tab], [tab])
 
   const guestSelector = (showRooms: boolean, showCabin: boolean) => (
@@ -229,6 +233,37 @@ export function SearchWidget({ initial, compact = false, hideCategoryTabs = fals
       return
     }
     setFlightValidationError('')
+    if (tab === 'cars') {
+      const today = todayIsoDate()
+      if (!isRealIsoDate(depart) || depart < today) {
+        setDateValidationError('Car pick-up date cannot be in the past. Choose today or a future date.')
+        return
+      }
+      if (!isRealIsoDate(back) || back < depart) {
+        setDateValidationError('Car drop-off date must be the pick-up date or later.')
+        return
+      }
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(pickupTime) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(dropTime)) {
+        setDateValidationError('Enter valid pick-up and drop-off times.')
+        return
+      }
+      if (back === depart && dropTime <= pickupTime) {
+        setDateValidationError('For same-day rentals, drop-off time must be later than pick-up time.')
+        return
+      }
+    }
+    if (tab === 'flights' || tab === 'hotels') {
+      const today = todayIsoDate()
+      if (!isRealIsoDate(depart) || depart < today) {
+        setDateValidationError(tab === 'hotels' ? 'Check-in date cannot be in the past. Choose today or a future date.' : 'Departure date cannot be in the past. Choose today or a future date.')
+        return
+      }
+      if ((tab === 'hotels' || trip === 'Round-trip') && (!isRealIsoDate(back) || back <= depart)) {
+        setDateValidationError(tab === 'hotels' ? 'Check-out date must be after the check-in date.' : 'Return date must be after the departure date.')
+        return
+      }
+    }
+    setDateValidationError('')
     setSearching(true)
     try {
       const type = tab === 'hotels' ? 'hotels' : tab === 'flights' ? 'flights' : tab === 'tours' ? 'tours' : tab === 'cars' ? 'cars' : 'transfers'
@@ -266,10 +301,11 @@ export function SearchWidget({ initial, compact = false, hideCategoryTabs = fals
     {compact && !hideCategoryTabs && <div className="mb-3">{tabNav}</div>}
     <form onSubmit={submit} className={'rounded-2xl border border-orange-100 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,.12)] ring-1 ring-orange-50' + (highlight ? ' search-flash' : '')}>
       {flightValidationError && tab === 'flights' && <p role="alert" className="m-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{flightValidationError}</p>}
+      {dateValidationError && (tab === 'flights' || tab === 'hotels' || tab === 'cars') && <p role="alert" className="m-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{dateValidationError}</p>}
       {tab === 'hotels' && <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="hotel-destination" title="Destination" value={destination} onChange={setDestination} placeholder="Search worldwide cities and destinations" options={LOCATIONS} />
-        <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" />
-        <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" />
+        <TextField title="Check-in" value={depart} onChange={setDepart} placeholder="Check-in" type="date" min={todayIsoDate()} />
+        <TextField title="Check-out" value={back} onChange={setBack} placeholder="Check-out" type="date" min={nextIsoDate(depart)} />
         {guestSelector(true, false)}
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div>}
@@ -284,9 +320,9 @@ export function SearchWidget({ initial, compact = false, hideCategoryTabs = fals
       </div>}
       {tab === 'cars' && <><div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-stretch">
         <LocationField fieldId="car-pickup" title="Pick-up location" value={pickup} onChange={setPickup} placeholder="Airport, city, or station worldwide" options={LOCATIONS} />
-        <TextField title="Pick-up date" value={depart} onChange={setDepart} placeholder="Pick-up date" type="date" />
+        <TextField title="Pick-up date" value={depart} onChange={setDepart} placeholder="Pick-up date" type="date" min={todayIsoDate()} />
         <TextField title="Time" value={pickupTime} onChange={setPickupTime} placeholder="10:00 AM" type="time" />
-        <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" />
+        <TextField title="Drop-off date" value={back} onChange={setBack} placeholder="Drop-off date" type="date" min={depart} />
         <TextField title="Time" value={dropTime} onChange={setDropTime} placeholder="10:00 AM" type="time" />
         <button className="m-1 rounded-xl bg-[#FF5500] px-6 py-3 text-sm font-bold text-white shadow-sm shadow-orange-200 hover:bg-[#E64A00]">Search</button>
       </div><div className="trexifly-car-options flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-slate-100 px-3 pt-3"><label className="flex items-center gap-2 text-xs text-slate-700"><input type="checkbox" checked={carDifferent} onChange={e => setCarDifferent(e.target.checked)} className="size-4 accent-[#FF5500]" />Drop car off at different location</label><div className="w-44"><SelectField title="Driver age" value={driverAgeValue} onChange={setDriverAgeValue} options={['18','21','25','30','35','40','50','60','65','70']} /></div></div>{carDifferent && <div className="trexifly-car-dropoff mt-2 px-2"><LocationField fieldId="car-dropoff" title="Drop-off location" value={dropoff} onChange={setDropoff} placeholder="Choose worldwide drop-off location" options={LOCATIONS} /></div>}</>}
@@ -308,7 +344,7 @@ export function SearchWidget({ initial, compact = false, hideCategoryTabs = fals
     {searching && <div role="status" aria-live="polite" className="fixed inset-0 z-[200] grid place-items-center bg-[#FF5500]/95 p-6 text-center text-white backdrop-blur-md"><div className="w-full max-w-sm"><div className="mx-auto grid size-44 place-items-center rounded-[2rem] border border-white/70 bg-white/20 shadow-[0_25px_80px_rgba(90,25,0,.35)] animate-pulse"><img src="/trexifly-logo.png" alt="Trexifly" className="w-36 rounded-xl bg-white p-2 shadow-xl"/></div><h2 className="mt-8 text-xl font-extrabold">Trexifly is scanning partner routes &amp; rates...</h2><div className="mt-5 h-2 overflow-hidden rounded-full bg-white/30"><div className="h-full w-2/3 animate-pulse rounded-full bg-white"/></div><p className="mt-3 text-xs text-white/85">Preparing your comparison</p></div></div>}
     {!compact && tab === 'flights' && <div className="mt-6 grid grid-cols-3 gap-3"><img onError={imgFallback} className="h-24 w-full rounded-xl object-cover sm:h-32" src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=700&q=85" alt="Dubai skyline"/><img onError={imgFallback} className="h-24 w-full rounded-xl object-cover sm:h-32" src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=700&q=85" alt="London city"/><img onError={imgFallback} className="h-24 w-full rounded-xl object-cover sm:h-32" src="https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=700&q=85" alt="Istanbul skyline"/></div>}
     {!compact && tab === 'tours' && <div className="mt-6"><h2 className="mb-3 text-sm font-bold text-[#171A20]">Top destinations</h2><div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{[['Dubai','photo-1512453979798-5ea266f8880c'],['London','photo-1513635269975-59663e0ac1ad'],['Istanbul','photo-1524231757912-21f4fe3a7200'],['Hunza Valley','photo-1544735716-392fe2489ffa'],['Skardu','photo-1589553416260-f586c8f1514f']].map(([name,img])=><div key={name} className="relative h-28 overflow-hidden rounded-xl sm:h-32"><img src={`https://images.unsplash.com/${img}?auto=format&fit=crop&w=700&q=85`} alt={name} onError={imgFallback} className="size-full object-cover"/><span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6 text-sm font-bold text-white">{name}</span></div>)}</div></div>}
-    {!compact && tab === 'transfers' && <div className="mt-6 grid gap-3 sm:grid-cols-3">{[['Flight tracking','We monitor your flight arrival details.'],['One clear price','Know the fare before you travel.'],['Tried and true service','Choose a vehicle class for your journey.']].map(([title,desc])=><div key={title} className="rounded-xl border border-white/20 bg-white/10 p-4 text-white"><p className="font-semibold">{title}</p><p className="mt-1 text-xs text-white/75">{desc}</p></div>)}</div>}
+    {!compact && tab === 'transfers' && <div className="mt-6 grid gap-3 sm:grid-cols-3">{[['Partner booking','Complete your route and travel details on the provider website.'],['Availability and price','The provider confirms current options and the final fare.'],['Vehicle details','Review vehicle class, luggage limits and booking terms before payment.']].map(([title,desc])=><div key={title} className="rounded-xl border border-white/20 bg-white/10 p-4 text-white"><p className="font-semibold">{title}</p><p className="mt-1 text-xs text-white/75">{desc}</p></div>)}</div>}
   </section>
 }
 

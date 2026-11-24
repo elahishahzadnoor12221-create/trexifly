@@ -1,4 +1,3 @@
-import { getAffiliatePartners } from './affiliates'
 import type { SearchQuery } from './data'
 
 export type HotelProviderLink = {
@@ -6,18 +5,26 @@ export type HotelProviderLink = {
   name: string
   url: string
   marker: string
+  tracking: 'dynamic' | 'fallback'
 }
 
-/**
- * Exposes only independently verified short links. The current hotel links
- * failed clean redirect verification, so this intentionally returns [] until
- * a hotel partner link passes the same check.
- */
-export function buildHotelProviderLinks(_query: SearchQuery): HotelProviderLink[] {
-  return getAffiliatePartners('hotels').map(partner => ({
-    id: partner.id,
-    name: partner.name,
-    url: partner.url,
+/** Build same-origin server redirects; raw partner URLs and credentials stay server-side. */
+export function buildHotelProviderLinks(query: SearchQuery): HotelProviderLink[] {
+  const params = new URLSearchParams({
+    id: 'trip',
+    to: query.to,
+    out: query.out,
+    back: query.back,
+    adults: String(query.adults ?? 2),
+    children: String(query.children ?? 0),
+    rooms: String(query.rooms ?? 1),
+    childAges: (query.childAges ?? []).slice(0, query.children ?? 0).join(','),
+  })
+  return [{
+    id: 'trip',
+    name: 'Trip.com',
+    url: `/api/affiliates/link?${params.toString()}`,
     marker: '806576',
-  }))
+    tracking: 'dynamic',
+  }]
 }

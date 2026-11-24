@@ -11,6 +11,7 @@ import { GuidesPage, LegalPage, WhatsAppFloat } from './pages/TrustPages'
 import { GuideIndexEnhancements, TravelGuideArticle } from './pages/TravelGuidePages'
 import { TravelAssistant } from './components/TravelAssistant'
 import { AdminAlertsPage } from './pages/AdminAlertsPage'
+import { AdminAffiliatePage } from './pages/AdminAffiliatePage'
 import { StaysGuideArticle, StaysGuideIndex } from './pages/StaysGuides'
 
 const seoPages: LandingConfig[] = [
@@ -105,6 +106,7 @@ export function App() {
     <main id="main"><Routes>
       <Route index element={<Home />} />
       <Route path="admin/alerts" element={<AdminAlertsPage />} />
+      <Route path="admin/affiliates" element={<AdminAffiliatePage />} />
       <Route path="results" element={<Results />} />
       <Route path="my-trips" element={<MyTrips />} />
       <Route path="about" element={<LegalPage page="about" />} />

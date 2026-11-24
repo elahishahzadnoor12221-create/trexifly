@@ -8,6 +8,8 @@ export type AlertEnv = {
   ADMIN_ALERT_SESSION_SECRET?: string
   ADMIN_ALERT_EMAIL?: string
   APP_BASE_URL?: string
+  TRAVELPAYOUTS_API_TOKEN?: string
+  TRAVELPAYOUTS_TRS?: string
 }
 export type ApiReq = { method?: string; body?: unknown; headers?: Record<string, string | string[] | undefined>; query?: Record<string, string | string[] | undefined> }
 export type ApiRes = { setHeader(name: string, value: string): void; status(code: number): ApiRes; json(body: unknown): ApiRes; send(body: string): ApiRes; end(): void }
@@ -16,7 +18,7 @@ declare const process: { env: AlertEnv }
 export function envFor(_req: ApiReq, ctx?: { env?: AlertEnv }): AlertEnv {
   const runtime = ctx?.env ?? {}
   const out: AlertEnv = {}
-  for (const k of ['SUPABASE_URL','SUPABASE_SECRET_KEY','SUPABASE_SERVICE_ROLE_KEY','GEMINI_API_KEY','RESEND_API_KEY','ADMIN_ALERT_PASSWORD','ADMIN_ALERT_SESSION_SECRET','ADMIN_ALERT_EMAIL','APP_BASE_URL'] as const) {
+  for (const k of ['SUPABASE_URL','SUPABASE_SECRET_KEY','SUPABASE_SERVICE_ROLE_KEY','GEMINI_API_KEY','RESEND_API_KEY','ADMIN_ALERT_PASSWORD','ADMIN_ALERT_SESSION_SECRET','ADMIN_ALERT_EMAIL','APP_BASE_URL','TRAVELPAYOUTS_API_TOKEN','TRAVELPAYOUTS_TRS'] as const) {
     out[k] = (process.env[k] || runtime[k] || '').trim()
   }
   return out

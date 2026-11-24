@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+﻿import { test, expect } from '@playwright/test'
 
 const flightSearchUrl = '**/api/flights/search?*'
 const calendarUrl = '**/api/flights/calendar?*'
@@ -47,31 +47,37 @@ test('Invalid airport input keeps the validation alert and does not navigate', a
   const airports = page.locator('input[role="combobox"]')
   await airports.nth(0).fill('Somewhere Unknown')
   await airports.nth(1).fill('Dubai (DXB)')
-  const originalUrl = page.url()
+  const originalPath = new URL(page.url()).pathname
   await page.locator('#search-widget form button').last().click()
   await expect(page.getByRole('alert')).toContainText('recognised airport locations')
-  await expect(page).toHaveURL(originalUrl)
+  await expect.poll(() => new URL(page.url()).pathname).toBe(originalPath)
 })
 
-test('Hotels cards use clean Trexifly partner copy and UTF-8 labels', async ({ page }) => {
+test('Hotels results disclose all configured partner handoffs without fabricated inventory', async ({ page }) => {
   await page.goto('/results?type=hotels&to=Dubai&out=2026-12-15&back=2026-12-20&adults=2&children=0&rooms=1')
-  await expect(page.getByText('Hotel booking partners').first()).toBeVisible()
-  await expect(page.getByText(/Unverified hotel booking buttons remain hidden/i).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Stays in Dubai' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Compare hotel booking partners' })).toBeVisible()
+  const tripLink = page.getByRole('link', { name: 'Search hotels on Trip.com' })
+  const tripUrl = new URL(await tripLink.getAttribute('href') ?? '', page.url())
+  expect(tripUrl.pathname).toBe('/api/affiliates/link')
+  expect(tripUrl.searchParams.get('to')).toBe('Dubai')
+  expect(tripUrl.searchParams.get('out')).toBe('2026-12-15')
+  expect(tripUrl.searchParams.get('back')).toBe('2026-12-20')
+  await expect(tripLink).toHaveAttribute('data-affiliate-status', 'dynamic')
+  await expect(page.getByRole('link', { name: /Search hotels on Klook|Search hotels on KKday/ })).toHaveCount(0)
+  await expect(page.getByText(/does not display live hotel inventory or guarantee availability/i)).toBeVisible()
   await expect(page.locator('.hotel-provider-link')).toHaveCount(0)
-  await expect(page.getByText(/Hotel partner links are temporarily unavailable/i).first()).toBeVisible()
+  await expect(page.locator('main article')).toHaveCount(0)
   const hotelText = await page.locator('body').innerText()
-  expect(hotelText).not.toMatch(/Sample listing|Sample score|simulated reviews|Partner link verification|Illustrative rating|Provider details may differ/i)
-  expect(hotelText).not.toMatch(/travelpayouts|â†|Â·|â˜/i)
+  expect(hotelText).not.toMatch(/Sample listing|Sample score|simulated reviews|Partner rate guide|Illustrative rating|Provider details may differ|Ã¢â€ |Ã‚Â·|Ã¢Ëœ/i)
 })
 
-test('Hotels partner cards remain readable in light and dark themes', async ({ page }) => {
+test('Trip.com hotel handoff remains readable in light and dark themes', async ({ page }) => {
   await page.goto('/results?type=hotels&to=Dubai&out=2026-12-15&back=2026-12-20')
-  const card = page.locator('article').first()
-  await expect(card).toBeVisible()
-  await expect(card.getByText('Hotel booking partners').first()).toBeVisible()
+  const notice = page.getByRole('link', { name: 'Search hotels on Trip.com' })
+  await expect(notice).toBeVisible()
   await page.evaluate(() => document.documentElement.classList.add('dark'))
-  await expect(card).toBeVisible()
-  await expect(card.locator('.hotel-provider-link')).toHaveCount(0)
+  await expect(notice).toBeVisible()
   await page.evaluate(() => document.documentElement.classList.remove('dark'))
-  await expect(card).toBeVisible()
+  await expect(notice).toBeVisible()
 })

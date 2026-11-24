@@ -927,3 +927,17 @@ html[data-theme="dark"] #smart-travel-alerts select { border-color: #64748B !imp
 /* Results stay on Trexifly typography and a consistent responsive content grid. */
 .results-page { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; }
 .results-page h1, .results-page h2, .results-page h3, .results-page h4 { font-family: inherit; }
+
+/* TREXIFLY_DARK_CAR_DISCOVERY */
+html[data-theme="dark"] .trexifly-car-discovery { background-color: #020617 !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-heading,
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-title { color: #f8fafc !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-copy { color: #cbd5e1 !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-muted,
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-card .text-slate-500 { color: #94a3b8 !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-card,
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-more-card { background-color: #0f172a !important; border-color: #334155 !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-image { background: linear-gradient(135deg, #1e293b 0%, #020617 100%) !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-supplier,
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-sample { background-color: #1e293b !important; color: #f8fafc !important; }
+html[data-theme="dark"] .trexifly-car-discovery .trexifly-car-destination:not([aria-pressed="true"]) { background-color: #1e293b !important; border-color: #475569 !important; color: #e2e8f0 !important; }

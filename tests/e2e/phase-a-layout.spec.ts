@@ -17,7 +17,7 @@ test('homepage desktop flight search controls stay on one aligned row at desktop
   await page.route('https://nominatim.openstreetmap.org/**', route => route.abort())
   await page.goto('/?tab=flights#search-widget')
 
-  const form = page.locator('#search-widget form')
+  const form = page.locator('#search-widget > form')
   await expect(form.locator('[data-search-field="Trip type"]')).toBeVisible()
   const fields = ['Trip type', 'From', 'To', 'Departure / Return', 'Travellers', 'Search']
   for (const width of [1440, 1024]) {
@@ -42,6 +42,16 @@ test('homepage desktop flight search controls stay on one aligned row at desktop
   }
 })
 
+test('mobile header and document remain inside the viewport', async ({ page }) => {
+  for (const width of [390, 375]) {
+    await page.setViewportSize({ width, height: 844 })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const dimensions = await page.evaluate(() => ({ viewport: window.innerWidth, body: document.body.scrollWidth, document: document.documentElement.scrollWidth }))
+    expect(dimensions.body, `Body must not overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport)
+    expect(dimensions.document, `Document must not overflow at ${width}px`).toBeLessThanOrEqual(dimensions.viewport)
+    await expect(page.getByRole('button', { name: /Switch to (dark|light) mode/ })).toBeVisible()
+  }
+})
 test('flexible flight calendar keeps dates, long notices and CTA inside its white card', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.route('**/api/flights/search?*', route => route.fulfill({

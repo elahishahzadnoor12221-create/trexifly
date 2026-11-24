@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router'
 
 import { cx } from '../lib/cx'
@@ -20,7 +20,7 @@ export function Logo({ className }: { className?: string }) {
     <img
       src="/trexifly-logo.png"
       alt="Trexifly — Worldwide travel discovery"
-      className="trexifly-logo-light h-10 w-auto object-contain sm:h-12 md:h-14"
+      className="trexifly-logo-light h-8 w-auto object-contain sm:h-12 md:h-14"
       width={500}
       height={140}
     />
@@ -28,7 +28,7 @@ export function Logo({ className }: { className?: string }) {
       src="/trexifly-logo-dark.png"
       alt=""
       aria-hidden="true"
-      className="trexifly-logo-dark h-10 w-auto object-contain sm:h-12 md:h-14"
+      className="trexifly-logo-dark h-8 w-auto object-contain sm:h-12 md:h-14"
       width={500}
       height={140}
     />
@@ -74,7 +74,7 @@ function PrefsMenu() {
       ? 'Using recently cached exchange rates.'
       : fxStatus === 'loading'
         ? 'Loading current reference exchange rates…'
-        : 'Live rates are unavailable. Supported fallback rates are shown; other currencies remain in USD.'
+        : 'Live rates are unavailable. Fallback reference rates are estimates; your booking partner sets the final charge currency and amount.'
 
   return (
     <div className="relative" ref={ref}>
@@ -88,7 +88,7 @@ function PrefsMenu() {
         <span className="text-[#FFB800]">{symbol}</span>
         <span>{currency}</span>
         <span className="text-slate-400">·</span>
-        <span className="text-slate-500">{short}</span>
+        <span className="hidden text-slate-500 sm:inline">{short}</span>
         <Icon name="chevronDown" className={cx('size-3.5 text-faint transition', open && 'rotate-180')} />
       </button>
 
@@ -204,6 +204,7 @@ function PrefsMenu() {
                 </button>
               ))}
             </div>
+            <p className="mt-3 text-[10px] leading-relaxed text-slate-500">Only selected interface labels are translated. Some pages and partner content remain in English.</p>
             <p className="mt-3 text-[10px] leading-relaxed text-slate-500">
               {fxMessage}{fxUpdatedAt ? ' Last update: ' + new Date(fxUpdatedAt).toLocaleString() + '.' : ''}
             </p>
@@ -218,11 +219,11 @@ export function Header() {
   const [params] = useSearchParams()
   const [notice, setNotice] = useState('')
   const [authMode, setAuthMode] = useState<'signin'|'register'|null>(null)
-  const [authMessage, setAuthMessage] = useState('')
-  const [authEmail, setAuthEmail] = useState('')
-  const [authName, setAuthName] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  useEffect(() => { const openAccount = () => { setAuthMode('signin'); setAuthMessage('') }; window.addEventListener('trexifly:open-account', openAccount); return () => window.removeEventListener('trexifly:open-account', openAccount) }, [])
+
+
+
+
+  useEffect(() => { const openAccount = () => setAuthMode('signin'); window.addEventListener('trexifly:open-account', openAccount); return () => window.removeEventListener('trexifly:open-account', openAccount) }, [])
   const { theme, setTheme } = usePrefs()
   const activeTab = params.get('tab') ?? (params.get('service') === 'airport-transfer' ? 'transfers' : params.get('type') === 'hotels' ? 'hotels' : params.get('type') === 'cars' ? 'cars' : params.get('type') === 'tours' ? 'tours' : 'hotels')
   const isActive = (key: string) => pathname === '/' ? activeTab === key : (params.get('type') === key || (key === 'transfers' && params.get('service') === 'airport-transfer'))
@@ -234,12 +235,12 @@ export function Header() {
                   <nav aria-label="Travel categories" className="hidden min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap xl:flex">
           {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
         </nav>
-          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1 whitespace-nowrap sm:gap-3">
             <button type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} aria-pressed={theme === 'dark'} className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-[#FF5500] hover:text-[#FF5500]" title={theme === 'dark' ? 'Light mode' : 'Dark mode'}><span aria-hidden="true" className="text-base leading-none">{theme === 'dark' ? '☀' : '☾'}</span></button>
             <PrefsMenu />
             <Link to="/my-trips" className="hidden rounded-lg border border-orange-200 px-3 py-2 text-sm font-semibold text-[#B93800] hover:bg-orange-50 sm:inline-flex">My Trips</Link>
-            <button onClick={() => {setAuthMode('register');setAuthMessage('')}} className="hidden rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-orange-50 sm:inline-flex">Register</button>
-            <button onClick={() => {setAuthMode('signin');setAuthMessage('')}} className="rounded-lg bg-[#FF5500] px-3 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00]">Account</button>
+            <button onClick={() => setAuthMode('register')} className="hidden rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-orange-50 sm:inline-flex">Register (coming soon)</button>
+            <button onClick={() => setAuthMode('signin')} className="rounded-lg bg-[#FF5500] px-2 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00] sm:px-3">Account</button>
           </div>
         </div>
                 <nav aria-label="Travel categories" className="no-scrollbar flex gap-2 overflow-x-auto pb-3 xl:hidden">
@@ -250,16 +251,14 @@ export function Header() {
       {notice && <div role="dialog" aria-modal="true" className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/50 p-4" onClick={() => setNotice('')}><div className="max-w-md rounded-2xl bg-white p-6 text-slate-900 shadow-2xl" onClick={e => e.stopPropagation()}><h2 className="text-lg font-bold">Trexifly</h2><p className="mt-2 text-sm leading-6 text-slate-600">{notice}</p><button onClick={() => setNotice('')} className="mt-5 rounded-lg bg-[#FF5500] px-5 py-2.5 text-sm font-bold text-white">Close</button></div></div>}
       {authMode && <div role="dialog" aria-modal="true" aria-labelledby="trexifly-auth-title" className="fixed inset-0 z-[90] grid place-items-center bg-slate-950/65 p-4 backdrop-blur-sm" onClick={()=>setAuthMode(null)}>
         <div className="w-full max-w-md overflow-hidden rounded-3xl border border-white/70 bg-white shadow-[0_30px_90px_rgba(80,25,0,.35)]" onClick={e=>e.stopPropagation()}>
-          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">{authMode==='register'?'Create your account':'Welcome back'}</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">×</button></div><p className="mt-2 text-sm text-orange-50">Save destinations and make travel planning easier.</p></div>
-          <div className="p-6"><div className="mb-5 grid grid-cols-2 rounded-xl bg-orange-50 p-1"><button type="button" onClick={()=>{setAuthMode('signin');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='signin'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Sign in</button><button type="button" onClick={()=>{setAuthMode('register');setAuthMessage('')}} className={`rounded-lg py-2 text-sm font-bold ${authMode==='register'?'bg-white text-[#D94700] shadow':'text-slate-500'}`}>Register</button></div>
-            <form onSubmit={(e:FormEvent<HTMLFormElement>)=>{e.preventDefault();setAuthMessage('Your details passed browser validation. Secure account sign-in/registration is not connected yet; no password has been saved.')}} className="space-y-3">
-              {authMode==='register'&&<label className="block text-xs font-semibold text-slate-600">Full name<input required minLength={2} value={authName} onChange={e=>setAuthName(e.target.value)} autoComplete="name" className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-3 text-sm text-slate-900 outline-none focus:border-[#FF5500]" placeholder="Your name"/></label>}
-              <label className="block text-xs font-semibold text-slate-600">Email address<input required type="email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} autoComplete="email" className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-3 text-sm text-slate-900 outline-none focus:border-[#FF5500]" placeholder="you@example.com"/></label>
-              <label className="block text-xs font-semibold text-slate-600">Password<input required minLength={8} type="password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} autoComplete={authMode==='register'?'new-password':'current-password'} className="mt-1 w-full rounded-xl border border-orange-100 px-3 py-3 text-sm text-slate-900 outline-none focus:border-[#FF5500]" placeholder="At least 8 characters"/></label>
-              <button type="submit" className="w-full rounded-xl bg-gradient-to-r from-[#FF5500] to-[#D94700] py-3 text-sm font-bold text-white shadow-lg shadow-orange-200">{authMode==='register'?'Create account':'Sign in'}</button>
-            </form>
-            {authMessage&&<p role="status" className="mt-4 rounded-xl bg-orange-50 p-3 text-xs leading-5 text-[#9A3412]">{authMessage}</p>}
-            <p className="mt-4 text-center text-[11px] leading-5 text-slate-400">Secure account service is not configured. This form does not create or authenticate accounts yet.</p>
+          <div className="bg-gradient-to-br from-[#FF5500] via-[#E64A00] to-[#B93600] p-6 text-white"><div className="flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-orange-100">Trexifly account</p><h2 id="trexifly-auth-title" className="mt-1 text-2xl font-extrabold">Account access is not available yet</h2></div><button type="button" onClick={()=>setAuthMode(null)} aria-label="Close" className="rounded-full bg-white/15 p-2 text-white">×</button></div><p className="mt-2 text-sm text-orange-50">Use My Trips to save itineraries in this browser while account services are being built.</p></div>
+          <div className="p-6">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm font-bold text-amber-950">Sign-in and registration are not connected yet.</p>
+              <p className="mt-2 text-xs leading-5 text-amber-900">Do not enter a password here. This panel does not create or authenticate accounts. Saved trips remain on this browser only.</p>
+            </div>
+            <Link to="/my-trips" onClick={() => setAuthMode(null)} className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-[#FF5500] px-4 py-3 text-sm font-bold text-white hover:bg-[#E64A00]">Open My Trips</Link>
+            <button type="button" onClick={() => setAuthMode(null)} className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">Close</button>
           </div>
         </div>
       </div>}
@@ -278,13 +277,9 @@ export function Footer() {
         <div>
           <Logo />
           <p className="mt-2 max-w-xs text-sm leading-relaxed text-gray-600">
-            Compare flights, hotels, airport transfers, and explore Northern Pakistan and global adventures.
+            Compare flight fare estimates and explore partner options for stays, car rentals, tours and airport transfers.
           </p>
-          <div aria-label="Social channels" className="mt-4 flex items-center gap-3 text-[#FF5500]">
-            <span aria-label="Instagram" title="Instagram"><Icon name="instagram" className="size-5"/></span>
-            <span aria-label="Facebook" title="Facebook"><Icon name="facebook" className="size-5"/></span>
-            <span aria-label="X" title="X"><Icon name="twitter" className="size-5"/></span>
-          </div>
+
         </div>
 
         <div>

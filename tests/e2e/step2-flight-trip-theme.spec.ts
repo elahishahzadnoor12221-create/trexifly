@@ -40,16 +40,27 @@ for (const dark of [false, true]) {
   })
 }
 
-test('Hotel booking buttons remain hidden until their affiliate redirects pass verification', async ({ page }) => {
+test('Hotel results show verified Klook and KKday handoffs and disclose that live inventory is not displayed', async ({ page }) => {
   await page.goto('/results?type=hotels&to=Dubai%2C%20United%20Arab%20Emirates&out=2026-12-10&back=2026-12-14')
   await expect(page.locator('.hotel-provider-link')).toHaveCount(0)
-  await expect(page.getByText(/Unverified hotel booking buttons remain hidden/i).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Compare hotel booking partners' })).toBeVisible()
+  const klookLink = page.getByRole('link', { name: /Search hotels on Klook/ })
+  await expect(klookLink).toBeVisible()
+  await expect(klookLink).toHaveAttribute('data-affiliate-status', 'verified')
+  const kkdayLink = page.getByRole('link', { name: /Search hotels on KKday/ })
+  await expect(kkdayLink).toBeVisible()
+  await expect(kkdayLink).toHaveAttribute('href', 'https://kkday.tpx.lv/x5gqHfDJ')
+  await expect(kkdayLink).toHaveAttribute('data-affiliate-status', 'verified')
+  await expect(klookLink).toHaveAttribute('href', /klook\.tpx\.lv/)
+  const disclosure = page.getByText(/does not display live hotel inventory or guarantee availability/i)
+  await expect(disclosure).toBeVisible()
   for (const dark of [false, true]) {
     const toggle = page.getByRole('button', { name: /Switch to (dark|light) mode/ })
     const isDark = (await toggle.getAttribute('aria-pressed')) === 'true'
     if (isDark !== dark) await toggle.click()
     await expect(page.locator('html')).toHaveAttribute('data-theme', dark ? 'dark' : 'light')
-    await expect(page.getByText(/Hotel partner links are temporarily unavailable/i).first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Compare hotel booking partners' })).toBeVisible()
+    await expect(disclosure).toBeVisible()
   }
   const visible = await page.locator('body').innerText()
   expect(visible).not.toContain(String.fromCharCode(0x00c2, 0x00b7))

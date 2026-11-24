@@ -58,10 +58,11 @@ test('Saving a search from results adds the itinerary to My Trips', async ({ pag
   await expect(page.getByRole('heading', { name: 'Islamabad (ISB) to Dubai (DXB)' })).toBeVisible()
 })
 
-test('Partner checkout CTA uses the exact verified short link and records Partner Checkout', async ({ page }) => {
+test('Partner checkout CTA uses the category-tagged backend redirect with a verified fallback and records Partner Checkout', async ({ page }) => {
   await page.goto('/results?type=cars&from=Heathrow%20Airport&to=Central%20London&out=2026-12-10&back=2026-12-14')
-  const link = page.getByRole('link', { name: /Compare AutoEurope/ }).first()
-  await expect(link).toHaveAttribute('href', 'https://autoeurope.tpx.lv/1NuZscel')
+  const link = page.getByRole('link', { name: /Search AutoEurope/ }).first()
+  await expect(link).toHaveAttribute('href', /\/api\/affiliates\/link\?id=autoeurope/)
+  await expect(link).toHaveAttribute('data-affiliate-fallback', 'https://autoeurope.tpx.lv/1NuZscel')
   await expect(link).toHaveAttribute('data-affiliate-status', 'verified')
   await link.evaluate(el => {
     document.addEventListener('click', event => event.preventDefault(), { once: true, capture: true })
@@ -73,7 +74,7 @@ test('Partner checkout CTA uses the exact verified short link and records Partne
   expect(saved[0].status).toBe('Partner Checkout')
 })
 
-test('Only cleanly resolved short links are exposed for all five categories', async ({ page }) => {
+test('Verified partner links and the owner-supplied hotel handoff are exposed across all five categories', async ({ page }) => {
   await page.route(flightSearchUrl, route => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({ ok: true, offers: [sampleOffer], flexibleOffers: [] }),
@@ -87,30 +88,65 @@ test('Only cleanly resolved short links are exposed for all five categories', as
   await expect(page.locator('a[href*="www.aviasales.com/search"]')).toHaveCount(0)
 
   await page.goto('/results?type=hotels&to=Dubai&out=2026-12-10&back=2026-12-14')
+  const tripHotelLink = page.getByRole('link', { name: /Search hotels on Trip.com/ })
+  await expect(tripHotelLink).toHaveAttribute('href', 'https://www.trip.com/t/SsY6ZaegIX2')
+  await expect(tripHotelLink).toHaveAttribute('data-affiliate-status', 'unverified')
+  const klookHotelLink = page.getByRole('link', { name: /Search hotels on Klook/ })
+  await expect(klookHotelLink).toHaveAttribute('href', 'https://klook.tpx.lv/LvAH7l4w')
+  await expect(klookHotelLink).toHaveAttribute('data-affiliate-status', 'verified')
+  const kkdayHotelLink = page.getByRole('link', { name: /Search hotels on KKday/ })
+  await expect(kkdayHotelLink).toHaveAttribute('href', 'https://kkday.tpx.lv/x5gqHfDJ')
+  await expect(kkdayHotelLink).toHaveAttribute('data-affiliate-status', 'verified')
+  await klookHotelLink.evaluate(el => {
+    document.addEventListener('click', event => event.preventDefault(), { once: true, capture: true })
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+  })
+  const hotelCheckout = await page.evaluate(() => JSON.parse(localStorage.getItem('trexifly.my-trips.v1') || '[]'))
+  expect(hotelCheckout).toHaveLength(1)
+  expect(hotelCheckout[0].partner).toBe('Klook')
+  expect(hotelCheckout[0].status).toBe('Partner Checkout')
   await expect(page.locator('.hotel-provider-link')).toHaveCount(0)
 
   await page.goto('/results?type=cars&from=Heathrow&to=London&out=2026-12-10&back=2026-12-14')
   const carLinks = page.locator('a[data-affiliate-status="verified"]')
-  await expect(carLinks).toHaveCount(60)
-  expect(new Set(await carLinks.evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).href)))).toEqual(new Set(['https://autoeurope.tpx.lv/1NuZscel', 'https://qeeq.tpx.lv/xVJH8wOZ']))
+  await expect(carLinks).toHaveCount(2)
+  const carRedirects = await carLinks.evaluateAll(nodes => nodes.map(node => {
+    const anchor = node as HTMLAnchorElement
+    const url = new URL(anchor.href)
+    return { id: anchor.dataset.affiliatePartner, endpoint: url.pathname, fallback: anchor.dataset.affiliateFallback }
+  }))
+  expect(carRedirects).toEqual(expect.arrayContaining([
+    { id: 'autoeurope', endpoint: '/api/affiliates/link', fallback: 'https://autoeurope.tpx.lv/1NuZscel' },
+    { id: 'qeeq', endpoint: '/api/affiliates/link', fallback: 'https://qeeq.tpx.lv/n9oGqafJ' },
+  ]))
 
   await page.goto('/results?type=tours&to=Dubai&out=2026-12-10')
-  await expect(page.locator('a[data-affiliate-status="verified"]')).toHaveCount(3)
-  await expect(page.locator('a[data-affiliate-status="verified"]').first()).toHaveAttribute('href', 'https://tiqets.tpx.lv/JkNGKSuf')
+  await expect(page.locator('a[data-affiliate-status="verified"]')).toHaveCount(1)
+  await expect(page.locator('a[data-affiliate-status="verified"]').first()).toHaveAttribute('href', /\/api\/affiliates\/link\?id=tiqets/)
+  await expect(page.locator('a[data-affiliate-status="verified"]').first()).toHaveAttribute('data-affiliate-fallback', 'https://tiqets.tpx.lv/sSYehXWU')
 
   await page.goto('/results?type=transfers&service=airport-transfer&from=DXB&to=Dubai%20Marina&out=2026-12-10')
   const transferLinks = page.locator('a[data-affiliate-status="verified"]')
-  await expect(transferLinks).toHaveCount(40)
-  expect(new Set(await transferLinks.evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).href)))).toEqual(new Set(['https://gettransfer.tpx.lv/dt5dWuQv', 'https://intui.tpx.lv/XuaKpcpV']))
+  await expect(transferLinks).toHaveCount(3)
+  const transferRedirects = await transferLinks.evaluateAll(nodes => nodes.map(node => {
+    const anchor = node as HTMLAnchorElement
+    const url = new URL(anchor.href)
+    return { id: anchor.dataset.affiliatePartner, endpoint: url.pathname, fallback: anchor.dataset.affiliateFallback }
+  }))
+  expect(transferRedirects).toEqual(expect.arrayContaining([
+    { id: 'gettransfer', endpoint: '/api/affiliates/link', fallback: 'https://gettransfer.tpx.lv/yYXGNhMm' },
+    { id: 'intui', endpoint: '/api/affiliates/link', fallback: 'https://intui.tpx.lv/6QOOPhJd' },
+    { id: 'kiwitaxi', endpoint: '/api/affiliates/link', fallback: 'https://kiwitaxi.tpx.lv/wN8KUFkg' },
+  ]))
 })
 
 test('Homepage outbound affiliate CTAs are limited to verified short links', async ({ page }) => {
   await page.goto('/')
   const promo = page.locator('section[aria-labelledby="promo-deals-title"]')
-  await expect(promo.getByRole('heading', { name: 'Exclusive Travel Promo Deals' })).toBeVisible()
+  await expect(promo.getByRole('heading', { name: 'Explore Travel Partner Services' })).toBeVisible()
   const promoLink = promo.locator('a[data-affiliate-status="verified"]')
   await expect(promoLink).toHaveCount(1)
-  await expect(promoLink).toHaveAttribute('href', 'https://intui.tpx.lv/XuaKpcpV')
+  await expect(promoLink).toHaveAttribute('href', 'https://intui.tpx.lv/6QOOPhJd')
   await expect(promo.getByText('20% OFF First eSIM Order')).toHaveCount(0)
   const affiliateLinks = page.locator('a[data-affiliate-status="verified"]')
   const hrefs = await affiliateLinks.evaluateAll(nodes => nodes.map(node => (node as HTMLAnchorElement).href))
@@ -118,8 +154,8 @@ test('Homepage outbound affiliate CTAs are limited to verified short links', asy
   for (const href of hrefs) {
     expect([
       'https://autoeurope.tpx.lv/1NuZscel',
-      'https://qeeq.tpx.lv/xVJH8wOZ',
-      'https://intui.tpx.lv/XuaKpcpV',
+      'https://qeeq.tpx.lv/n9oGqafJ',
+      'https://intui.tpx.lv/6QOOPhJd',
     ]).toContain(href)
   }
   await expect(page.locator('a[href*="europcar.com"], a[href*="hertz.com"], a[href*="getyourguide.com"], a[href*="viator.com"]')).toHaveCount(0)

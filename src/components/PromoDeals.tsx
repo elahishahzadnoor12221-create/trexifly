@@ -50,7 +50,7 @@ const EVERGREEN_DEALS: PromoDeal[] = [
     title: 'Airport Transfers',
     discount: 'Transfers',
     description: 'Book reliable airport transfers in destinations worldwide. Check prices and terms with Intui.travel.',
-    affiliate_url: 'https://intui.tpx.lv/XuaKpcpV',
+    affiliate_url: 'https://intui.tpx.lv/6QOOPhJd',
     expiry_date: '',
     evergreen: true,
   },
@@ -176,6 +176,7 @@ export function PromoDeals() {
   const [deals, setDeals] = useState<PromoDeal[]>(() => filterActiveDeals(withEvergreen(FALLBACK_DEALS)))
   const [source, setSource] = useState<'fallback' | 'sheet'>('fallback')
   const [loading, setLoading] = useState(Boolean(SHEET_CSV_URL))
+  const hasLimitedOffers = deals.some((deal) => deal.evergreen !== true)
 
   useEffect(() => {
     if (!SHEET_CSV_URL) return
@@ -207,8 +208,8 @@ export function PromoDeals() {
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">Limited-time partner offers</p>
-            <h2 id="promo-deals-title" className="mt-2 text-2xl font-extrabold text-[#172B4D] sm:text-3xl">Exclusive Travel Promo Deals</h2>
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-[#FF5500]">{hasLimitedOffers ? 'Limited-time partner offers' : 'Partner travel services'}</p>
+            <h2 id="promo-deals-title" className="mt-2 text-2xl font-extrabold text-[#172B4D] sm:text-3xl">{hasLimitedOffers ? 'Exclusive Travel Promo Deals' : 'Explore Travel Partner Services'}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Explore current partner offers. Check eligibility, final pricing and full terms on the partner website before purchase.</p>
           </div>
           <span className="rounded-full border border-orange-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600">{loading ? 'Checking latest offers\u2026' : source === 'sheet' ? 'Live sheet feed' : 'Partner offers'}</span>

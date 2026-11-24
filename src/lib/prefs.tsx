@@ -87,7 +87,7 @@ function currencySymbol(code: Currency) {
 }
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<'light' | 'dark'>(() => readStored('trexifly.theme', ['light', 'dark'], 'light'))
+  const [theme, setThemeState] = useState<'light' | 'dark'>(() => readStored('trexifly.theme', ['light', 'dark'], 'dark'))
   const [currency, setCurrencyState] = useState<Currency>(() => readStored('trexifly.currency', CURRENCIES, 'USD'))
   const [lang, setLangState] = useState<Lang>(() => readStored('trexifly.lang', ['en', 'ur', 'ar'], 'en'))
   const [rates, setRates] = useState<FxRates>(() => ({ ...FALLBACK_RATES, ...(readFxCache()?.rates ?? {}) }))
