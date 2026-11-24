@@ -26,8 +26,9 @@ test('flight results show exact fare labels, route link and expandable fare deta
   await expect(page.getByRole('heading', { name: 'Emirates' })).toBeVisible()
   await expect(page.getByText('Flight 204 · Non-stop')).toBeVisible()
   await expect(page.getByText('$200')).toBeVisible()
-  const booking = page.getByRole('link', { name: 'Compare & Book' })
+  const booking = page.getByRole('link', { name: /Continue with partner|Search pre-filled/ })
   await expect(booking).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
+  await expect(booking).toHaveAttribute('data-affiliate-status', 'verified')
   const details = page.getByText('Flight details')
   await expect(details).toBeVisible()
   await details.click()
@@ -48,8 +49,10 @@ test('flight results show same-month flexible fare estimates and exact-date fall
   await expect(page.getByText('$176').first()).toBeVisible()
   const flexibleFare = page.getByRole('link', { name: /Sun, Dec 6/ })
   await expect(flexibleFare).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
-  const liveFare = page.getByRole('link', { name: /Compare & Book with Partner/ })
+  await expect(flexibleFare).toHaveAttribute('data-affiliate-status', 'verified')
+  const liveFare = page.getByRole('link', { name: /Continue with partner|Search pre-filled/ })
   await expect(liveFare).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
+  await expect(liveFare).toHaveAttribute('data-affiliate-status', 'verified')
 })
 
 test('round-trip flight request and Aviasales link preserve dates, passengers and cabin', async ({ page }) => {
@@ -69,7 +72,9 @@ test('round-trip flight request and Aviasales link preserve dates, passengers an
   expect(request.searchParams.get('adults')).toBe('2')
   expect(request.searchParams.get('children')).toBe('1')
   expect(request.searchParams.get('trip_class')).toBe('C')
-  await expect(page.getByRole('link', { name: /Compare & Book with Partner/ })).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
+  const booking = page.getByRole('link', { name: /Continue with partner|Search pre-filled/ })
+  await expect(booking).toHaveAttribute('href', 'https://aviasales.tpx.lv/ZOqzJHaf')
+  await expect(booking).toHaveAttribute('data-affiliate-status', 'verified')
 })
 
 

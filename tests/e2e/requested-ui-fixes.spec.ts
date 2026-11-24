@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test'
 
+// These layout checks do not need video/trace capture; disabling both keeps
+// Chromium context teardown fast and avoids media finalization timing out.
+test.use({ video: 'off', trace: 'off' })
+
 async function setTheme(page: Page, dark: boolean) {
   const toggle = page.getByRole('button', { name: /Switch to (dark|light) mode/ })
   const isDark = (await toggle.getAttribute('aria-pressed')) === 'true'

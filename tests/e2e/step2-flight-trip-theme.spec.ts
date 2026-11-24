@@ -40,18 +40,29 @@ for (const dark of [false, true]) {
   })
 }
 
-test('Hotel results show verified Klook and KKday handoffs and disclose that live inventory is not displayed', async ({ page }) => {
+test('Hotel results show the dynamic Trip.com handoff and disclose that live inventory is not displayed', async ({ page }) => {
   await page.goto('/results?type=hotels&to=Dubai%2C%20United%20Arab%20Emirates&out=2026-12-10&back=2026-12-14')
   await expect(page.locator('.hotel-provider-link')).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Compare hotel booking partners' })).toBeVisible()
-  const klookLink = page.getByRole('link', { name: /Search hotels on Klook/ })
-  await expect(klookLink).toBeVisible()
-  await expect(klookLink).toHaveAttribute('data-affiliate-status', 'verified')
-  const kkdayLink = page.getByRole('link', { name: /Search hotels on KKday/ })
-  await expect(kkdayLink).toBeVisible()
-  await expect(kkdayLink).toHaveAttribute('href', 'https://kkday.tpx.lv/x5gqHfDJ')
-  await expect(kkdayLink).toHaveAttribute('data-affiliate-status', 'verified')
-  await expect(klookLink).toHaveAttribute('href', /klook\.tpx\.lv/)
+  const tripLink = page.getByRole('link', { name: /Search hotels on Trip.com/ })
+  await expect(tripLink).toBeVisible()
+  await expect(tripLink).toHaveAttribute('data-affiliate-status', 'dynamic')
+  const tripRedirect = await tripLink.evaluate(node => {
+    const url = new URL((node as HTMLAnchorElement).href)
+    return {
+      pathname: url.pathname,
+      id: url.searchParams.get('id'),
+      destination: url.searchParams.get('to'),
+      departure: url.searchParams.get('out'),
+      returnDate: url.searchParams.get('back'),
+    }
+  })
+  expect(tripRedirect).toEqual({
+    pathname: '/api/affiliates/link', id: 'trip',
+    destination: 'Dubai, United Arab Emirates',
+    departure: '2026-12-10', returnDate: '2026-12-14',
+  })
+  await expect(page.getByRole('link', { name: /Search hotels on Klook|Search hotels on KKday/ })).toHaveCount(0)
   const disclosure = page.getByText(/does not display live hotel inventory or guarantee availability/i)
   await expect(disclosure).toBeVisible()
   for (const dark of [false, true]) {

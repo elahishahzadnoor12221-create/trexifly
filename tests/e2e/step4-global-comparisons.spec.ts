@@ -17,7 +17,7 @@ test('car rental search uses verified partner handoffs instead of fabricated veh
     { id: 'autoeurope', endpoint: '/api/affiliates/link', fallback: 'https://autoeurope.tpx.lv/1NuZscel' },
     { id: 'qeeq', endpoint: '/api/affiliates/link', fallback: 'https://qeeq.tpx.lv/n9oGqafJ' },
   ]))
-  await expect(page.getByText(/does not generate vehicle, tour or transfer offers/i)).toBeVisible()
+  await expect(page.getByText(/Trexifly does not operate vehicles, tours or transfer services/i)).toBeVisible()
   await expect(page.locator('main article')).toHaveCount(0)
 })
 

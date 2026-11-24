@@ -1,5 +1,9 @@
 ﻿import { test, expect } from '@playwright/test'
 
+// These navigation/validation checks do not need media artifacts; disabling
+// trace and video avoids slow Chromium context finalization on this spec.
+test.use({ video: 'off', trace: 'off' })
+
 const flightSearchUrl = '**/api/flights/search?*'
 const calendarUrl = '**/api/flights/calendar?*'
 const sampleOffer = {

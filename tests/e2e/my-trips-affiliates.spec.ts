@@ -89,21 +89,33 @@ test('Verified partner links and the owner-supplied hotel handoff are exposed ac
 
   await page.goto('/results?type=hotels&to=Dubai&out=2026-12-10&back=2026-12-14')
   const tripHotelLink = page.getByRole('link', { name: /Search hotels on Trip.com/ })
-  await expect(tripHotelLink).toHaveAttribute('href', 'https://www.trip.com/t/SsY6ZaegIX2')
-  await expect(tripHotelLink).toHaveAttribute('data-affiliate-status', 'unverified')
-  const klookHotelLink = page.getByRole('link', { name: /Search hotels on Klook/ })
-  await expect(klookHotelLink).toHaveAttribute('href', 'https://klook.tpx.lv/LvAH7l4w')
-  await expect(klookHotelLink).toHaveAttribute('data-affiliate-status', 'verified')
-  const kkdayHotelLink = page.getByRole('link', { name: /Search hotels on KKday/ })
-  await expect(kkdayHotelLink).toHaveAttribute('href', 'https://kkday.tpx.lv/x5gqHfDJ')
-  await expect(kkdayHotelLink).toHaveAttribute('data-affiliate-status', 'verified')
-  await klookHotelLink.evaluate(el => {
+  await expect(tripHotelLink).toBeVisible()
+  await expect(tripHotelLink).toHaveAttribute('data-affiliate-status', 'dynamic')
+  const hotelRedirect = await tripHotelLink.evaluate(node => {
+    const url = new URL((node as HTMLAnchorElement).href)
+    return {
+      pathname: url.pathname,
+      id: url.searchParams.get('id'),
+      destination: url.searchParams.get('to'),
+      departure: url.searchParams.get('out'),
+      returnDate: url.searchParams.get('back'),
+      adults: url.searchParams.get('adults'),
+      children: url.searchParams.get('children'),
+      rooms: url.searchParams.get('rooms'),
+    }
+  })
+  expect(hotelRedirect).toEqual({
+    pathname: '/api/affiliates/link', id: 'trip', destination: 'Dubai',
+    departure: '2026-12-10', returnDate: '2026-12-14', adults: '2', children: '0', rooms: '1',
+  })
+  await expect(page.getByRole('link', { name: /Search hotels on Klook|Search hotels on KKday/ })).toHaveCount(0)
+  await tripHotelLink.evaluate(el => {
     document.addEventListener('click', event => event.preventDefault(), { once: true, capture: true })
     el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
   })
   const hotelCheckout = await page.evaluate(() => JSON.parse(localStorage.getItem('trexifly.my-trips.v1') || '[]'))
   expect(hotelCheckout).toHaveLength(1)
-  expect(hotelCheckout[0].partner).toBe('Klook')
+  expect(hotelCheckout[0].partner).toBe('Trip.com')
   expect(hotelCheckout[0].status).toBe('Partner Checkout')
   await expect(page.locator('.hotel-provider-link')).toHaveCount(0)
 
@@ -131,12 +143,18 @@ test('Verified partner links and the owner-supplied hotel handoff are exposed ac
   const transferRedirects = await transferLinks.evaluateAll(nodes => nodes.map(node => {
     const anchor = node as HTMLAnchorElement
     const url = new URL(anchor.href)
-    return { id: anchor.dataset.affiliatePartner, endpoint: url.pathname, fallback: anchor.dataset.affiliateFallback }
+    return {
+      id: anchor.dataset.affiliatePartner,
+      endpoint: url.pathname,
+      fallback: anchor.dataset.affiliateFallback,
+      from: url.searchParams.get('from'),
+      to: url.searchParams.get('to'),
+    }
   }))
   expect(transferRedirects).toEqual(expect.arrayContaining([
-    { id: 'gettransfer', endpoint: '/api/affiliates/link', fallback: 'https://gettransfer.tpx.lv/yYXGNhMm' },
-    { id: 'intui', endpoint: '/api/affiliates/link', fallback: 'https://intui.tpx.lv/6QOOPhJd' },
-    { id: 'kiwitaxi', endpoint: '/api/affiliates/link', fallback: 'https://kiwitaxi.tpx.lv/wN8KUFkg' },
+    { id: 'gettransfer', endpoint: '/api/affiliates/link', fallback: 'https://gettransfer.tpx.lv/yYXGNhMm', from: null, to: null },
+    { id: 'intui', endpoint: '/api/affiliates/link', fallback: 'https://intui.tpx.lv/6QOOPhJd', from: null, to: null },
+    { id: 'kiwitaxi', endpoint: '/api/affiliates/link', fallback: 'https://kiwitaxi.tpx.lv/wN8KUFkg', from: 'DXB', to: 'Dubai Marina' },
   ]))
 })
 
