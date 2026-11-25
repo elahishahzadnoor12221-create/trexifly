@@ -229,10 +229,10 @@ export function Header() {
   const isActive = (key: string) => pathname === '/' ? activeTab === key : (params.get('type') === key || (key === 'transfers' && params.get('service') === 'airport-transfer'))
   return (
     <header className="site-header relative z-50 border-b border-slate-200 bg-[#FFFFFF] text-slate-900">
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-6 2xl:max-w-[1600px]">
         <div className="flex min-h-[80px] items-center justify-between gap-4 xl:gap-6">
           <Logo />
-                  <nav aria-label="Travel categories" className="hidden min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap xl:flex">
+                  <nav aria-label="Travel categories" className="hidden min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap 2xl:flex">
           {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
         </nav>
           <div className="flex shrink-0 items-center gap-1 whitespace-nowrap sm:gap-3">
@@ -243,7 +243,7 @@ export function Header() {
             <button onClick={() => setAuthMode('signin')} className="rounded-lg bg-[#FF5500] px-2 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#E64A00] sm:px-3">Account</button>
           </div>
         </div>
-                <nav aria-label="Travel categories" className="no-scrollbar flex gap-2 overflow-x-auto pb-3 xl:hidden">
+                <nav aria-label="Travel categories" className="no-scrollbar flex gap-2 overflow-x-auto pb-3 2xl:hidden">
           {NAV.map(item => <Link key={item.key} to={item.to} aria-current={isActive(item.key) ? 'page' : undefined} className={cx('inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2.5 text-sm font-semibold transition', isActive(item.key) ? 'border-[#FF5500] bg-[#FF5500] text-white shadow-[0_5px_16px_rgba(255,85,0,.18)]' : 'border-transparent text-slate-700 hover:border-orange-200 hover:bg-orange-50')}><Icon name={item.icon} className={cx('size-4', isActive(item.key) ? 'text-white' : 'text-[#FF5500]')} />{item.short}</Link>)}
           <Link to="/my-trips" className="inline-flex shrink-0 items-center rounded-full border border-orange-200 px-3.5 py-2.5 text-sm font-semibold text-[#B93800]">My Trips</Link>
         </nav>
