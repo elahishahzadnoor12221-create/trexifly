@@ -1,5 +1,5 @@
-import { adminWriteAllowed, db, envFor, isAdmin, jsonHeaders, parseBody, text, type ApiReq, type ApiRes } from '../../src/lib/alertsServer.js'
-export default async function handler(req:ApiReq,res:ApiRes,ctx?:{env?:import('../../src/lib/alertsServer.js').AlertEnv}) {
+import { adminWriteAllowed, db, envFor, isAdmin, jsonHeaders, parseBody, text, type ApiReq, type ApiRes } from '../../lib/alertsServer.js'
+export default async function handler(req:ApiReq,res:ApiRes,ctx?:{env?:import('../../lib/alertsServer.js').AlertEnv}) {
  jsonHeaders(res);const env=envFor(req,ctx)
  if(!await isAdmin(req,env))return res.status(401).json({error:'Admin login required'})
  try{

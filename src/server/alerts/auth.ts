@@ -1,5 +1,5 @@
-import { clearSessionCookie, createSession, envFor, header, isAdmin, jsonHeaders, parseBody, rateLimit, requireSameOrigin, setSessionCookie, type ApiReq, type ApiRes } from '../../src/lib/alertsServer.js'
-export default async function handler(req:ApiReq,res:ApiRes,ctx?:{env?:import('../../src/lib/alertsServer.js').AlertEnv}) {
+import { clearSessionCookie, createSession, envFor, header, isAdmin, jsonHeaders, parseBody, rateLimit, requireSameOrigin, setSessionCookie, type ApiReq, type ApiRes } from '../../lib/alertsServer.js'
+export default async function handler(req:ApiReq,res:ApiRes,ctx?:{env?:import('../../lib/alertsServer.js').AlertEnv}) {
  jsonHeaders(res); const env=envFor(req,ctx)
  if(req.method==='GET') return res.status(200).json({authenticated:await isAdmin(req,env)})
  if(req.method==='DELETE'){if(!requireSameOrigin(req,env))return res.status(403).json({error:'Invalid request origin'});clearSessionCookie(res);return res.status(200).json({ok:true})}

@@ -6,6 +6,11 @@
     "api/alerts/affiliates.ts": { "maxDuration": 30 }
   },
   "routes": [
+    { "src": "/api/alerts/auth", "dest": "/api/alerts-admin?handler=auth" },
+    { "src": "/api/alerts/contacts", "has": [{ "type": "query", "key": "type", "value": "agent" }], "dest": "/api/alerts-admin?handler=contacts&type=agent" },
+    { "src": "/api/alerts/contacts", "has": [{ "type": "query", "key": "type", "value": "client" }], "dest": "/api/alerts-admin?handler=contacts&type=client" },
+    { "src": "/api/alerts/contacts", "dest": "/api/alerts-admin?handler=contacts" },
+    { "src": "/api/alerts/whatsapp", "dest": "/api/alerts-admin?handler=whatsapp" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
