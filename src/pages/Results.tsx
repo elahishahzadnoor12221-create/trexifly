@@ -6,6 +6,7 @@ import { readQuery, dealsFor, PLACES, type Deal, type SearchQuery } from '../lib
 import { generateHotelInventory, type HotelListing } from '../lib/hotels'
 import { buildAffiliateUrl, getAffiliatePartners } from '../lib/affiliates'
 import { buildHotelProviderLinks } from '../lib/hotelLinks'
+import { buildWhiteLabelUrl } from '../lib/whiteLabel'
 import { recordPartnerCheckout, saveTrip, type TripCategory } from '../lib/trips'
 import { usePrefs } from '../lib/prefs'
 import { imgFallback } from '../lib/imageFallback'
@@ -215,6 +216,16 @@ function LiveFlightsResults({ query, infants, params }: { query: SearchQuery; in
     return () => controller.abort()
   }, [origin, destination, query.out, query.back, oneWay])
   const searchUrl = partnerSearchUrl || buildAffiliateUrl('flights')
+  const liveUrl = (() => {
+    try {
+      return buildWhiteLabelUrl({
+        origin, destination, departDate: query.out, returnDate: oneWay ? undefined : query.back,
+        adults: query.adults ?? 2, children: query.children ?? 0, infants,
+        cabin: /business/i.test(query.pax) ? 'business' : /first/i.test(query.pax) ? 'first' : /premium economy|comfort/i.test(query.pax) ? 'comfort' : 'economy',
+      })
+    } catch { return '' }
+  })()
+  const trackLiveSearch = () => recordPartnerCheckout({ title: query.from + ' to ' + query.to, category: 'flights', origin: query.from, destination: query.to, departureDate: query.out, returnDate: query.back, partner: 'Trexifly Live Search', partnerUrl: liveUrl })
   const trackFlightCheckout = () => recordPartnerCheckout({ title: query.from + ' to ' + query.to, category: 'flights', origin: query.from, destination: query.to, departureDate: query.out, returnDate: query.back, partner: 'Aviasales', partnerUrl: searchUrl })
   const [savedNotice, setSavedNotice] = useState('')
   const saveFlightItinerary = () => { saveTrip({ title: query.from + ' to ' + query.to, category: 'flights', origin: query.from, destination: query.to, departureDate: query.out, returnDate: query.back }); setSavedNotice('Itinerary saved to My Trips on this device.') }
@@ -224,6 +235,7 @@ function LiveFlightsResults({ query, infants, params }: { query: SearchQuery; in
   return <div className="results-page min-h-screen bg-[#FFF7F2] pb-16 pt-8 dark:bg-slate-950"><div className="mx-auto max-w-7xl px-4 sm:px-6">
     <Link to="/" className="text-xs font-semibold text-[#FF5500] hover:underline">Back to search</Link>
     <div className="mb-5 mt-3 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">{query.from} to {query.to}</h1><p className="mt-1 text-xs text-slate-600">Trexifly fare estimates are based on recent partner data. They are not live availability or guaranteed ticket prices.</p>{status !== 'loading' && <p className="mt-1 text-xs text-slate-600">{deepLinkReady ? 'Your route, dates, cabin and passenger details will be pre-filled on the booking partner.' : 'The partner link is ready, but you may need to enter your search details again.'}</p>}{savedNotice && <p role="status" className="mt-2 text-xs font-semibold text-emerald-700">{savedNotice}</p>}</div><button type="button" onClick={saveFlightItinerary} className="rounded-lg border border-[#FF5500] bg-white px-4 py-2.5 text-xs font-bold text-[#D94700] hover:bg-orange-50">Save itinerary to My Trips</button></div>
+    {liveUrl && <section aria-label="Live flight prices" className="mb-5 rounded-2xl border border-orange-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-[#D94700]">Live prices</p><h2 className="mt-1 text-base font-extrabold text-slate-900 dark:text-white">See live flights for {query.from} to {query.to}</h2><p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">Your route, dates, travellers and cabin are pre-filled. Live fares and availability come from our booking partner; the final price is confirmed at checkout.</p></div><a href={liveUrl} onClick={trackLiveSearch} data-affiliate-status="verified" className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#FF5500] px-5 py-3 text-sm font-bold text-white">See live prices <Icon name="arrowUpRight" className="size-4"/></a></div></section>}
     <TripSearchSummary query={query} params={params}/>
     <div className="mb-6 rounded-xl bg-white p-3 shadow-sm"><SearchWidget initial={query} compact hideCategoryTabs/></div>
     <section aria-label="Fare calendar" className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
